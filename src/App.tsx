@@ -3,7 +3,6 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/lib/queryClient'
 import { router } from '@/routes'
 import { ToastProvider } from '@/components/ui/Toast'
-import { ScrollToTop } from '@/components/seo/Seo'
 import { APP_NAME, APP_SLOGAN } from '@/constants'
 import { applySeo } from '@/lib/seo'
 
@@ -13,7 +12,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <ScrollToTop />
         <RouterProvider router={router} />
       </ToastProvider>
     </QueryClientProvider>
