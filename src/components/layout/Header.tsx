@@ -12,6 +12,7 @@ const NAV: { label: string; to: string }[] = [
   { label: 'الصيدليات', to: '/pharmacies' },
   { label: 'الصيدليات المناوبة', to: '/duty-pharmacies' },
   { label: 'المراكز الصحية', to: '/health-centers' },
+  { label: 'من نحن', to: '/about' },
   { label: 'النصائح الطبية', to: '/articles' },
   { label: 'اسأل دليلك الطبي', to: '/ask' },
 ]
@@ -48,7 +49,7 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex">
-          {NAV.slice(0, 6).map((item) => (
+          {NAV.slice(0, 7).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

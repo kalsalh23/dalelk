@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Link, Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import {
   LayoutDashboard, Stethoscope, Building2, Hospital, HeartPulse, Pill, Moon,
   FlaskConical, ScanLine, Newspaper, MessagesSquare, Inbox, CreditCard,
@@ -59,7 +59,14 @@ const NAV = [
 
 function AdminShell() {
   const { profile, loading, isAdmin } = useAdminAuth()
+  const { pathname } = useLocation()
+  const isLoginRoute = pathname === '/admin/login'
   if (loading) return <FullPageLoader label="جارٍ التحقق من الجلسة…" />
+  // صفحة تسجيل الدخول متاحة دائماً
+  if (isLoginRoute) {
+    if (isAdmin && profile) return <Navigate to="/admin" replace />
+    return <Outlet />
+  }
   if (!isAdmin || !profile) return <AuthNotice />
   return <AdminContent profile={profile} />
 }
