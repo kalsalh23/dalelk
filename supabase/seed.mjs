@@ -129,7 +129,7 @@ const docRows = doctors.map((d, i) => ({
   image: [docImg1, docImg2, docImg3, docImg2, docImg1, docImg3, docImg1, docImg2][i],
   sort_order: i, is_verified: i % 3 === 0,
 }))
-const insertedDoctors = await insert('doctors', docRows)
+await insert('doctors', docRows)
 
 // ---------- العيادات ----------
 const clinics = [

@@ -264,11 +264,11 @@ export function AdminSettingsPage() {
             >
             <label className="flex cursor-pointer items-center justify-between rounded-xl border border-border p-4">
               <div>
-                <p className="text-sm font-bold text-ink">{Boolean(settings.subscriptions_enabled) ? 'مفعّلة' : 'معطّلة'}</p>
+                <p className="text-sm font-bold text-ink">{settings.subscriptions_enabled ? 'مفعّلة' : 'معطّلة'}</p>
                 <p className="text-xs text-muted">عند التفعيل يعرض القطاع الحرفي Free Pro Gold</p>
               </div>
-              <div onClick={() => setSettings((s) => ({ ...(s ?? {}), subscriptions_enabled: !Boolean(settings.subscriptions_enabled) }))} className={cn('relative h-7 w-12 rounded-full transition-colors', Boolean(settings.subscriptions_enabled) ? 'bg-primary' : 'bg-slate-300')}>
-                <span className={cn('absolute top-1 size-5 rounded-full bg-white shadow transition-all', Boolean(settings.subscriptions_enabled) ? 'right-6' : 'right-1')} />
+              <div onClick={() => setSettings((s) => ({ ...(s ?? {}), subscriptions_enabled: !settings.subscriptions_enabled }))} className={cn('relative h-7 w-12 rounded-full transition-colors', settings.subscriptions_enabled ? 'bg-primary' : 'bg-slate-300')}>
+                <span className={cn('absolute top-1 size-5 rounded-full bg-white shadow transition-all', settings.subscriptions_enabled ? 'right-6' : 'right-1')} />
               </div>
             </label>
           </Field>
