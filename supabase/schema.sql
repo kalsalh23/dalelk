@@ -341,6 +341,21 @@ create table if not exists public.statistics (
 create index if not exists idx_statistics_event on public.statistics(event_type, created_at);
 create index if not exists idx_statistics_path on public.statistics(path);
 
+-- ---------- الإعلانات ----------
+create table if not exists public.advertisements (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text,
+  image text,
+  link text,
+  placement text default 'home', -- home | about
+  is_active boolean default true,
+  sort_order int default 0,
+  clicks bigint default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 -- ---------- إعدادات المنصة ----------
 create table if not exists public.app_settings (
   id uuid primary key default gen_random_uuid(),
@@ -410,6 +425,8 @@ drop trigger if exists trg_req_upd on public.subscription_requests;
 create trigger trg_req_upd before update on public.subscription_requests for each row execute procedure public.set_updated_at();
 drop trigger if exists trg_duty_upd on public.duty_pharmacies;
 create trigger trg_duty_upd before update on public.duty_pharmacies for each row execute procedure public.set_updated_at();
+drop trigger if exists trg_ads_upd on public.advertisements;
+create trigger trg_ads_upd before update on public.advertisements for each row execute procedure public.set_updated_at();
 
 -- =====================================================
 -- Row Level Security
@@ -422,6 +439,7 @@ alter table public.hospitals enable row level security;
 alter table public.health_centers enable row level security;
 alter table public.pharmacies enable row level security;
 alter table public.duty_pharmacies enable row level security;
+alter table public.advertisements enable row level security;
 alter table public.labs enable row level security;
 alter table public.radiology_centers enable row level security;
 alter table public.articles enable row level security;
@@ -443,6 +461,7 @@ create policy "public_read_hospitals" on public.hospitals for select using (is_a
 create policy "public_read_health" on public.health_centers for select using (is_active = true or is_admin(auth.uid()));
 create policy "public_read_pharmacies" on public.pharmacies for select using (is_active = true or is_admin(auth.uid()));
 create policy "public_read_duty" on public.duty_pharmacies for select using (is_active = true or is_admin(auth.uid()));
+create policy "public_read_ads" on public.advertisements for select using (is_active = true or is_admin(auth.uid()));
 create policy "public_read_labs" on public.labs for select using (is_active = true or is_admin(auth.uid()));
 create policy "public_read_radiology" on public.radiology_centers for select using (is_active = true or is_admin(auth.uid()));
 create policy "public_read_articles" on public.articles for select using (is_published = true or is_admin(auth.uid()));
@@ -459,7 +478,7 @@ create policy "public_read_profiles" on public.profiles for select using (true);
 do $$
 declare t text;
 begin
-  foreach t in array array['cities','categories','doctors','clinics','hospitals','health_centers','pharmacies','duty_pharmacies','labs','radiology_centers','articles','news_items','medical_questions','medical_keywords','unanswered_questions','subscription_requests','app_settings'] loop
+  foreach t in array array['cities','categories','doctors','clinics','hospitals','health_centers','pharmacies','duty_pharmacies','labs','radiology_centers','articles','news_items','medical_questions','medical_keywords','unanswered_questions','subscription_requests','app_settings','advertisements'] loop
     execute format('create policy "admin_insert_%s" on public.%I for insert to authenticated with check (is_admin(auth.uid()));', t, t);
     execute format('create policy "admin_update_%s" on public.%I for update to authenticated using (is_admin(auth.uid())) with check (is_admin(auth.uid()));', t, t);
     execute format('create policy "admin_delete_%s" on public.%I for delete to authenticated using (is_admin(auth.uid()));', t, t);
@@ -483,7 +502,7 @@ create policy "profiles_update_self" on public.profiles for update to authentica
 -- إعدادات افتراضية
 -- =====================================================
 insert into public.app_settings (key, value)
-values ('site', '{"subscriptions_enabled": false, "notification_email": ""}')
+values ('site', '{"subscriptions_enabled": false, "notification_email": "", "about": {"content": "دليلك الطبي هو دليل رقمي شامل للخدمات الطبية في مدينة طيبة الإمام، يوفر للمواطن قائمة موثّقة بالأطباء والعيادات والمشافي والصيدليات والمراكز الصحية، مع مواقعهم على الخريطة وساعات الدوام وأرقام التواصل، بالإضافة إلى نصائح طبية موثوقة وقاعدة أسئلة وأجوبة صحية.", "support_phone": "+963933000000", "support_email": "support@dalil-altaybeh.com"}, "developer": {"name": "م. قصي مهند الصالح", "title": "مطوّر المنصة", "phone": "0952639157", "international_phone": "+963952639157", "instagram": "https://www.instagram.com/kosai_al_saleh?igsh=cWM0dzEzaThqN2sz", "facebook": "https://www.facebook.com/share/17m6YZ1NKS/"}}')
 on conflict (key) do nothing;
 
 -- المدينة الرئيسية

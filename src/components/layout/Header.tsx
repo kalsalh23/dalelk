@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Search, HeartPulse, HelpCircle } from 'lucide-react'
-import { APP_NAME } from '@/constants'
+import { Menu, X, Search, HelpCircle } from 'lucide-react'
+import { Logo } from '@/components/ui/Logo'
 import { cn } from '@/lib/utils'
 
 const NAV: { label: string; to: string }[] = [
@@ -44,13 +44,7 @@ export function Header() {
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link to="/" className="flex shrink-0 items-center gap-2.5">
-          <div className="flex size-10 items-center justify-center rounded-2xl bg-primary text-white shadow-md shadow-primary/25">
-            <HeartPulse className="size-6" />
-          </div>
-          <div className="leading-tight">
-            <p className="text-base font-black text-ink sm:text-lg">{APP_NAME}</p>
-            <p className="hidden text-[10px] font-medium text-muted sm:block">دليل الخدمات الطبية في طيبة الإمام</p>
-          </div>
+          <Logo />
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex">

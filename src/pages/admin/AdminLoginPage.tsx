@@ -53,7 +53,7 @@ export function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-12 w-full rounded-xl border border-border bg-surface pr-11 pl-3 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15"
-                placeholder="admin@daliq-el-tibb.sy"
+                placeholder="admin@dalil.com"
               />
             </div>
           </div>

@@ -211,3 +211,12 @@ export const DEFAULT_CITY_COORDS = { lat: 35.2907, lng: 36.99 }
 
 export const ABOUT_TEXT =
   'دليلك الطبي هو دليل رقمي شامل للخدمات الطبية في مدينة طيبة الإمام، يوفر للمواطن قائمة موثّقة بالأطباء والعيادات والمشافي والصيدليات والمراكز الصحية، مع مواقعهم على الخريطة وساعات الدوام وأرقام التواصل، بالإضافة إلى نصائح طبية موثوقة وقاعدة أسئلة وأجوبة صحية.'
+
+export const DEFAULT_DEVELOPER = {
+  name: 'م. قصي مهند الصالح',
+  title: 'مطوّر المنصة',
+  phone: '0952639157',
+  international_phone: '+963952639157',
+  instagram: 'https://www.instagram.com/kosai_al_saleh?igsh=cWM0dzEzaThqN2sz',
+  facebook: 'https://www.facebook.com/share/17m6YZ1NKS/',
+}

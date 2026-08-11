@@ -60,13 +60,13 @@ export async function fetchEntities<T>(
 
 export async function fetchEntity<T>(type: EntityType, slugOrId: string): Promise<T | null> {
   const table = ENTITY_TABLES[type]
-  const { data, error } = await supabase
-    .from(table)
-    .select('*')
-    .or(`slug.eq.${slugOrId},id.eq.${slugOrId}`)
-    .single()
+  // المصطلح قد يكون slug نصياً أو id UUID — جرّب slug أولاً ثم id
+  let { data, error } = await supabase.from(table).select('*').eq('slug', slugOrId).maybeSingle()
   if (error) return null
-  return data as T
+  if (data) return data as T
+  const { data: byId, error: idError } = await supabase.from(table).select('*').eq('id', slugOrId).maybeSingle()
+  if (idError) return null
+  return (byId as T) ?? null
 }
 
 /** تفويض: كل الكيانات بمعيار المدينة والفعالية */

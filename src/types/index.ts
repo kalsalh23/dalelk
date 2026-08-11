@@ -196,6 +196,42 @@ export interface AppSetting {
   updated_at: string
 }
 
+export interface Advertisement {
+  id: string
+  title: string
+  description: string | null
+  image: string | null
+  link: string | null
+  placement: string
+  is_active: boolean
+  sort_order: number
+  clicks: number
+  created_at: string
+  updated_at: string
+}
+
+export interface AboutInfo {
+  content?: string
+  support_phone?: string
+  support_email?: string
+}
+
+export interface DeveloperInfo {
+  name?: string
+  title?: string
+  phone?: string
+  international_phone?: string
+  instagram?: string
+  facebook?: string
+}
+
+export interface SiteSettings {
+  subscriptions_enabled?: boolean
+  notification_email?: string
+  about?: AboutInfo
+  developer?: DeveloperInfo
+}
+
 export interface Profile {
   id: string
   is_admin: boolean

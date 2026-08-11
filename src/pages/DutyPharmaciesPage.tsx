@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Moon, Phone, MapPin, ExternalLink, Clock, CalendarDays } from 'lucide-react'
+import { Moon, Phone, MapPin, ExternalLink, Clock, CalendarDays, ArrowLeft } from 'lucide-react'
 import { useDutyPharmacies } from '@/hooks/useEntities'
 import { Breadcrumbs, SectionTitle } from '@/components/ui/Breadcrumbs'
 import { Card } from '@/components/ui/Card'
@@ -14,6 +14,7 @@ import type { DutyPharmacy } from '@/types'
 export function DutyPharmaciesPage() {
   const { data, isLoading } = useDutyPharmacies(null)
   const today = todaySQL()
+  const navigate = useNavigate()
 
   const grouped = useMemo(() => {
     const map = new Map<string, DutyPharmacy[]>()
@@ -68,7 +69,10 @@ export function DutyPharmaciesPage() {
                       viewport={{ once: true }}
                       transition={{ duration: 0.3, delay: Math.min(i * 0.06, 0.3) }}
                     >
-                      <Card className="h-full border-primary/20">
+                      <Card
+                        className="h-full cursor-pointer border-primary/20 transition hover:border-primary/40"
+                        onClick={() => { const ph = d.pharmacy; if (ph?.slug) navigate(`/pharmacies/${ph.slug}`); else if (ph?.id) navigate(`/pharmacies/${ph.id}`) }}
+                      >
                         <div className="p-5">
                           <div className="flex items-start justify-between gap-2">
                             <h3 className="text-lg font-black text-ink">{ph?.name ?? 'صيدلية'}</h3>
@@ -93,7 +97,7 @@ export function DutyPharmaciesPage() {
                             {ph?.phone ? (
                               <a
                                 href={`tel:${ph.phone}`}
-                                onClick={() => void track('phone_click', { entityType: 'pharmacy', entityId: ph.id })}
+                                onClick={(e) => { e.stopPropagation(); void track('phone_click', { entityType: 'pharmacy', entityId: ph.id }) }}
                                 className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-bold text-white transition hover:bg-primary-dark"
                               >
                                 <Phone className="size-4" />
@@ -103,11 +107,16 @@ export function DutyPharmaciesPage() {
                             <a
                               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ph?.address ?? 'طيبة الإمام')}`}
                               target="_blank" rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
                               className="flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-primary-light/40 px-4 py-2.5 text-sm font-bold text-primary-dark transition hover:bg-primary-light"
                             >
                               <ExternalLink className="size-4" />
                               فتح الخريطة
                             </a>
+                          </div>
+                          <div className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-slate-50 py-2 text-xs font-bold text-primary">
+                            عرض تفاصيل الصيدلية
+                            <ArrowLeft className="size-3.5" />
                           </div>
                         </div>
                       </Card>
