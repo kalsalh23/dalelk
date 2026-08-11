@@ -200,27 +200,27 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
           </div>
 
           {(phone || whatsapp) && (
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               {phone && (
-                <Button onClick={() => void track('phone_click', { entityType: type, entityId: String(ready.id) })} asChild>
-                  <a href={`tel:${phone}`} className="!bg-primary">
-                    <Phone className="size-4.5" />
+                <Button size="lg" onClick={() => void track('phone_click', { entityType: type, entityId: String(ready.id) })} asChild>
+                  <a href={`tel:${phone}`} className="!w-full sm:!flex-1">
+                    <Phone className="size-5" />
                     اتصال
                   </a>
                 </Button>
               )}
               {whatsapp && (
-                <Button onClick={() => void track('whatsapp_click', { entityType: type, entityId: String(ready.id) })} asChild>
-                  <a href={waLink(whatsapp, `مرحباً، أود الاستفسار من ${name}`)} target="_blank" rel="noopener noreferrer" className="!bg-[#25D366] hover:!bg-[#1fb457]">
-                    <MessageCircle className="size-4.5" />
+                <Button size="lg" variant="whatsapp" onClick={() => void track('whatsapp_click', { entityType: type, entityId: String(ready.id) })} asChild>
+                  <a href={waLink(whatsapp, `مرحباً، أود الاستفسار من ${name}`)} target="_blank" rel="noopener noreferrer" className="!w-full sm:!flex-1">
+                    <MessageCircle className="size-5" />
                     واتساب
                   </a>
                 </Button>
               )}
               {(lat && lng) || address ? (
-                <Button variant="outline" asChild onClick={() => void track('map_click', { entityType: type, entityId: String(ready.id) })}>
-                  <a href={mapsLink(lat, lng, address)} target="_blank" rel="noopener noreferrer">
-                    <MapPin className="size-4.5" />
+                <Button size="lg" variant="secondary" onClick={() => void track('map_click', { entityType: type, entityId: String(ready.id) })} asChild>
+                  <a href={mapsLink(lat, lng, address)} target="_blank" rel="noopener noreferrer" className="!w-full sm:!flex-1">
+                    <MapPin className="size-5" />
                     الموقع
                   </a>
                 </Button>
