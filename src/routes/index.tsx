@@ -1,0 +1,62 @@
+import { createBrowserRouter } from 'react-router-dom'
+import { MainLayout } from '@/layouts/MainLayout'
+import { AdminLayout } from '@/layouts/AdminLayout'
+import { NotFoundPage } from '@/pages/NotFoundPage'
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <MainLayout />,
+    children: [
+      { index: true, lazy: () => import('@/pages/HomePage').then((m) => ({ Component: m.HomePage })) },
+      { path: 'search', lazy: () => import('@/pages/SearchPage').then((m) => ({ Component: m.SearchPage })) },
+      { path: 'doctors', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.DoctorsList })) },
+      { path: 'doctors/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.DoctorDetail })) },
+      { path: 'clinics', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.ClinicsList })) },
+      { path: 'clinics/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.ClinicDetail })) },
+      { path: 'hospitals', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.HospitalsList })) },
+      { path: 'hospitals/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.HospitalDetail })) },
+      { path: 'health-centers', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.HealthList })) },
+      { path: 'health-centers/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.HealthDetail })) },
+      { path: 'pharmacies', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.PharmaciesList })) },
+      { path: 'pharmacies/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.PharmacyDetail })) },
+      { path: 'duty-pharmacies', lazy: () => import('@/pages/DutyPharmaciesPage').then((m) => ({ Component: m.DutyPharmaciesPage })) },
+      { path: 'labs', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.LabsList })) },
+      { path: 'labs/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.LabDetail })) },
+      { path: 'radiology', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.RadiologyList })) },
+      { path: 'radiology/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.RadiologyDetail })) },
+      { path: 'articles', lazy: () => import('@/pages/ArticlesListPage').then((m) => ({ Component: m.ArticlesListPage })) },
+      { path: 'articles/:slug', lazy: () => import('@/pages/ArticleDetailPage').then((m) => ({ Component: m.ArticleDetailPage })) },
+      { path: 'ask', lazy: () => import('@/pages/AskPage').then((m) => ({ Component: m.AskPage })) },
+      { path: 'contact', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.ContactPage })) },
+      { path: 'privacy', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.PrivacyPage })) },
+      { path: 'terms', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.TermsPage })) },
+      { path: 'disclaimer', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.DisclaimerPage })) },
+      { path: 'medical-policy', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.MedicalPolicyPage })) },
+    ],
+  },
+  {
+    path: '/admin',
+    element: <AdminLayout />,
+    children: [
+      { index: true, lazy: () => import('@/pages/admin/AdminHomePage').then((m) => ({ Component: m.AdminHomePage })) },
+      { path: 'login', lazy: () => import('@/pages/admin/AdminLoginPage').then((m) => ({ Component: m.AdminLoginPage })) },
+      { path: 'doctors', lazy: () => import('@/pages/admin/AdminEntitiesPage').then((m) => ({ Component: () => <m.AdminEntitiesPage table="doctors" /> })) },
+      { path: 'clinics', lazy: () => import('@/pages/admin/AdminEntitiesPage').then((m) => ({ Component: () => <m.AdminEntitiesPage table="clinics" /> })) },
+      { path: 'hospitals', lazy: () => import('@/pages/admin/AdminEntitiesPage').then((m) => ({ Component: () => <m.AdminEntitiesPage table="hospitals" /> })) },
+      { path: 'health-centers', lazy: () => import('@/pages/admin/AdminEntitiesPage').then((m) => ({ Component: () => <m.AdminEntitiesPage table="health_centers" /> })) },
+      { path: 'pharmacies', lazy: () => import('@/pages/admin/AdminEntitiesPage').then((m) => ({ Component: () => <m.AdminEntitiesPage table="pharmacies" /> })) },
+      { path: 'labs', lazy: () => import('@/pages/admin/AdminEntitiesPage').then((m) => ({ Component: () => <m.AdminEntitiesPage table="labs" /> })) },
+      { path: 'radiology', lazy: () => import('@/pages/admin/AdminEntitiesPage').then((m) => ({ Component: () => <m.AdminEntitiesPage table="radiology_centers" /> })) },
+      { path: 'duty-pharmacies', lazy: () => import('@/pages/admin/AdminDutyPage').then((m) => ({ Component: m.AdminDutyPage })) },
+      { path: 'articles', lazy: () => import('@/pages/admin/AdminArticlesPage').then((m) => ({ Component: m.AdminArticlesPage })) },
+      { path: 'questions', lazy: () => import('@/pages/admin/AdminQuestionsPages').then((m) => ({ Component: m.AdminQuestionsPage })) },
+      { path: 'unanswered', lazy: () => import('@/pages/admin/AdminQuestionsPages').then((m) => ({ Component: m.AdminUnansweredPage })) },
+      { path: 'plans', lazy: () => import('@/pages/admin/AdminMiscPages').then((m) => ({ Component: m.AdminPlansPage })) },
+      { path: 'requests', lazy: () => import('@/pages/admin/AdminMiscPages').then((m) => ({ Component: m.AdminRequestsPage })) },
+      { path: 'stats', lazy: () => import('@/pages/admin/AdminMiscPages').then((m) => ({ Component: m.AdminStatsPage })) },
+      { path: 'settings', lazy: () => import('@/pages/admin/AdminMiscPages').then((m) => ({ Component: m.AdminSettingsPage })) },
+    ],
+  },
+  { path: '*', element: <NotFoundPage /> },
+])

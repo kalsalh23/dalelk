@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420">
+<rect width="640" height="420" fill="#16A34A"/>
+<g fill="none" stroke="rgba(255,255,255,.9)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="320" cy="210" r="90"/><path d="M320 140 v140 M250 210 h140"/>
+</g>
+<text x="320" y="330" text-anchor="middle" font-family="sans-serif" font-size="42" font-weight="700" fill="#ffffff">صيدلية</text>
+</svg>
