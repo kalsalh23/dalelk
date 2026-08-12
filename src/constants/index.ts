@@ -207,7 +207,7 @@ export const MAP_COLORS: Record<EntityType, string> = {
   radiology: '#E11D48',
 }
 
-export const DEFAULT_CITY_COORDS = { lat: 35.2907, lng: 36.99 }
+export const DEFAULT_CITY_COORDS = { lat: 35.26389, lng: 36.70667 }
 
 export const ABOUT_TEXT =
   'دليلك الطبي هو دليل رقمي شامل للخدمات الطبية في مدينة طيبة الإمام، يوفر للمواطن قائمة موثّقة بالأطباء والعيادات والمشافي والصيدليات والمراكز الصحية، مع مواقعهم على الخريطة وساعات الدوام وأرقام التواصل، بالإضافة إلى نصائح طبية موثوقة وقاعدة أسئلة وأجوبة صحية.'

@@ -507,7 +507,7 @@ on conflict (key) do nothing;
 
 -- المدينة الرئيسية
 insert into public.cities (name, slug, lat, lng)
-values ('طيبة الإمام', 'taybet-al-imam', 35.29, 36.99)
+values ('طيبة الإمام', 'taybet-al-imam', 35.26389, 36.70667)
 on conflict (slug) do nothing;
 
 -- تصنيفات المقالات

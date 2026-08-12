@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420">
+<rect width="640" height="420" fill="#0284C7"/>
+<g fill="none" stroke="rgba(255,255,255,.9)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M140 300 V200 l60 40 V160 l60 40 V120" /><rect x="120" y="300" width="80" height="40"/><rect x="260" y="300" width="80" height="40"/><rect x="400" y="300" width="120" height="40"/>
+</g>
+<text x="320" y="330" text-anchor="middle" font-family="sans-serif" font-size="42" font-weight="700" fill="#ffffff">مستوصف</text>
+</svg>
