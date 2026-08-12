@@ -65,7 +65,11 @@ export async function compressImage(file: File, maxSize = 1200, quality = 0.82):
 }
 
 export async function uploadImage(entity: EntityType, file: File): Promise<string | null> {
-  const folder = BUCKET_FOLDERS[entity]
+  return uploadToFolder(BUCKET_FOLDERS[entity], file)
+}
+
+/** رفع صورة داخل مجلد مخصّص (مثل ads / articles) مع ضغط مسبق */
+export async function uploadToFolder(folder: string, file: File): Promise<string | null> {
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
   const name = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
   const path = `${folder}/${name}`

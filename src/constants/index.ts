@@ -165,7 +165,8 @@ export const PLAN_NAMES: Record<Plan, string> = {
   gold: 'ذهبي',
 }
 
-export const SUBSCRIPTIONS_ENABLED = false
+// تُقرأ القيمة الفعلية من إعدادات المنصة (app_settings) — هذا هو الافتراضي إن غابت الإعدادات
+export const SUBSCRIPTIONS_ENABLED = true
 
 export const DAYS_AR: Record<string, string> = {
   sat: 'السبت',

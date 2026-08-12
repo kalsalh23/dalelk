@@ -54,10 +54,10 @@ export function AdminHomePage() {
         <p className="mt-1 text-sm text-muted">نظرة عامة على محتوى المنصة وإحصاءات الزوار.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid min-w-0 grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-4">
         {isLoading || !stats ? (
-          <div className="col-span-full grid grid-cols-2 gap-4 md:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => <Skeletons key={i} rows={1} box="!p-6" />)}
+          <div className="col-span-full grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => <Skeletons key={i} rows={1} box="!p-5" />)}
           </div>
         ) : (
           <>
@@ -71,12 +71,12 @@ export function AdminHomePage() {
 
       <section>
         <h2 className="mb-4 text-lg font-black text-ink">الأدلة الطبية</h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {STAT_CARDS.map((c) => (
             <Link key={c.table} to={c.to}>
-              <Card className="transition-all hover:-translate-y-0.5 hover:shadow-lg">
-                <CardBody>
-                  <p className="text-3xl font-black text-ink">{isLoading ? '—' : formatNumber(stats?.entities[c.table] ?? 0)}</p>
+              <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                <CardBody className="p-4">
+                  <p className="text-2xl font-black text-ink sm:text-3xl">{isLoading ? '—' : formatNumber(stats?.entities[c.table] ?? 0)}</p>
                   <p className="mt-1 flex items-center gap-1 text-xs font-bold text-muted">
                     <span className={cn('size-2 rounded-full', colorStyles[c.color].bg)} />
                     <span className={colorStyles[c.color].text}>{c.label}</span>
@@ -89,16 +89,16 @@ export function AdminHomePage() {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid min-w-0 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="size-5 text-primary" />حركة الموقع</CardTitle></CardHeader>
           <CardBody>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {evMetrics.map((m) => (
-                <div key={m.label} className="rounded-2xl bg-slate-50 p-4">
+                <div key={m.label} className="rounded-2xl bg-slate-50 p-3.5 sm:p-4">
                   <m.icon className={cn('size-5', m.color)} />
-                  <p className="mt-2 text-2xl font-black text-ink">{formatNumber(m.value)}</p>
-                  <p className="text-xs font-semibold text-muted">{m.label}</p>
+                  <p className="mt-2 text-xl font-black text-ink sm:text-2xl">{formatNumber(m.value)}</p>
+                  <p className="text-[11px] font-semibold text-muted sm:text-xs">{m.label}</p>
                 </div>
               ))}
             </div>
@@ -184,11 +184,11 @@ function MetricCard({ label, value, color, to }: { label: string; value: number;
     rose: 'bg-rose-100/70 text-rose-700',
   }
   return (
-    <Link to={to}>
+    <Link to={to} className="min-w-0">
       <Card className="transition-all hover:-translate-y-0.5 hover:shadow-lg">
         <CardBody className="p-4">
-          <div className={cn('mb-2 inline-flex rounded-lg px-2 py-1 text-[10px] font-black', palette[color])}>{label} ↑</div>
-          <p className="text-2xl font-black text-ink">{formatNumber(value)}</p>
+          <div className={cn('mb-2 inline-flex max-w-full truncate rounded-lg px-2 py-1 text-[10px] font-black', palette[color])}>{label} ↑</div>
+          <p className="text-xl font-black text-ink sm:text-2xl">{formatNumber(value)}</p>
         </CardBody>
       </Card>
     </Link>

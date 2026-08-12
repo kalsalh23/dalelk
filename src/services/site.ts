@@ -2,11 +2,13 @@ import { supabase } from '@/lib/supabase'
 import type { Advertisement, SiteSettings } from '@/types'
 
 export async function fetchAds(placement = 'home'): Promise<Advertisement[]> {
+  const now = new Date().toISOString()
   const { data, error } = await supabase
     .from('advertisements')
     .select('*')
     .eq('is_active', true)
     .eq('placement', placement)
+    .or(`expires_at.is.null,expires_at.gte.${now}`)
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
     .limit(6)

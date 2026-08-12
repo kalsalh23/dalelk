@@ -16,9 +16,35 @@ import { cn } from '@/lib/utils'
 const planIcons: Record<string, typeof Sparkles> = { free: Lock, pro: Sparkles, gold: Crown }
 
 export function AdminPlansPage() {
+  const qc = useQueryClient()
+  const toast = useToast()
+  const [settings, setSettings] = useState<{ subscriptions_enabled: boolean } | null>(null)
   const { data: stats, isLoading } = useQuery({ queryKey: ['admin-stats'], queryFn: fetchAdminStats })
   const { data: reqs } = useQuery({ queryKey: ['admin-requests'], queryFn: fetchSubscriptionRequests })
 
+  useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: async () => {
+      const s = await fetchSettings()
+      setSettings({ subscriptions_enabled: Boolean(s.subscriptions_enabled) })
+      return s
+    },
+  })
+
+  const toggle = async () => {
+    if (!settings) return
+    const next = { subscriptions_enabled: !settings.subscriptions_enabled }
+    const ok = await saveSettings(next)
+    if (ok) {
+      setSettings(next)
+      await qc.invalidateQueries({ queryKey: ['admin-settings'] })
+      toast.show(next.subscriptions_enabled ? 'تم تفعيل الاشتراكات' : 'تم تعطيل الاشتراكات')
+    } else {
+      toast.show('تعذر التحديث', 'error')
+    }
+  }
+
+  const enabled = settings?.subscriptions_enabled ?? SUBSCRIPTIONS_ENABLED
   const counts = { free: stats?.plans.free ?? 0, pro: stats?.plans.pro ?? 0, gold: stats?.plans.gold ?? 0 }
   const active = reqs?.filter((r) => r.status === 'approved').length ?? 0
   const expired = reqs?.filter((r) => r.status === 'rejected').length ?? 0
@@ -29,12 +55,12 @@ export function AdminPlansPage() {
         <div>
           <h1 className="text-2xl font-black text-ink">الاشتراكات</h1>
           <p className="mt-0.5 text-sm text-muted">
-            {SUBSCRIPTIONS_ENABLED ? 'الاشتراكات مفعّلة' : 'الاشتراكات معطّلة حالياً — الجميع على الباقة المجانية'}
+            {enabled ? 'الاشتراكات مفعّلة — تظهر باقات الترقية للزوار' : 'الاشتراكات معطّلة حالياً — الجميع على الباقة المجانية'}
           </p>
         </div>
-        <span className={cn('rounded-full px-3 py-1.5 text-xs font-bold', SUBSCRIPTIONS_ENABLED ? 'bg-emerald-50 text-success' : 'bg-amber-50 text-amber-700')}>
-          {SUBSCRIPTIONS_ENABLED ? 'مفعّلة' : 'معطّلة'}
-        </span>
+        <Button size="sm" variant={enabled ? 'outline' : 'primary'} onClick={() => void toggle()}>
+          {enabled ? 'تعطيل الاشتراكات' : 'تفعيل الاشتراكات'}
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

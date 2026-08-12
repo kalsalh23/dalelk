@@ -8,10 +8,14 @@ import { Dialog, ConfirmDialog } from '@/components/ui/Dialog'
 import { Skeletons, EmptyState } from '@/components/ui/States'
 import { useToast } from '@/components/ui/Toast'
 import { fetchAllAds, createAd, updateAd, deleteAd } from '@/services/site'
-import { uploadImage, deleteImage } from '@/services/admin'
+import { deleteImage, uploadToFolder, compressImage } from '@/services/admin'
 import { getPublicUrl } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import type { Advertisement } from '@/types'
+
+function isExpired(ad: Advertisement): boolean {
+  return Boolean(ad.expires_at) && new Date(ad.expires_at!).getTime() <= Date.now()
+}
 
 export function AdminAdsPage() {
   const qc = useQueryClient()
@@ -47,8 +51,10 @@ export function AdminAdsPage() {
         <EmptyState title="لا توجد إعلانات" description="أضف أول إعلان ليظهر في القسم الإعلاني على الصفحة الرئيسية." />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {ads.map((ad) => (
-            <Card key={ad.id} className={cn('overflow-hidden', !ad.is_active && 'opacity-60')}>
+          {ads.map((ad) => {
+            const expired = isExpired(ad)
+            return (
+            <Card key={ad.id} className={cn('overflow-hidden', (expired || !ad.is_active) && 'opacity-60')}>
               {ad.image ? (
                 <div className="relative h-28 w-full bg-slate-100">
                   <img src={getPublicUrl(ad.image) ?? undefined} alt={ad.title} className="h-full w-full object-cover" />
@@ -62,8 +68,8 @@ export function AdminAdsPage() {
               <div className="p-4">
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-black text-ink">{ad.title}</p>
-                  <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold', ad.is_active ? 'bg-emerald-50 text-success' : 'bg-slate-100 text-muted')}>
-                    {ad.is_active ? 'مفعّل' : 'معطّل'}
+                  <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold', expired ? 'bg-red-50 text-error' : ad.is_active ? 'bg-emerald-50 text-success' : 'bg-slate-100 text-muted')}>
+                    {expired ? 'منتهي' : ad.is_active ? 'مفعّل' : 'معطّل'}
                   </span>
                 </div>
                 {ad.description && <p className="mt-1 line-clamp-2 text-xs text-muted">{ad.description}</p>}
@@ -71,6 +77,11 @@ export function AdminAdsPage() {
                   <p className="mt-1.5 flex items-center gap-1 text-[11px] text-primary" dir="ltr">
                     <Link2 className="size-3 shrink-0" />
                     {ad.link.slice(0, 40)}{ad.link.length > 40 ? '…' : ''}
+                  </p>
+                )}
+                {ad.expires_at && (
+                  <p className={cn('mt-1.5 text-[11px] font-bold', expired ? 'text-error' : 'text-muted')} dir="ltr">
+                    ينتهي: {new Date(ad.expires_at).toLocaleString('ar-SY')}
                   </p>
                 )}
                 <div className="mt-3 flex items-center justify-between">
@@ -82,7 +93,8 @@ export function AdminAdsPage() {
                 </div>
               </div>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -103,7 +115,7 @@ function AdForm({ values, onClose, onDone }: {
   onClose: () => void
   onDone: () => void
 }) {
-  const [form, setForm] = useState({ title: '', description: '', link: '', placement: 'home', image: '', is_active: true, sort_order: 0, ...values })
+  const [form, setForm] = useState({ title: '', description: '', link: '', placement: 'home', image: '', expires_at: '', is_active: true, sort_order: 0, ...values })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const toast = useToast()
@@ -114,9 +126,9 @@ function AdForm({ values, onClose, onDone }: {
     if (!file) return
     setUploading(true)
     try {
-      const compressed = await uploadImage('doctor', file) // نفس الـ bucket — المسار عادي
-      if (compressed) {
-        const path = compressed
+      const compressed = await compressImage(file)
+      const path = await uploadToFolder('ads', compressed)
+      if (path) {
         if (form.image && !String(form.image).startsWith('http') && !String(form.image).startsWith('/')) await deleteImage(String(form.image))
         set('image', path)
         toast.show('تم رفع الصورة')
@@ -138,6 +150,7 @@ function AdForm({ values, onClose, onDone }: {
       placement: String(form.placement),
       image: String(form.image ?? '') || null,
       is_active: Boolean(form.is_active),
+      expires_at: form.expires_at ? new Date(String(form.expires_at)).toISOString() : null,
       sort_order: Number(form.sort_order ?? 0) || 0,
     }
     const ok = isEdit
@@ -189,6 +202,15 @@ function AdForm({ values, onClose, onDone }: {
           <input type="checkbox" checked={Boolean(form.is_active)} onChange={(e) => set('is_active', e.target.checked)} className="size-4 accent-primary" />
           مفعّل (يظهر للزوار)
         </label>
+        <Field label="تاريخ الانتهاء" hint="اتركه فارغاً إذا كان الإعلان دائماً — بعد هذا التاريخ يختفي تلقائياً">
+          <input
+            type="datetime-local"
+            value={String(form.expires_at ?? '').replace('Z', '').slice(0, 16)}
+            onChange={(e) => set('expires_at', e.target.value)}
+            className="h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15"
+            dir="ltr"
+          />
+        </Field>
         <div className="flex gap-3">
           <Button type="submit" loading={saving} className="flex-1">{isEdit ? 'حفظ' : 'إضافة'}</Button>
           <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>

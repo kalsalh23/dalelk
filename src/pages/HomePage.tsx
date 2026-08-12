@@ -12,8 +12,8 @@ export function HomePage() {
     <>
       <Seo />
       <Hero />
-      <ServicesGrid />
       <FeaturedDoctors />
+      <ServicesGrid />
       <AdsSection />
       <DutyPharmacies />
       <NearbyMap />

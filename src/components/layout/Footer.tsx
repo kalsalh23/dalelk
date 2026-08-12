@@ -13,6 +13,7 @@ const links = [
   { label: 'الصيدليات المناوبة', to: '/duty-pharmacies' },
   { label: 'النصائح الطبية', to: '/articles' },
   { label: 'اسأل دليلك الطبي', to: '/ask' },
+  { label: 'باقات الاشتراك', to: '/plans' },
 ]
 
 const legal = [

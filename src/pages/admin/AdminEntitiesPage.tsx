@@ -279,6 +279,7 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
       is_featured: dataType === 'doctor' ? Boolean(form.is_featured) : undefined,
       is_featured_placeholder: undefined,
       is_active_placeholder: undefined,
+      image: form.image ? String(form.image) : null,
       plan: String(form.plan ?? 'free'),
       updated_at: new Date().toISOString(),
     }
@@ -287,6 +288,16 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
 
     const compact = (m: string) => { if (form[m] !== undefined) payload[m] = linesOf(form[m]) }
     const single = (m: string) => { if (form[m] !== undefined) payload[m] = String(form[m] ?? '').trim() || null }
+    // قوائم الصور تُخزَّن كمصفوفة مسارات مباشرة (وليس نصاً مفصولاً بأسطر)
+    const arrays = (m: string) => {
+      if (form[m] !== undefined) {
+        const v = form[m]
+        payload[m] = Array.isArray(v) ? v.filter(Boolean) : linesOf(v)
+      }
+    }
+
+    arrays('images')
+    arrays('gallery')
 
     if (dataType === 'doctor') {
       set('specialty', form.specialty ?? '')
@@ -296,13 +307,11 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
       payload.bio = String(form.bio ?? '').trim() || null
       compact('certifications')
       compact('services')
-      compact('gallery')
       single('video_url')
     } else if (dataType === 'clinic' || dataType === 'hospital' || dataType === 'health_center') {
       payload.specialty = String(form.specialty ?? '') || null
       compact('services')
       compact('departments')
-      compact('gallery')
       if (dataType === 'hospital') single('emergency_phone')
     } else if (dataType === 'pharmacy') {
       compact('services')

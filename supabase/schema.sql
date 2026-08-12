@@ -351,6 +351,7 @@ create table if not exists public.advertisements (
   link text,
   placement text default 'home', -- home | about
   is_active boolean default true,
+  expires_at timestamptz,
   sort_order int default 0,
   clicks bigint default 0,
   created_at timestamptz default now(),

@@ -205,6 +205,7 @@ export interface Advertisement {
   link: string | null
   placement: string
   is_active: boolean
+  expires_at: string | null
   sort_order: number
   clicks: number
   created_at: string

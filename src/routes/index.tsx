@@ -28,6 +28,7 @@ export const router = createBrowserRouter([
       { path: 'articles', lazy: () => import('@/pages/ArticlesListPage').then((m) => ({ Component: m.ArticlesListPage })) },
       { path: 'articles/:slug', lazy: () => import('@/pages/ArticleDetailPage').then((m) => ({ Component: m.ArticleDetailPage })) },
       { path: 'ask', lazy: () => import('@/pages/AskPage').then((m) => ({ Component: m.AskPage })) },
+      { path: 'plans', lazy: () => import('@/pages/PlansPage').then((m) => ({ Component: m.PlansPage })) },
       { path: 'contact', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.ContactPage })) },
       { path: 'about', lazy: () => import('@/pages/AboutPage').then((m) => ({ Component: m.AboutPage })) },
       { path: 'privacy', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.PrivacyPage })) },
