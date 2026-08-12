@@ -56,6 +56,7 @@ export interface Doctor extends EntityBase {
   video_url: string | null
   gallery: string[] | null
   rating: number | null
+  is_featured?: boolean
 }
 
 export interface Clinic extends EntityBase {

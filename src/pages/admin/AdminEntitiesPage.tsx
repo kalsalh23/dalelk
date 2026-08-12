@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Plus, Search, Pencil, Trash2, ExternalLink, Eye, EyeOff, Upload, X,
+  Plus, Search, Pencil, Trash2, ExternalLink, Eye, EyeOff, Upload, X, Star,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { compressImage, deleteImage, updateEntity } from '@/services/admin'
@@ -138,6 +138,24 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center justify-end gap-1.5">
+                          {table === 'doctors' && (
+                            <button
+                              onClick={() => void (async () => {
+                                const ok = await toggleFeatured(table, String(row.id), Boolean(row.is_featured))
+                                if (ok) {
+                                  await qc.invalidateQueries({ queryKey: ['admin-entities', table] })
+                                  await qc.invalidateQueries({ queryKey: ['entities'] })
+                                  toast.show(row.is_featured ? 'أُزيل من الأطباء المميّزين' : 'أُضيف إلى الأطباء المميّزين')
+                                } else {
+                                  toast.show('تعذر تحديث الحالة', 'error')
+                                }
+                              })()}
+                              title={row.is_featured ? 'إزالة من المميزين' : 'إضافة إلى المميزين'}
+                              className={`flex size-9 items-center justify-center rounded-xl border transition cursor-pointer ${row.is_featured ? 'border-amber-300 bg-amber-50 text-amber-600' : 'border-border text-muted hover:border-amber-300 hover:text-amber-500'}`}
+                            >
+                              <Star className={`size-4 ${row.is_featured ? 'fill-amber-400' : ''}`} />
+                            </button>
+                          )}
                           <button
                             onClick={() => setEditing({ ...row })}
                             title="تعديل"
@@ -189,6 +207,11 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
       />
     </div>
   )
+}
+
+async function toggleFeatured(table: string, id: string, current: boolean): Promise<boolean> {
+  const { error } = await supabase.from(table).update({ is_featured: !current }).eq('id', id)
+  return !error
 }
 
 function PlanToggle({ table, row }: { table: string; row: Record<string, unknown> }) {
@@ -253,11 +276,14 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
       lng: form.lng ? Number(form.lng) : null,
       is_verified: Boolean(form.is_verified),
       is_active: Boolean(form.is_active),
+      is_featured: dataType === 'doctor' ? Boolean(form.is_featured) : undefined,
+      is_featured_placeholder: undefined,
       is_active_placeholder: undefined,
       plan: String(form.plan ?? 'free'),
       updated_at: new Date().toISOString(),
     }
     delete payload.is_active_placeholder
+    delete payload.is_featured_placeholder
 
     const compact = (m: string) => { if (form[m] !== undefined) payload[m] = linesOf(form[m]) }
     const single = (m: string) => { if (form[m] !== undefined) payload[m] = String(form[m] ?? '').trim() || null }
@@ -468,6 +494,13 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
             {form.is_active ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
             مفعّل
           </label>
+          {dataType === 'doctor' && (
+            <label className={cn('flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-bold transition', form.is_featured ? 'border-amber-300 bg-amber-50 text-amber-600' : 'border-border text-muted hover:border-amber-300/60')}>
+              <input type="checkbox" className="hidden" checked={Boolean(form.is_featured)} onChange={(e) => set('is_featured', e.target.checked)} />
+              <Star className={`size-4 ${form.is_featured ? 'fill-amber-400' : ''}`} />
+              مميّز
+            </label>
+          )}
           <div className="rounded-xl bg-slate-50 px-3 py-3 text-center text-xs font-bold text-muted">
             عدد الزيارات: {String(form.view_count ?? 0)}
           </div>

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchEntities, fetchEntity, fetchAllMarkers, fetchDutyPharmacies } from '@/services/content'
+import { fetchEntities, fetchEntity, fetchAllMarkers, fetchDutyPharmacies, fetchFeaturedDoctors } from '@/services/content'
 import type { EntityType } from '@/types'
 
 export const entityKeys = {
@@ -9,6 +9,7 @@ export const entityKeys = {
   detail: (type: EntityType, id: string) => [...entityKeys.all, 'detail', type, id] as const,
   markers: ['entities', 'markers'] as const,
   duty: ['duty-pharmacies'] as const,
+  featured: ['featured-doctors'] as const,
 }
 
 export function useEntities<T>(type: EntityType, params: { search?: string; cityId?: string | null; specialty?: string | null; limit?: number; offset?: number } = {}) {
@@ -38,5 +39,12 @@ export function useDutyPharmacies(cityId?: string | null) {
   return useQuery({
     queryKey: [...entityKeys.duty, cityId ?? 'all'],
     queryFn: () => fetchDutyPharmacies(cityId),
+  })
+}
+
+export function useFeaturedDoctors(limit = 8) {
+  return useQuery({
+    queryKey: entityKeys.featured,
+    queryFn: () => fetchFeaturedDoctors(limit),
   })
 }

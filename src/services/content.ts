@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { EntityType, Pharmacy, DutyPharmacy } from '@/types'
+import type { EntityType, Pharmacy, DutyPharmacy, Doctor } from '@/types'
 import { todaySQL } from '@/lib/utils'
 
 export type EntityTable = Record<EntityType, string>
@@ -56,6 +56,19 @@ export async function fetchEntities<T>(
   const { data, error, count } = await q
   if (error) throw error
   return { data: (data ?? []) as T[], count: count ?? 0 }
+}
+
+/** الأطباء المميّزون (اختيارهم من لوحة التحكم) */
+export async function fetchFeaturedDoctors(limit = 8): Promise<Doctor[]> {
+  const { data, error } = await supabase
+    .from('doctors')
+    .select('*')
+    .eq('is_active', true)
+    .eq('is_featured', true)
+    .order('sort_order', { ascending: true })
+    .limit(limit)
+  if (error) return []
+  return (data ?? []) as Doctor[]
 }
 
 export async function fetchEntity<T>(type: EntityType, slugOrId: string): Promise<T | null> {

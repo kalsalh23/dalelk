@@ -1,5 +1,6 @@
 import { Hero } from '@/features/home/Hero'
 import { ServicesGrid } from '@/features/home/ServicesGrid'
+import { FeaturedDoctors } from '@/features/home/FeaturedDoctors'
 import { AdsSection } from '@/features/home/AdsSection'
 import { DutyPharmacies } from '@/features/home/DutyPharmacies'
 import { NearbyMap } from '@/features/home/NearbyMap'
@@ -12,6 +13,7 @@ export function HomePage() {
       <Seo />
       <Hero />
       <ServicesGrid />
+      <FeaturedDoctors />
       <AdsSection />
       <DutyPharmacies />
       <NearbyMap />

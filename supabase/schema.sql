@@ -54,6 +54,7 @@ create table if not exists public.doctors (
   video_url text,
   rating numeric(2,1),
   is_verified boolean default false,
+  is_featured boolean not null default false,
   is_active boolean default true,
   plan text default 'free' check (plan in ('free','pro','gold')),
   plan_expires_at timestamptz,
