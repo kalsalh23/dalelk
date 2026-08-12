@@ -5,15 +5,15 @@ import { Menu, X, Search, HelpCircle } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 import { cn } from '@/lib/utils'
 
-const NAV: { label: string; to: string }[] = [
+const NAV: { label: string; to: string; extra?: boolean }[] = [
   { label: 'الرئيسية', to: '/' },
   { label: 'الأطباء', to: '/doctors' },
   { label: 'العيادات', to: '/clinics' },
   { label: 'الصيدليات', to: '/pharmacies' },
-  { label: 'الصيدليات المناوبة', to: '/duty-pharmacies' },
-  { label: 'المراكز الصحية', to: '/health-centers' },
-  { label: 'من نحن', to: '/about' },
   { label: 'النصائح الطبية', to: '/articles' },
+  { label: 'الصيدليات المناوبة', to: '/duty-pharmacies', extra: true },
+  { label: 'المراكز الصحية', to: '/health-centers', extra: true },
+  { label: 'من نحن', to: '/about', extra: true },
   { label: 'اسأل دليلك الطبي', to: '/ask' },
 ]
 
@@ -48,33 +48,29 @@ export function Header() {
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-0.5 lg:flex">
-          {NAV.slice(0, 7).map((item) => (
+        <nav className="hidden items-center gap-1 lg:flex">
+          {NAV.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'rounded-xl px-3.5 py-2 text-sm font-semibold text-muted transition-colors hover:bg-slate-50 hover:text-primary',
+                  'rounded-xl px-3 py-2 text-sm font-semibold text-muted transition-colors hover:bg-slate-50 hover:text-primary',
+                  item.extra && 'hidden xl:inline-flex',
                   isActive && 'bg-primary-light/70 text-primary-dark',
                 )
               }
             >
-              {item.label}
+              {item.to === '/ask' ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <HelpCircle className="size-4" />
+                  اسأل
+                </span>
+              ) : (
+                item.label
+              )}
             </NavLink>
           ))}
-          <NavLink
-            to="/ask"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold text-muted transition-colors hover:bg-slate-50 hover:text-primary',
-                isActive && 'bg-primary-light/70 text-primary-dark',
-              )
-            }
-          >
-            <HelpCircle className="size-4" />
-            اسأل
-          </NavLink>
         </nav>
 
         <div className="flex items-center gap-2">
