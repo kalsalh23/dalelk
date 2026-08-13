@@ -115,12 +115,37 @@ export async function updateRequestStatus(
   id: string,
   status: SubscriptionRequest['status'],
   notes?: string,
-) {
-  const { error } = await supabase
+): Promise<boolean> {
+  const { data: req, error: fetchErr } = await supabase
     .from('subscription_requests')
-    .update({ status, notes })
+    .select('*')
     .eq('id', id)
-  return !error
+    .single()
+  if (fetchErr || !req) return false
+
+  const updates: Record<string, unknown> = { status, notes: notes ?? req.notes }
+  if (status === 'approved' && req.requested_plan) {
+    updates.current_plan = req.requested_plan
+  }
+
+  const { error } = await supabase.from('subscription_requests').update(updates).eq('id', id)
+  if (error) return false
+
+  // تطبيق الخطة المطلوبة فعلياً على جهة (الطبيب/العيادة/…) عند الموافقة
+  if (status === 'approved') {
+    const table = ENTITY_TABLES[req.entity_type as EntityType]
+    if (table) {
+      const { error: entErr } = await supabase
+        .from(table)
+        .update({
+          plan: req.requested_plan,
+          plan_expires_at: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+        })
+        .eq('id', req.entity_id)
+      return !entErr
+    }
+  }
+  return true
 }
 
 export async function createSubscriptionRequest(v: {
@@ -144,7 +169,7 @@ export async function fetchSettings(): Promise<Record<string, unknown>> {
 export async function saveSettings(values: Record<string, unknown>): Promise<boolean> {
   const { error } = await supabase
     .from('app_settings')
-    .upsert({ key: 'site', value: values })
+    .upsert({ key: 'site', value: values }, { onConflict: 'key' })
   return !error
 }
 

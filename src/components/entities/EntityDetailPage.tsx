@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import {
   Phone, MessageCircle, MapPin, Clock, BadgeCheck,
-  Monitor, Siren, Star,
+  Monitor, Siren, Star, Sparkles, Crown,
 } from 'lucide-react'
 import { useEntity } from '@/hooks/useEntities'
 import { ENTITY_TABLES } from '@/services/content'
@@ -151,6 +151,27 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
           ]}
         />
       </div>
+
+      {/* بانر ترقية الباقات للجهات المجانية */}
+      {plan === 'free' && (
+        <div className="mb-6 flex flex-col gap-3 rounded-[18px] border border-primary/20 bg-gradient-to-l from-primary-light/50 to-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+              <Crown className="size-5" />
+            </span>
+            <div>
+              <p className="text-sm font-black text-ink">هل تملك هذه الجهة؟</p>
+              <p className="mt-0.5 text-xs leading-6 text-muted">
+                صفحتك حالياً على الباقة المجانية. ارتقِ إلى الباقة الاحترافية أو الذهبية لإبرازها في الدليل وتمييزها بشارة مميزة.
+              </p>
+            </div>
+          </div>
+          <Link to="/plans" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-dark">
+            <Sparkles className="size-4" />
+            عرض الباقات والترقية
+          </Link>
+        </div>
+      )}
 
       {/* بطاقة رئيسية */}
       <div className="mb-6 overflow-hidden rounded-[18px] border border-border bg-surface shadow-[var(--shadow-card)]">
