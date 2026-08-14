@@ -142,15 +142,19 @@ begin
          where table_schema = 'public' and table_name = v_table and column_name = v_key
        ) then
       if v_key in ('work_hours', 'opening_hours') then
-        v_expr := '%L::jsonb';
+        v_expr := format(', %I = %L::jsonb', v_key, v_val#>>'{}');
       elsif v_key = 'services' then
-        v_expr := '%L::text[]';
+        if jsonb_typeof(v_val) = 'array' then
+          v_expr := format(', %I = (select coalesce(array_agg(x), array[]::text[]) from jsonb_array_elements_text(%L::jsonb) x)', v_key, v_val);
+        else
+          v_expr := format(', %I = %L::text[]', v_key, v_val#>>'{}');
+        end if;
       elsif v_key = 'experience_years' then
-        v_expr := 'nullif(%L, '''')::int';
+        v_expr := format(', %I = nullif(%L, '''')::int', v_key, v_val#>>'{}');
       else
-        v_expr := '%L';
+        v_expr := format(', %I = %L', v_key, v_val#>>'{}');
       end if;
-      v_set := v_set || format(', %I = ' || v_expr, v_key, v_val#>>'{}');
+      v_set := v_set || v_expr;
     end if;
   end loop;
   if v_set = '' then
