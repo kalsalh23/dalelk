@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, X, Phone, CreditCard, Crown, Sparkles, Lock } from 'lucide-react'
+import { Check, X, Phone, CreditCard, Crown, Sparkles, Lock, Copy } from 'lucide-react'
 import { fetchAdminStats, fetchSubscriptionRequests, fetchSettings, saveSettings, updateRequestStatus } from '@/services/admin'
+import type { UpdateRequestResult } from '@/services/admin'
 import { fetchStatsSummary } from '@/services/stats'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Skeletons, EmptyState } from '@/components/ui/States'
@@ -115,16 +116,36 @@ export function AdminRequestsPage() {
   const qc = useQueryClient()
   const toast = useToast()
   const [selected, setSelected] = useState<{ id: string; status: string } | null>(null)
+  const [creds, setCreds] = useState<UpdateRequestResult & { status: string } | null>(null)
+  const [copied, setCopied] = useState<string | null>(null)
   const { data: requests, isLoading } = useQuery({ queryKey: ['admin-requests'], queryFn: fetchSubscriptionRequests })
 
   const mut = useMutation({
     mutationFn: async ({ id, status, notes }: { id: string; status: string; notes?: string }) => {
-      const ok = await updateRequestStatus(id, status as never, notes)
-      if (!ok) throw new Error()
+      const res = await updateRequestStatus(id, status as never, notes)
+      if (!res.ok) throw new Error()
+      return { res, status }
     },
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['admin-requests'] }); toast.show('تم تحديث الحالة'); setSelected(null) },
+    onSuccess: ({ res, status }) => {
+      void qc.invalidateQueries({ queryKey: ['admin-requests'] })
+      toast.show('تم تحديث الحالة')
+      setSelected(null)
+      if (status === 'approved') setCreds({ ...res, status })
+    },
     onError: () => toast.show('تعذر التحديث', 'error'),
   })
+
+  const accountLink = creds?.slug ? `${window.location.origin}/account/${creds.slug}` : ''
+
+  const copy = async (text: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(key)
+      setTimeout(() => setCopied(null), 1200)
+    } catch {
+      toast.show('تعذر النسخ', 'error')
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -179,6 +200,53 @@ export function AdminRequestsPage() {
           />
         </div>
       </Dialog>
+
+      <Dialog open={creds !== null} onClose={() => setCreds(null)} title="تم تفعيل الاشتراك — بيانات دخول الجهة" size="md">
+        <div className="space-y-5">
+          <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-success">
+            ✓ تم تفعيل الاشتراك وتم إنشاء حساب خاص بـ{creds?.name ? ` "${creds.name}"` : ' الجهة'}.
+          </p>
+          <p className="text-xs leading-6 text-muted">
+            أرسل هذه البيانات للطبيب/الجهة عبر رقم الهاتف أو واتساب المذكور في الطلب ليتمكن من الدخول إلى لوحة تحكم صفحته.
+          </p>
+          <div className="space-y-3">
+            <CredRow
+              label="رابط لوحة التحكم"
+              value={accountLink}
+              copied={copied === 'link'}
+              onCopy={() => void copy(accountLink, 'link')}
+            />
+            <CredRow label="البريد الإلكتروني" value={creds?.email ?? ''} copied={copied === 'email'} onCopy={() => void copy(creds?.email ?? '', 'email')} />
+            <CredRow label="كلمة السر" value={creds?.password ?? ''} copied={copied === 'pass'} onCopy={() => void copy(creds?.password ?? '', 'pass')} />
+          </div>
+          <Button
+            className="w-full"
+            variant="secondary"
+            onClick={() => void copy(`${accountLink}\n${creds?.email ?? ''}\n${creds?.password ?? ''}`, 'all')}
+          >
+            {copied === 'all' ? <Check className="size-4" /> : <Copy className="size-4" />}
+            {copied === 'all' ? 'تم نسخ الكل' : 'نسخ الرابط والبريد وكلمة السر معاً'}
+          </Button>
+        </div>
+      </Dialog>
+    </div>
+  )
+}
+
+function CredRow({ label, value, onCopy, copied }: { label: string; value: string; onCopy: () => void; copied: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-slate-50 px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-[11px] font-bold text-muted">{label}</p>
+        <p className="mt-0.5 truncate text-sm font-bold text-ink" dir="ltr">{value}</p>
+      </div>
+      <button
+        onClick={onCopy}
+        className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-muted transition hover:text-primary cursor-pointer"
+        aria-label={`نسخ ${label}`}
+      >
+        {copied ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
+      </button>
     </div>
   )
 }

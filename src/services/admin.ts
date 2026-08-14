@@ -111,17 +111,25 @@ export async function fetchSubscriptionRequests(): Promise<SubscriptionRequest[]
   return (data ?? []) as SubscriptionRequest[]
 }
 
+export interface UpdateRequestResult {
+  ok: boolean
+  email?: string
+  password?: string
+  slug?: string
+  name?: string
+}
+
 export async function updateRequestStatus(
   id: string,
   status: SubscriptionRequest['status'],
   notes?: string,
-): Promise<boolean> {
+): Promise<UpdateRequestResult> {
   const { data: req, error: fetchErr } = await supabase
     .from('subscription_requests')
     .select('*')
     .eq('id', id)
     .single()
-  if (fetchErr || !req) return false
+  if (fetchErr || !req) return { ok: false }
 
   const updates: Record<string, unknown> = { status, notes: notes ?? req.notes }
   if (status === 'approved' && req.requested_plan) {
@@ -129,7 +137,7 @@ export async function updateRequestStatus(
   }
 
   const { error } = await supabase.from('subscription_requests').update(updates).eq('id', id)
-  if (error) return false
+  if (error) return { ok: false }
 
   // تطبيق الخطة المطلوبة فعلياً على جهة (الطبيب/العيادة/…) عند الموافقة
   if (status === 'approved') {
@@ -142,10 +150,30 @@ export async function updateRequestStatus(
           plan_expires_at: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
         })
         .eq('id', req.entity_id)
-      return !entErr
+      if (entErr) return { ok: false }
+
+      // إنشاء حساب الجهة تلقائياً: البريد admin-<slug>@gmail.com وكلمة سر فريدة
+      const { data: ent } = await supabase.from(table).select('slug, name').eq('id', req.entity_id).maybeSingle()
+      const slug = (ent?.slug ?? String(req.entity_id)).replace(/[^a-z0-9.-]/gi, '-').replace(/^-+|-+$/g, '')
+      const email = `admin-${slug}@gmail.com`
+      const password = `dalil@2026${Math.floor(100000 + Math.random() * 900000)}`
+      const { data: acct, error: acctErr } = await supabase.rpc('entity_create_account', {
+        p_entity_type: req.entity_type as EntityType,
+        p_entity_id: req.entity_id,
+        p_email: email,
+        p_password: password,
+      })
+      if (acctErr) return { ok: true }
+      return {
+        ok: true,
+        email: (acct?.email as string) ?? email,
+        password,
+        slug,
+        name: (ent?.name as string) ?? '',
+      }
     }
   }
-  return true
+  return { ok: true }
 }
 
 export async function createSubscriptionRequest(v: {

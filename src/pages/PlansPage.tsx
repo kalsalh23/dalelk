@@ -84,6 +84,9 @@ export function PlansPage() {
         <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-muted">
           ارتقِ بظهور صفحتك في الدليل — اختر الباقة التي تناسبك وأرسل طلب الترقية وسنتواصل معك.
         </p>
+        <p className="mt-3 text-xs text-muted">
+          لديك اشتراك فعّال؟ <Link to="/account" className="font-bold text-primary hover:underline">تسجيل دخول الجهة →</Link>
+        </p>
       </div>
 
       {settingsLoading ? (
