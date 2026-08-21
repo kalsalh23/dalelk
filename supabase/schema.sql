@@ -627,7 +627,7 @@ returns boolean language plpgsql security definer set search_path = public, exte
 declare
   v public.entity_accounts%rowtype;
   v_table text;
-  v_whitelist text[] := array['name','phone','whatsapp','address','specialty','bio','description','services','work_hours','opening_hours','video_url','instagram','facebook','experience_years'];
+  v_whitelist text[] := array['name','phone','whatsapp','address','lat','lng','image','images','gallery','specialty','bio','description','services','work_hours','opening_hours','video_url','instagram','facebook','experience_years','certifications','departments','tests','machines','emergency_phone','rating'];
   v_key text;
   v_val jsonb;
   v_set text := '';
@@ -650,18 +650,32 @@ begin
          select 1 from information_schema.columns
          where table_schema = 'public' and table_name = v_table and column_name = v_key
        ) then
-      if v_key in ('work_hours', 'opening_hours') then
-        v_expr := format(', %I = %L::jsonb', v_key, v_val#>>'{}');
-      elsif v_key = 'services' then
-        if jsonb_typeof(v_val) = 'array' then
-          v_expr := format(', %I = (select coalesce(array_agg(x), array[]::text[]) from jsonb_array_elements_text(%L::jsonb) x)', v_key, v_val);
+      if v_key in ('work_hours') then
+        if v_val is null or v_val::text = 'null' then
+          v_expr := format(', %I = null', v_key);
         else
-          v_expr := format(', %I = %L::text[]', v_key, v_val#>>'{}');
+          v_expr := format(', %I = %L::jsonb', v_key, v_val::text);
         end if;
-      elsif v_key = 'experience_years' then
+      elsif v_key in ('services','certifications','departments','tests','machines','images','gallery') then
+        if jsonb_typeof(v_val) = 'array' then
+          v_expr := format(', %I = (select coalesce(array_agg(x), array[]::text[]) from jsonb_array_elements_text(%L::jsonb) x)', v_key, v_val::text);
+        elsif v_val is null or v_val::text = 'null' then
+          v_expr := format(', %I = null', v_key);
+        else
+          v_expr := format(', %I = string_to_array(%L, '','')', v_key, v_val#>>'{}');
+        end if;
+      elsif v_key in ('experience_years') then
         v_expr := format(', %I = nullif(%L, '''')::int', v_key, v_val#>>'{}');
-      else
+      elsif v_key in ('lat','lng','rating') then
+        v_expr := format(', %I = nullif(%L, '''')::double precision', v_key, v_val#>>'{}');
+      elsif v_key in ('opening_hours') then
         v_expr := format(', %I = %L', v_key, v_val#>>'{}');
+      else
+        if v_val is null or v_val::text = 'null' then
+          v_expr := format(', %I = null', v_key);
+        else
+          v_expr := format(', %I = %L', v_key, v_val#>>'{}');
+        end if;
       end if;
       v_set := v_set || v_expr;
     end if;

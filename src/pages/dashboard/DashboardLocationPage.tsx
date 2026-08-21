@@ -8,6 +8,7 @@ import { Field, Input } from '@/components/ui/Field'
 import { useToast } from '@/components/ui/Toast'
 import { mapsLink } from '@/lib/utils'
 import { Seo } from '@/components/seo/Seo'
+import { queryClient } from '@/lib/queryClient'
 
 export function DashboardLocationPage() {
   const { session, setSession } = useDashboardSession()
@@ -52,9 +53,11 @@ export function DashboardLocationPage() {
     const ok = await updateEntityOwn(stored.token, fields)
     setSaving(false)
     if (ok) {
-      toast.show('تم حفظ الموقع')
+      toast.show('تم حفظ الموقع — سيظهر على الخريطة مباشرة')
       setSession((prev) => prev ? { ...prev, entity: { ...(prev.entity ?? {}), address: fields.address, lat: lat.trim() ? Number(lat) : null, lng: lng.trim() ? Number(lng) : null } as Record<string, unknown> } : prev)
-    } else toast.show('تعذر الحفظ', 'error')
+      void queryClient.invalidateQueries({ queryKey: ['entities'] })
+      void queryClient.invalidateQueries({ queryKey: ['markers'] })
+    } else toast.show('تعذر الحفظ — تأكد من تطبيق الترحيل في Supabase', 'error')
   }
 
   const previewLink = mapsLink(lat ? Number(lat) : (e.lat as number | null), lng ? Number(lng) : (e.lng as number | null), address || (e.address as string | null))

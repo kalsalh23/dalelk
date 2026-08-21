@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { getPublicUrl } from '@/lib/supabase'
 import { Seo } from '@/components/seo/Seo'
+import { queryClient } from '@/lib/queryClient'
 
 export function DashboardMediaPage() {
   const { session, setSession } = useDashboardSession()
@@ -37,9 +38,16 @@ export function DashboardMediaPage() {
         if (mainImage) await deleteImage(mainImage).catch(() => {})
         setMainImage(path)
         toast.show('تم رفع الصورة الرئيسية — اضغط حفظ للتثبيت')
+      } else {
+        toast.show('فشل رفع الصورة — تأكد من تطبيق سياسات التخزين في Supabase', 'error')
       }
-    } catch {
-      toast.show('فشل رفع الصورة', 'error')
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg.includes('row-level security') || msg.includes('403')) {
+        toast.show('فشل الرفع: سياسات التخزين غير مطبقة — طبّق migration_entity_dashboard.sql', 'error')
+      } else {
+        toast.show(`فشل رفع الصورة: ${msg || 'خطأ غير معروف'}`, 'error')
+      }
     } finally { setUploading(false) }
   }
 
@@ -53,10 +61,15 @@ export function DashboardMediaPage() {
         const p = await uploadToFolder(folder, c)
         if (p) paths.push(p)
       }
-      setGallery((prev) => [...prev, ...paths])
-      toast.show(`تم رفع ${paths.length} صورة`)
-    } catch {
-      toast.show('فشل رفع بعض الصور', 'error')
+      if (paths.length === 0) {
+        toast.show('فشل رفع الصور — سياسات التخزين غير مطبقة', 'error')
+      } else {
+        setGallery((prev) => [...prev, ...paths])
+        toast.show(`تم رفع ${paths.length} صورة — اضغط حفظ للتثبيت`)
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : ''
+      toast.show(`فشل رفع بعض الصور: ${msg || 'تحقق من سياسات التخزين'}`, 'error')
     } finally { setUploading(false) }
   }
 
@@ -73,9 +86,11 @@ export function DashboardMediaPage() {
     const ok = await updateEntityOwn(stored.token, { image: mainImage, gallery, images: gallery })
     setSaving(false)
     if (ok) {
-      toast.show('تم حفظ الصور')
+      toast.show('تم حفظ الصور — ستظهر في صفحة الجهة بعد تحديثها')
       setSession((prev) => prev ? { ...prev, entity: { ...(prev.entity ?? {}), image: mainImage, gallery, images: gallery } as Record<string, unknown> } : prev)
-    } else toast.show('تعذر الحفظ', 'error')
+      void queryClient.invalidateQueries({ queryKey: ['entities'] })
+      void queryClient.invalidateQueries({ queryKey: ['entities', 'detail'] })
+    } else toast.show('تعذر الحفظ — تأكد من تطبيق ترحيل الصور في Supabase', 'error')
   }
 
   const mainUrl = getPublicUrl(mainImage) ?? mainImage
