@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   LogOut, KeyRound, ShieldCheck, AlertTriangle, Sparkles, RefreshCcw,
   Save, CalendarClock,
 } from 'lucide-react'
 import {
   buildEntityEmail, entityDisplayName, entityDisplayType,
-  entityLogin, fetchEntitySession, updateEntityOwn,
+  entityLogin, fetchEntitySession, updateEntityOwn, magicLogin,
   readStoredSession, clearStoredSession, type EntitySessionData,
 } from '@/services/entityAccount'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -78,6 +78,7 @@ function ExpiryBanner({ plan, expires }: { plan: string | null; expires: string 
 
 export function AccountPage() {
   const { slug } = useParams<{ slug: string }>()
+  const [searchParams, setSearchParams] = useSearchParams()
   const toast = useToast()
   const [autoEmail, setAutoEmail] = useState('')
   const [loginEmail, setLoginEmail] = useState('')
@@ -123,6 +124,41 @@ export function AccountPage() {
       })
       .finally(() => setChecking(false))
   }, [slug])
+
+  useEffect(() => {
+    const tk = searchParams.get('tk')
+    if (!tk) return
+    setSearchParams((p) => {
+      const q = new URLSearchParams(p)
+      q.delete('tk')
+      return q
+    }, { replace: true })
+    void magicLogin(tk)
+      .then((s) => {
+        if (!s) { toast.show('رابط الدخول غير صالح أو منتهي', 'error'); return }
+        return fetchEntitySession(s.token)
+          .then((d) => {
+            if (d) {
+              setSession(d)
+              const e = d.entity ?? {}
+              setForm({
+                name: String(e.name ?? ''),
+                specialty: String(e.specialty ?? ''),
+                phone: String(e.phone ?? ''),
+                whatsapp: String(e.whatsapp ?? ''),
+                address: String(e.address ?? ''),
+                bio: String(e.bio ?? e.description ?? ''),
+                services: Array.isArray(e.services) ? e.services.join('، ') : String(e.services ?? ''),
+                video_url: String(e.video_url ?? ''),
+                instagram: String(e.instagram ?? ''),
+                facebook: String(e.facebook ?? ''),
+                work_hours: e.work_hours ? JSON.stringify(e.work_hours, null, 2) : '',
+              })
+            }
+          })
+      })
+      .finally(() => setChecking(false))
+  }, [searchParams, setSearchParams, toast])
 
   const doLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -239,7 +275,7 @@ export function AccountPage() {
                   <Input
                     type="password"
                     dir="ltr"
-                    placeholder="dalil@2026…"
+                    placeholder="كلمة السر المرسلة لك"
                     value={loginPass}
                     onChange={(e) => { setLoginPass(e.target.value); setBadLogin(false) }}
                   />

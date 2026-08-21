@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Search, HelpCircle } from 'lucide-react'
+import { Menu, X, Search, HelpCircle, LayoutDashboard, ShieldCheck } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 import { cn } from '@/lib/utils'
+import { readStoredSession } from '@/services/entityAccount'
 
 const NAV: { label: string; to: string; extra?: boolean }[] = [
   { label: 'الرئيسية', to: '/' },
@@ -20,7 +21,18 @@ const NAV: { label: string; to: string; extra?: boolean }[] = [
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [hasEntitySession, setHasEntitySession] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const check = () => setHasEntitySession(Boolean(readStoredSession()))
+    check()
+    const onStorage = () => check()
+    window.addEventListener('storage', onStorage)
+    // تحقق دوري بسيط عند تغير المسار
+    const id = setInterval(check, 1500)
+    return () => { window.removeEventListener('storage', onStorage); clearInterval(id) }
+  }, [])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -74,6 +86,18 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Link
+            to={hasEntitySession ? '/dashboard' : '/dashboard/login'}
+            className={cn(
+              'hidden sm:inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition',
+              hasEntitySession
+                ? 'border-primary bg-primary text-white hover:bg-primary-dark'
+                : 'border-border bg-surface text-ink hover:border-primary/40 hover:text-primary',
+            )}
+          >
+            {hasEntitySession ? <LayoutDashboard className="size-4" /> : <ShieldCheck className="size-4" />}
+            <span>{hasEntitySession ? 'لوحة التحكم' : 'دخول الجهة'}</span>
+          </Link>
           <button
             onClick={() => navigate('/search')}
             className="flex items-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-md shadow-primary/20 transition hover:bg-primary-dark cursor-pointer"
@@ -116,6 +140,21 @@ export function Header() {
                   {item.label}
                 </NavLink>
               ))}
+              <div className="mt-2 border-t border-border pt-3">
+                <Link
+                  to={hasEntitySession ? '/dashboard' : '/dashboard/login'}
+                  onClick={() => setMenuOpen(false)}
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition',
+                    hasEntitySession
+                      ? 'bg-primary text-white'
+                      : 'border border-border bg-surface text-ink',
+                  )}
+                >
+                  {hasEntitySession ? <LayoutDashboard className="size-4" /> : <ShieldCheck className="size-4" />}
+                  {hasEntitySession ? 'لوحة التحكم' : 'دخول الجهة — لوحة التحكم'}
+                </Link>
+              </div>
             </nav>
           </motion.div>
         )}

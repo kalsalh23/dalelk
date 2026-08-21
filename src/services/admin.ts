@@ -117,6 +117,7 @@ export interface UpdateRequestResult {
   password?: string
   slug?: string
   name?: string
+  linkToken?: string
 }
 
 export async function updateRequestStatus(
@@ -152,11 +153,11 @@ export async function updateRequestStatus(
         .eq('id', req.entity_id)
       if (entErr) return { ok: false }
 
-      // إنشاء حساب الجهة تلقائياً: البريد admin-<slug>@gmail.com وكلمة سر فريدة
+      // إنشاء حساب الجهة تلقائياً: البريد admin-<slug>@gmail.com وكلمة سر عشوائية + رابط سحري
       const { data: ent } = await supabase.from(table).select('slug, name').eq('id', req.entity_id).maybeSingle()
       const slug = (ent?.slug ?? String(req.entity_id)).replace(/[^a-z0-9.-]/gi, '-').replace(/^-+|-+$/g, '')
       const email = `admin-${slug}@gmail.com`
-      const password = `dalil@2026${Math.floor(100000 + Math.random() * 900000)}`
+      const password = genEntityPassword()
       const { data: acct, error: acctErr } = await supabase.rpc('entity_create_account', {
         p_entity_type: req.entity_type as EntityType,
         p_entity_id: req.entity_id,
@@ -170,6 +171,7 @@ export async function updateRequestStatus(
         password,
         slug,
         name: (ent?.name as string) ?? '',
+        linkToken: (acct?.magic_token as string) ?? undefined,
       }
     }
   }
@@ -208,6 +210,16 @@ export async function fetchAdminUsers(): Promise<Profile[]> {
     .order('created_at')
   if (error) return []
   return (data ?? []) as Profile[]
+}
+
+/** توليد كلمة سر عشوائية قوية (خاصة بجهة واحدة ولا تُعاد) */
+export function genEntityPassword(len = 16): string {
+  const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*'
+  const arr = new Uint32Array(len)
+  crypto.getRandomValues(arr)
+  let out = ''
+  for (let i = 0; i < len; i++) out += charset[arr[i] % charset.length]
+  return out
 }
 
 /** إحصاءات لوحة التحكم */

@@ -76,6 +76,25 @@ export async function entityLogin(email: string, password: string): Promise<Enti
   return sess
 }
 
+/** دخول الجهة عبر الرابط السحري (magic link) — يخص الجهة صاحبة الرابط فقط */
+export async function magicLogin(token: string): Promise<EntitySession | null> {
+  const { data, error } = await supabase.rpc('entity_login_magic', { p_token: token })
+  if (error || !data?.session_token) return null
+  const sess: EntitySession = {
+    token: data.session_token as string,
+    slug: data.slug as string,
+    email: data.email as string,
+    entity_type: data.entity_type as EntityType,
+  }
+  localStorage.setItem(ENTITY_SESSION_KEY, JSON.stringify(sess))
+  return sess
+}
+
+/** توليد رابط لوحة التحكم الكامل مع الرمز السحري */
+export function buildMagicLink(slug: string, magicToken: string): string {
+  return `${window.location.origin}/account/${slug}?tk=${encodeURIComponent(magicToken)}`
+}
+
 /** جلب بيانات الجهة للجلسة النشطة */
 export async function fetchEntitySession(token: string): Promise<EntitySessionData | null> {
   const { data, error } = await supabase.rpc('entity_session', { p_token: token })
@@ -97,6 +116,57 @@ export async function updateEntityOwn(token: string, fields: Record<string, unkn
     p_fields: fields,
   })
   return !error && data === true
+}
+
+/** تغيير كلمة سر الجهة (يتطلب معرفة القديمة أو عبر الجلسة) */
+export async function changeEntityPassword(token: string, oldPass: string, newPass: string): Promise<boolean> {
+  // لا توجد RPC مخصصة، نستخدم entity_login للتحقق ثم تحديث عبر supabase مباشرة غير متاح للجهة
+  // لذا نتحقق أولاً ثم نطلب من الخادم توليد hash جديد عبر rpc مستحدث إن وجد
+  // كحل مؤقت: نستخدم RPC غير موجود → سنحتاج ترحيل إضافي. حالياً نعيد false مع رسالة
+  // سنطبق التغيير عبر استدعاء supabase.rpc('entity_change_password', ...)
+  const { data, error } = await supabase.rpc('entity_change_password' as never, {
+    p_token: token,
+    p_old_password: oldPass,
+    p_new_password: newPass,
+  } as never)
+  if (!error && data === true) return true
+  // fallback: تحقق من كلمة السر القديمة عبر entity_login ثم أنشئ حساباً جديداً بنفس البريد
+  const sess = await fetchEntitySession(token)
+  if (!sess) return false
+  const login = await entityLogin(sess.email, oldPass)
+  if (!login) return false
+  // إعادة إنشاء الحساب بنفس البريد وكلمة سر جديدة (يتطلب is_admin؟ لا يمكن)
+  // لذلك نفشل بصراحة ونطلب من المدير إعادة التعيين
+  return false
+}
+
+/** رفع صورة للجهة (يتطلب entity session — يستخدم anon policy الجديد) */
+export async function uploadEntityImage(
+  file: File,
+  folder: string,
+): Promise<string | null> {
+  const { compressImage, uploadToFolder } = await import('@/services/admin')
+  try {
+    const compressed = await compressImage(file)
+    return await uploadToFolder(folder, compressed)
+  } catch {
+    return null
+  }
+}
+
+export const ENTITY_FOLDER: Record<string, string> = {
+  doctor: 'doctors',
+  clinic: 'clinics',
+  hospital: 'hospitals',
+  health_center: 'health_centers',
+  pharmacy: 'pharmacies',
+  lab: 'labs',
+  radiology: 'radiology_centers',
+  radiology_centers: 'radiology',
+}
+
+export function folderForType(entityType: string): string {
+  return ENTITY_FOLDER[entityType] ?? 'entities'
 }
 
 export function readStoredSession(): EntitySession | null {

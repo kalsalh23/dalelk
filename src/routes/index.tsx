@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
 import { AdminLayout } from '@/layouts/AdminLayout'
+import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 export const router = createBrowserRouter([
@@ -62,6 +63,18 @@ export const router = createBrowserRouter([
       { path: 'requests', lazy: () => import('@/pages/admin/AdminMiscPages').then((m) => ({ Component: m.AdminRequestsPage })) },
       { path: 'stats', lazy: () => import('@/pages/admin/AdminMiscPages').then((m) => ({ Component: m.AdminStatsPage })) },
       { path: 'settings', lazy: () => import('@/pages/admin/AdminMiscPages').then((m) => ({ Component: m.AdminSettingsPage })) },
+    ],
+  },
+  {
+    path: '/dashboard',
+    element: <DashboardLayout />,
+    children: [
+      { index: true, lazy: () => import('@/pages/dashboard/DashboardHomePage').then((m) => ({ Component: m.DashboardHomePage })) },
+      { path: 'login', lazy: () => import('@/pages/dashboard/DashboardLoginPage').then((m) => ({ Component: m.DashboardLoginPage })) },
+      { path: 'profile', lazy: () => import('@/pages/dashboard/DashboardProfilePage').then((m) => ({ Component: m.DashboardProfilePage })) },
+      { path: 'media', lazy: () => import('@/pages/dashboard/DashboardMediaPage').then((m) => ({ Component: m.DashboardMediaPage })) },
+      { path: 'hours', lazy: () => import('@/pages/dashboard/DashboardHoursPage').then((m) => ({ Component: m.DashboardHoursPage })) },
+      { path: 'location', lazy: () => import('@/pages/dashboard/DashboardLocationPage').then((m) => ({ Component: m.DashboardLocationPage })) },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

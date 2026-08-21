@@ -135,7 +135,11 @@ export function AdminRequestsPage() {
     onError: () => toast.show('تعذر التحديث', 'error'),
   })
 
-  const accountLink = creds?.slug ? `${window.location.origin}/account/${creds.slug}` : ''
+  const accountLink = creds?.slug && creds.linkToken
+    ? `${window.location.origin}/account/${creds.slug}?tk=${encodeURIComponent(creds.linkToken)}`
+    : creds?.slug
+      ? `${window.location.origin}/account/${creds.slug}`
+      : ''
 
   const copy = async (text: string, key: string) => {
     try {
