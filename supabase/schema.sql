@@ -39,6 +39,7 @@ create table if not exists public.doctors (
   specialty_category_id uuid references public.categories(id) on delete set null,
   gender text check (gender in ('male','female')) default null,
   bio text,
+  description text,
   experience_years int,
   certifications text[] default '{}',
   services text[] default '{}',
