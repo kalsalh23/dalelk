@@ -175,21 +175,17 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
 
       {/* بطاقة رئيسية */}
       <div className="mb-6 overflow-hidden rounded-[18px] border border-border bg-surface shadow-[var(--shadow-card)]">
-        <div className="h-40 w-full bg-gradient-to-l from-primary to-primary-dark sm:h-52">
-          {image && !imgError && (
-            <img src={image} alt={name} onError={() => setImgError(true)} className="h-full w-full object-cover opacity-90" />
-          )}
-        </div>
+        <div className="h-28 w-full bg-gradient-to-l from-primary to-primary-dark sm:h-36" />
         <div className="px-5 pb-5 pt-0 sm:px-8">
           <div className="-mt-14 flex flex-col gap-4 sm:flex-row sm:items-end">
             <div
               className={cn(
-                'flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border-4 border-surface bg-primary-light text-primary-dark shadow-lg sm:size-32',
+                'flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-surface bg-primary-light text-primary-dark shadow-lg sm:size-32',
                 imgError || !image ? 'relative' : '',
               )}
             >
               {image && !imgError ? (
-                <img src={image} alt={name} className="h-full w-full object-cover" />
+                <img src={image} alt={name} onError={() => setImgError(true)} className="h-full w-full object-cover" />
               ) : (
                 <EntityIcon type={type} className="size-12" />
               )}
