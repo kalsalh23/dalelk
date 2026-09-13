@@ -254,8 +254,10 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                 <Button
                   size="lg"
                   variant="secondary"
-                  onClick={() => { setApptOpen(true); setApptDone(false) }}
-                  className="!w-full sm:!flex-1"
+                  disabled={plan === 'free'}
+                  title={plan === 'free' ? 'طلبات المواعيد متاحة للأطباء المشتركين في باقة مدفوعة — اشترك من صفحة الباقات لتفعيلها' : undefined}
+                  onClick={() => { if (plan !== 'free') { setApptOpen(true); setApptDone(false) } }}
+                  className={cn('!w-full sm:!flex-1', plan === 'free' && 'cursor-not-allowed')}
                 >
                   <CalendarClock className="size-5" />
                   طلب موعد
