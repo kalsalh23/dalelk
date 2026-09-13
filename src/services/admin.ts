@@ -118,6 +118,34 @@ export interface UpdateRequestResult {
   slug?: string
   name?: string
   linkToken?: string
+  accountError?: string
+}
+
+/** إنشاء/تجديد حساب جهة (كلمة سر ورابط سحري جديدان) — يُستخدم عند الموافقة وعند إعادة إرسال البيانات */
+export async function ensureEntityAccount(entityType: EntityType, entityId: string): Promise<UpdateRequestResult> {
+  const table = ENTITY_TABLES[entityType]
+  if (!table) return { ok: false, accountError: 'نوع جهة غير صالح' }
+  const { data: ent } = await supabase.from(table).select('slug, name').eq('id', entityId).maybeSingle()
+  const slug = String(ent?.slug ?? entityId).replace(/[^a-z0-9.-]/gi, '-').replace(/^-+|-+$/g, '')
+  const email = `admin-${slug}@gmail.com`
+  const password = genEntityPassword()
+  const { data: acct, error: acctErr } = await supabase.rpc('entity_create_account', {
+    p_entity_type: entityType,
+    p_entity_id: entityId,
+    p_email: email,
+    p_password: password,
+  })
+  const a = acct as Record<string, unknown> | null
+  if (acctErr) return { ok: true, slug, name: (ent?.name as string) ?? '', accountError: acctErr.message }
+  if (!a || a.error) return { ok: true, slug, name: (ent?.name as string) ?? '', accountError: String(a?.error ?? 'تعذر إنشاء الحساب') }
+  return {
+    ok: true,
+    email: (a.email as string) ?? email,
+    password,
+    slug,
+    name: (a.name as string) ?? (ent?.name as string) ?? '',
+    linkToken: (a.magic_token as string) ?? undefined,
+  }
 }
 
 export async function updateRequestStatus(
@@ -140,39 +168,23 @@ export async function updateRequestStatus(
   const { error } = await supabase.from('subscription_requests').update(updates).eq('id', id)
   if (error) return { ok: false }
 
-      // تطبيق الخطة المطلوبة فعلياً على جهة (الطبيب/العيادة/…) عند الموافقة — لمدة شهر واحد
-      if (status === 'approved') {
-        const table = ENTITY_TABLES[req.entity_type as EntityType]
-        if (table) {
-          const { error: entErr } = await supabase
-            .from(table)
-            .update({
-              plan: req.requested_plan,
-              plan_expires_at: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
-            })
-            .eq('id', req.entity_id)
+  // تطبيق الخطة المطلوبة فعلياً على جهة (الطبيب/العيادة/…) عند الموافقة — لمدة شهر واحد
+  if (status === 'approved') {
+    const table = ENTITY_TABLES[req.entity_type as EntityType]
+    if (table) {
+      const { error: entErr } = await supabase
+        .from(table)
+        .update({
+          plan: req.requested_plan,
+          plan_expires_at: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+        })
+        .eq('id', req.entity_id)
       if (entErr) return { ok: false }
 
-      // إنشاء حساب الجهة تلقائياً: البريد admin-<slug>@gmail.com وكلمة سر عشوائية + رابط سحري
-      const { data: ent } = await supabase.from(table).select('slug, name').eq('id', req.entity_id).maybeSingle()
-      const slug = (ent?.slug ?? String(req.entity_id)).replace(/[^a-z0-9.-]/gi, '-').replace(/^-+|-+$/g, '')
-      const email = `admin-${slug}@gmail.com`
-      const password = genEntityPassword()
-      const { data: acct, error: acctErr } = await supabase.rpc('entity_create_account', {
-        p_entity_type: req.entity_type as EntityType,
-        p_entity_id: req.entity_id,
-        p_email: email,
-        p_password: password,
-      })
-      if (acctErr) return { ok: true }
-      return {
-        ok: true,
-        email: (acct?.email as string) ?? email,
-        password,
-        slug,
-        name: (ent?.name as string) ?? '',
-        linkToken: (acct?.magic_token as string) ?? undefined,
-      }
+      // إنشاء حساب الجهة تلقائياً: البريد وكلمة السر والرابط السحري تُسلَّم للإدارة لتمريرها للجهة
+      const res = await ensureEntityAccount(req.entity_type as EntityType, req.entity_id)
+      if (res.accountError) return { ...res, accountError: res.accountError }
+      return res
     }
   }
   return { ok: true }

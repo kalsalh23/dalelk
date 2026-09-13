@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, X, Phone, CreditCard, Crown, Sparkles, Lock, Copy } from 'lucide-react'
-import { fetchAdminStats, fetchSubscriptionRequests, fetchSettings, saveSettings, updateRequestStatus } from '@/services/admin'
+import { Check, X, Phone, CreditCard, Crown, Sparkles, Lock, Copy, MessageCircle, KeyRound, AlertTriangle, RefreshCcw } from 'lucide-react'
+import { fetchAdminStats, fetchSubscriptionRequests, fetchSettings, saveSettings, updateRequestStatus, ensureEntityAccount } from '@/services/admin'
 import type { UpdateRequestResult } from '@/services/admin'
 import { fetchStatsSummary } from '@/services/stats'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/Toast'
 import { formatDate, formatNumber } from '@/lib/utils'
 import { PLANS, SUBSCRIPTIONS_ENABLED } from '@/constants'
 import { cn } from '@/lib/utils'
+import type { EntityType } from '@/types'
 
 const planIcons: Record<string, typeof Sparkles> = { free: Lock, pro: Sparkles, gold: Crown }
 
@@ -115,8 +116,8 @@ const statusLabel: Record<string, string> = {
 export function AdminRequestsPage() {
   const qc = useQueryClient()
   const toast = useToast()
-  const [selected, setSelected] = useState<{ id: string; status: string } | null>(null)
-  const [creds, setCreds] = useState<UpdateRequestResult & { status: string } | null>(null)
+  const [selected, setSelected] = useState<{ id: string; status: string; phone?: string; entityType?: string; entityId?: string } | null>(null)
+  const [creds, setCreds] = useState<(UpdateRequestResult & { status: string; phone?: string; entityType?: string; entityId?: string }) | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const { data: requests, isLoading } = useQuery({ queryKey: ['admin-requests'], queryFn: fetchSubscriptionRequests })
 
@@ -130,16 +131,35 @@ export function AdminRequestsPage() {
       void qc.invalidateQueries({ queryKey: ['admin-requests'] })
       toast.show('تم تحديث الحالة')
       setSelected(null)
-      if (status === 'approved') setCreds({ ...res, status })
+      if (status === 'approved') {
+        setCreds({ ...res, status, phone: selected?.phone, entityType: selected?.entityType, entityId: selected?.entityId })
+      }
     },
     onError: () => toast.show('تعذر التحديث', 'error'),
+  })
+
+  const credMut = useMutation({
+    mutationFn: async ({ entityType, entityId }: { entityType: string; entityId: string }) => {
+      const res = await ensureEntityAccount(entityType as EntityType, entityId)
+      if (res.accountError) throw new Error(res.accountError)
+      return res
+    },
+    onSuccess: (res) => {
+      toast.show('تم توليد بيانات دخول جديدة')
+      setCreds({ ...res, status: 'approved' })
+    },
+    onError: (e: Error) => toast.show(e.message || 'تعذر توليد البيانات', 'error'),
   })
 
   const accountLink = creds?.slug && creds.linkToken
     ? `${window.location.origin}/account/${creds.slug}?tk=${encodeURIComponent(creds.linkToken)}`
     : creds?.slug
-      ? `${window.location.origin}/account/${creds.slug}`
+      ? `${window.location.origin}/dashboard/login`
       : ''
+
+  const waPhone = creds?.phone ? `963${creds.phone.replace(/\D/g, '').replace(/^0/, '')}` : ''
+  const credMessage = `بيانات الدخول إلى لوحة تحكم جهتك في دليلك الطبي:\n${accountLink ? `رابط الدخول: ${accountLink}\n` : ''}البريد: ${creds?.email ?? ''}\nكلمة السر: ${creds?.password ?? ''}`
+  const waLink = waPhone ? `https://wa.me/${waPhone}?text=${encodeURIComponent(credMessage)}` : ''
 
   const copy = async (text: string, key: string) => {
     try {
@@ -185,10 +205,20 @@ export function AdminRequestsPage() {
                 </p>
                 {r.notes && <p className="mt-1 text-xs text-muted">ملاحظات: {r.notes}</p>}
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="secondary" onClick={() => setSelected({ id: r.id, status: 'contacting' })}>تم التواصل</Button>
-                <Button size="sm" onClick={() => setSelected({ id: r.id, status: 'approved' })}>موافقة</Button>
-                <Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, status: 'rejected' })}>رفض</Button>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="secondary" onClick={() => setSelected({ id: r.id, status: 'contacting', phone: r.phone ?? undefined, entityType: r.entity_type, entityId: r.entity_id })}>تم التواصل</Button>
+                <Button size="sm" onClick={() => setSelected({ id: r.id, status: 'approved', phone: r.phone ?? undefined, entityType: r.entity_type, entityId: r.entity_id })}>موافقة</Button>
+                <Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, status: 'rejected', phone: r.phone ?? undefined, entityType: r.entity_type, entityId: r.entity_id })}>رفض</Button>
+                {r.status === 'approved' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    loading={credMut.isPending && credMut.variables?.entityId === r.entity_id}
+                    onClick={() => credMut.mutate({ entityType: r.entity_type, entityId: r.entity_id })}
+                  >
+                    <KeyRound className="size-4" /> بيانات الدخول
+                  </Button>
+                )}
               </div>
             </Card>
           ))}
@@ -207,30 +237,62 @@ export function AdminRequestsPage() {
 
       <Dialog open={creds !== null} onClose={() => setCreds(null)} title="تم تفعيل الاشتراك — بيانات دخول الجهة" size="md">
         <div className="space-y-5">
-          <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-success">
-            ✓ تم تفعيل الاشتراك وتم إنشاء حساب خاص بـ{creds?.name ? ` "${creds.name}"` : ' الجهة'}.
-          </p>
-          <p className="text-xs leading-6 text-muted">
-            أرسل هذه البيانات للطبيب/الجهة عبر رقم الهاتف أو واتساب المذكور في الطلب ليتمكن من الدخول إلى لوحة تحكم صفحته.
-          </p>
-          <div className="space-y-3">
-            <CredRow
-              label="رابط لوحة التحكم"
-              value={accountLink}
-              copied={copied === 'link'}
-              onCopy={() => void copy(accountLink, 'link')}
-            />
-            <CredRow label="البريد الإلكتروني" value={creds?.email ?? ''} copied={copied === 'email'} onCopy={() => void copy(creds?.email ?? '', 'email')} />
-            <CredRow label="كلمة السر" value={creds?.password ?? ''} copied={copied === 'pass'} onCopy={() => void copy(creds?.password ?? '', 'pass')} />
-          </div>
-          <Button
-            className="w-full"
-            variant="secondary"
-            onClick={() => void copy(`${accountLink}\n${creds?.email ?? ''}\n${creds?.password ?? ''}`, 'all')}
-          >
-            {copied === 'all' ? <Check className="size-4" /> : <Copy className="size-4" />}
-            {copied === 'all' ? 'تم نسخ الكل' : 'نسخ الرابط والبريد وكلمة السر معاً'}
-          </Button>
+          {creds?.accountError ? (
+            <>
+              <p className="flex items-start gap-2 rounded-xl bg-wine-soft px-4 py-3 text-sm font-bold text-error">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                تعذر إنشاء حساب الجهة: {creds.accountError}
+              </p>
+              {creds.entityType && creds.entityId && (
+                <Button
+                  className="w-full"
+                  loading={credMut.isPending}
+                  onClick={() => credMut.mutate({ entityType: creds.entityType as string, entityId: creds.entityId as string })}
+                >
+                  <RefreshCcw className="size-4" /> إعادة المحاولة
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-success">
+                ✓ تم تفعيل الاشتراك لمدة شهر وتم إنشاء حساب خاص بـ{creds?.name ? ` "${creds.name}"` : ' الجهة'}.
+              </p>
+              <p className="text-xs leading-6 text-muted">
+                أرسل هذه البيانات للطبيب/الجهة عبر رقم الهاتف أو واتساب المذكور في الطلب — الرابط يفتح لوحته مباشرة بدون كلمة سر.
+              </p>
+              <div className="space-y-3">
+                <CredRow
+                  label="رابط الدخول المباشر للوحة الجهة"
+                  value={accountLink}
+                  copied={copied === 'link'}
+                  onCopy={() => void copy(accountLink, 'link')}
+                />
+                <CredRow label="البريد الإلكتروني" value={creds?.email ?? ''} copied={copied === 'email'} onCopy={() => void copy(creds?.email ?? '', 'email')} />
+                <CredRow label="كلمة السر" value={creds?.password ?? ''} copied={copied === 'pass'} onCopy={() => void copy(creds?.password ?? '', 'pass')} />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {waLink && (
+                  <Button variant="whatsapp" asChild>
+                    <a href={waLink} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="size-4" /> إرسال عبر واتساب
+                    </a>
+                  </Button>
+                )}
+                <Button
+                  variant="secondary"
+                  onClick={() => void copy(credMessage, 'all')}
+                >
+                  {copied === 'all' ? <Check className="size-4" /> : <Copy className="size-4" />}
+                  {copied === 'all' ? 'تم النسخ' : 'نسخ البيانات معاً'}
+                </Button>
+              </div>
+              <p className="flex items-start gap-1.5 text-[11px] leading-5 text-muted">
+                <KeyRound className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                ضاعت البيانات أو انتهت حاجتها؟ زر «بيانات الدخول» في بطاقة الطلب يولّد كلمة سر ورابطاً جديدين في أي وقت.
+              </p>
+            </>
+          )}
         </div>
       </Dialog>
     </div>
