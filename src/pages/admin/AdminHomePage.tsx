@@ -61,7 +61,6 @@ export function AdminHomePage() {
           </div>
         ) : (
           <>
-            <MetricCard to="/admin/articles" label="المقالات" value={stats.articles} color="violet" />
             <MetricCard to="/admin/questions" label="الأسئلة والأجوبة" value={stats.questions} color="sky" />
             <MetricCard to="/admin/unanswered" label="أسئلة غير مجاب عنها" value={stats.unanswered} color="amber" />
             <MetricCard to="/admin/requests" label="طلبات الترقية" value={stats.requests} color="rose" />

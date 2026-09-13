@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { NavLink, Link, Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import {
   LayoutDashboard, Stethoscope, Building2, Hospital, HeartPulse, Pill, Moon,
-  FlaskConical, ScanLine, Newspaper, MessagesSquare, Inbox, CreditCard,
-  ArrowUpCircle, BarChart3, Settings, LogOut, Menu, X, ShieldCheck, Megaphone, Info, Code2,
+  FlaskConical, ScanLine, MessagesSquare, Inbox, CreditCard,
+  ArrowUpCircle, BarChart3, Settings, LogOut, Menu, X, ShieldCheck, Megaphone, Code2,
 } from 'lucide-react'
 import { AdminAuthProvider, useAdminAuth } from '@/features/admin/auth'
 import type { Profile } from '@/types'
@@ -36,16 +36,9 @@ const NAV = [
   {
     section: 'المحتوى',
     items: [
-      { to: '/admin/articles', label: 'النصائح الطبية', icon: Newspaper },
       { to: '/admin/questions', label: 'الأسئلة والأجوبة', icon: MessagesSquare },
       { to: '/admin/unanswered', label: 'الأسئلة غير المجاب عنها', icon: Inbox },
       { to: '/admin/ads', label: 'الإعلانات', icon: Megaphone },
-    ],
-  },
-  {
-    section: 'الموقع والمحتوى',
-    items: [
-      { to: '/admin/about-settings', label: 'من نحن والتواصل', icon: Info },
     ],
   },
   {

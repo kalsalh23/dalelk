@@ -11,10 +11,8 @@ const NAV: { label: string; to: string; extra?: boolean }[] = [
   { label: 'الأطباء', to: '/doctors' },
   { label: 'العيادات', to: '/clinics' },
   { label: 'الصيدليات', to: '/pharmacies' },
-  { label: 'النصائح الطبية', to: '/articles' },
   { label: 'الصيدليات المناوبة', to: '/duty-pharmacies', extra: true },
   { label: 'المراكز الصحية', to: '/health-centers', extra: true },
-  { label: 'من نحن', to: '/about', extra: true },
   { label: 'عن المنصة', to: '/about-platform', extra: true },
   { label: 'اسأل دليلك الطبي', to: '/ask' },
 ]

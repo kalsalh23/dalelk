@@ -16,7 +16,6 @@ const TYPE_META: Record<string, { label: string; route: (slug: string, id: strin
   pharmacy: { label: 'صيدليات', titleKey: 'name', route: (s, id) => `/pharmacies/${s || id}` },
   lab: { label: 'مخابر', titleKey: 'name', route: (s, id) => `/labs/${s || id}` },
   radiology: { label: 'مراكز الأشعة', titleKey: 'name', route: (s, id) => `/radiology/${s || id}` },
-  article: { label: 'مقالات', titleKey: 'title', descKey: 'excerpt', route: (s) => `/articles/${s}` },
   question: { label: 'أسئلة وأجوبة', titleKey: 'question', descKey: 'answer', route: (s, id) => `/ask?s=${encodeURIComponent(String(s || id))}` },
 }
 
@@ -81,7 +80,7 @@ export function SearchPage() {
             <p className="font-bold text-ink">لا توجد نتائج لـ «{q}»</p>
             <p className="text-sm text-muted">جرّب كلمات بحث أخرى أو تصفح الأقسام الرئيسية.</p>
             <div className="mt-2 flex flex-wrap justify-center gap-2">
-              {[['الأطباء', '/doctors'], ['العيادات', '/clinics'], ['الصيدليات', '/pharmacies'], ['النصائح', '/articles'], ['اسأل', '/ask']].map(([l, to]) => (
+              {[['الأطباء', '/doctors'], ['العيادات', '/clinics'], ['الصيدليات', '/pharmacies'], ['اسأل', '/ask']].map(([l, to]) => (
                 <Link key={to} to={to} className="rounded-full border border-border bg-surface px-4 py-2 text-xs font-bold text-primary hover:bg-primary-light/40">{l}</Link>
               ))}
             </div>

@@ -16,7 +16,6 @@ const TYPE_STYLES: Record<string, { label: string; color: string }> = {
   lab: { label: 'مخبر', color: '#4a151e' },
   radiology: { label: 'أشعة', color: '#260f14' },
   health_center: { label: 'مركز صحي', color: '#b9a779' },
-  article: { label: 'مقال', color: '#988561' },
   question: { label: 'سؤال', color: '#6b1f2a' },
 }
 
@@ -132,11 +131,9 @@ export function SearchBar({
                   const name = String(item.name ?? item.title ?? item.question ?? '')
                   const img = getPublicUrl(item.image as string)
                   const route =
-                    group.type === 'article'
-                      ? `/articles/${item.slug}`
-                      : group.type === 'question'
-                        ? `/ask?s=${encodeURIComponent(String(item.question ?? ''))}`
-                        : `/${(group.type as EntityType) === 'health_center' ? 'health-centers' : `${group.type === 'radiology' ? 'radiology' : group.type}s`}/${item.slug ?? id}`
+                    group.type === 'question'
+                      ? `/ask?s=${encodeURIComponent(String(item.question ?? ''))}`
+                      : `/${(group.type as EntityType) === 'health_center' ? 'health-centers' : `${group.type === 'radiology' ? 'radiology' : group.type}s`}/${item.slug ?? id}`
                   return (
                     <button
                       key={id}

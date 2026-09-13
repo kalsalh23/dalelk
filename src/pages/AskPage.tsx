@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { HelpCircle, Search, Send, ClipboardList, Stethoscope, Newspaper, MessageSquareText } from 'lucide-react'
+import { HelpCircle, Search, Send, ClipboardList, Stethoscope, MessageSquareText } from 'lucide-react'
 import { searchQuestions, saveUnansweredQuestion } from '@/services/articles'
-import { useArticles } from '@/hooks/useArticles'
 import { useEntities } from '@/hooks/useEntities'
 import { Skeletons } from '@/components/ui/States'
 import { useToast } from '@/components/ui/Toast'
@@ -21,13 +20,11 @@ export function AskPage() {
   const [notFound, setNotFound] = useState(false)
   const [answered, setAnswered] = useState(false)
   const [suggestions, setSuggestions] = useState<{
-    articles: Array<Record<string, unknown>>
     doctors: Array<Record<string, unknown>>
     clinics: Array<Record<string, unknown>>
-  }>({ articles: [], doctors: [], clinics: [] })
+  }>({ doctors: [], clinics: [] })
   const toast = useToast()
 
-  const { data: tips } = useArticles({ limit: 4 })
   const { data: doctors } = useEntities('doctor', { limit: 4 })
   const { data: clinics } = useEntities('clinic', { limit: 4 })
 
@@ -54,7 +51,6 @@ export function AskPage() {
       setResults([])
       setNotFound(true)
       setSuggestions({
-        articles: (tips?.data ?? []) as unknown as Array<Record<string, unknown>>,
         doctors: (doctors?.data ?? []) as unknown as Array<Record<string, unknown>>,
         clinics: (clinics?.data ?? []) as unknown as Array<Record<string, unknown>>,
       })
@@ -154,8 +150,6 @@ export function AskPage() {
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
                   <span>هل كان هذا مفيداً؟ يمكنك دائماً:</span>
-                  <Link to="/articles" className="font-bold text-primary hover:underline">تصفح النصائح الطبية</Link>
-                  <span>أو</span>
                   <Link to="/doctors" className="font-bold text-primary hover:underline">البحث عن طبيب</Link>
                 </div>
               </motion.div>
@@ -169,16 +163,7 @@ export function AskPage() {
                     لم نجد إجابة مناسبة لسؤالك حاليًا.
                   </h2>
                   <p className="mt-2 text-sm text-muted">ربما يفيدك البحث في الأقسام التالية:</p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-border bg-surface p-4">
-                      <p className="flex items-center gap-1.5 text-xs font-black text-ink"><Newspaper className="size-4 text-primary" />نصائح طبية</p>
-                      <ul className="mt-2 space-y-1.5 text-xs text-muted">
-                        {(suggestions.articles.slice(0, 3) as Array<{ slug: string; title: string }>).map((a) => (
-                          <li key={a.slug}><Link to={`/articles/${a.slug}`} className="line-clamp-1 hover:text-primary hover:underline">{a.title}</Link></li>
-                        ))}
-                      </ul>
-                      <Link to="/articles" className="mt-2 block text-[11px] font-bold text-primary hover:underline">عرض الكل ←</Link>
-                    </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-border bg-surface p-4">
                       <p className="flex items-center gap-1.5 text-xs font-black text-ink"><Stethoscope className="size-4 text-primary" />أطباء</p>
                       <ul className="mt-2 space-y-1.5 text-xs text-muted">

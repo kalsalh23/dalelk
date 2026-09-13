@@ -41,17 +41,6 @@ export async function globalSearch(query: string, cityId?: string | null): Promi
     ...TABLES.map((t) => searchTable(t.table, t.label, t.type, t.type === 'doctor' ? 'specialty' : '')),
   ])
 
-  // المقالات
-  const art = await supabase
-    .from('articles')
-    .select('id, title, slug, image, excerpt')
-    .eq('is_published', true)
-    .or(`title.ilike.%${term}%,excerpt.ilike.%${term}%`)
-    .limit(5)
-  if (!art.error && art.data?.length) {
-    groups.push({ type: 'article', label: 'مقالات', items: art.data })
-  }
-
   // الأسئلة الطبية
   const qs = await supabase
     .from('medical_questions')

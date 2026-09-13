@@ -11,7 +11,6 @@ const links = [
   { label: 'المشافي', to: '/hospitals' },
   { label: 'الصيدليات', to: '/pharmacies' },
   { label: 'الصيدليات المناوبة', to: '/duty-pharmacies' },
-  { label: 'النصائح الطبية', to: '/articles' },
   { label: 'اسأل دليلك الطبي', to: '/ask' },
   { label: 'باقات الاشتراك', to: '/plans' },
   { label: 'ترقية حسابي', to: '/upgrade' },
@@ -19,7 +18,6 @@ const links = [
 
 const legal = [
   { label: 'عن المنصة', to: '/about-platform' },
-  { label: 'من نحن', to: '/about' },
   { label: 'تواصل معنا', to: '/contact' },
   { label: 'سياسة الخصوصية', to: '/privacy' },
   { label: 'شروط الاستخدام', to: '/terms' },
