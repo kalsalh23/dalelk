@@ -4,6 +4,9 @@ export const APP_NAME = 'دليلك الطبي'
 export const APP_SLOGAN = 'كل ما تحتاجه من خدمات صحية في مدينة طيبة الإمام... في مكان واحد.'
 export const DEFAULT_CITY = 'طيبة الإمام'
 
+/** مفتاح عرض قسم العيادات في الموقع — عطّله مؤقتاً (اجعله true لاستخدامه لاحقاً) */
+export const FEATURE_CLINICS = false
+
 export interface ServiceDef {
   key: string
   name: string

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { ENTITY_TABLES } from '@/services/content'
+import { FEATURE_CLINICS } from '@/constants'
 import type { EntityType } from '@/types'
 
 export interface SearchResult {
@@ -38,7 +39,7 @@ export async function globalSearch(query: string, cityId?: string | null): Promi
   }
 
   await Promise.all([
-    ...TABLES.map((t) => searchTable(t.table, t.label, t.type, t.type === 'doctor' ? 'specialty' : '')),
+    ...TABLES.filter((t) => FEATURE_CLINICS || t.type !== 'clinic').map((t) => searchTable(t.table, t.label, t.type, t.type === 'doctor' ? 'specialty' : '')),
   ])
 
   // الأسئلة الطبية

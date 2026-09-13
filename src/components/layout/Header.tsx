@@ -5,6 +5,7 @@ import { Menu, X, Search, HelpCircle, LayoutDashboard, ShieldCheck } from 'lucid
 import { Logo } from '@/components/ui/Logo'
 import { cn } from '@/lib/utils'
 import { readStoredSession } from '@/services/entityAccount'
+import { FEATURE_CLINICS } from '@/constants'
 
 const NAV: { label: string; to: string; extra?: boolean }[] = [
   { label: 'الرئيسية', to: '/' },
@@ -15,7 +16,7 @@ const NAV: { label: string; to: string; extra?: boolean }[] = [
   { label: 'المراكز الصحية', to: '/health-centers', extra: true },
   { label: 'عن المنصة', to: '/about-platform', extra: true },
   { label: 'اسأل دليلك الطبي', to: '/ask' },
-]
+].filter((n) => FEATURE_CLINICS || n.to !== '/clinics')
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)

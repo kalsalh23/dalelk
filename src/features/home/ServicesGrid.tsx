@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, LayoutGrid } from 'lucide-react'
-import { SERVICES, DEFAULT_CITY } from '@/constants'
+import { SERVICES, DEFAULT_CITY, FEATURE_CLINICS } from '@/constants'
 import { countLabel } from '@/lib/utils'
 import { SectionTitle } from '@/components/ui/Breadcrumbs'
 import { ServiceIcon } from '@/components/ui/EntityIcon'
@@ -39,7 +39,7 @@ export function ServicesGrid() {
         icon={<LayoutGrid className="size-5" />}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {SERVICES.map((svc, i) => (
+        {SERVICES.filter((svc) => FEATURE_CLINICS || svc.key !== 'clinic').map((svc, i) => (
           <motion.div
             key={svc.key}
             initial={{ opacity: 0, y: 18 }}

@@ -4,7 +4,7 @@ import {
   Sparkles, ArrowLeft, Stethoscope, Pill, Moon, Building2, Hospital, FlaskConical,
 } from 'lucide-react'
 import { SearchBar } from '@/components/shared/SearchBar'
-import { APP_NAME } from '@/constants'
+import { APP_NAME, FEATURE_CLINICS } from '@/constants'
 import { cn } from '@/lib/utils'
 
 const QUICK_LINKS = [
@@ -14,7 +14,7 @@ const QUICK_LINKS = [
   { label: 'العيادات', to: '/clinics', icon: Building2, tone: 'gold' },
   { label: 'المشافي', to: '/hospitals', icon: Hospital, tone: 'primary' },
   { label: 'المخابر', to: '/labs', icon: FlaskConical, tone: 'gold' },
-] as const
+].filter((q) => FEATURE_CLINICS || q.to !== '/clinics') as readonly { label: string; to: string; icon: typeof Stethoscope; tone: string }[]
 
 export function Hero() {
   return (

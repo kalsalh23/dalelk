@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Globe, MessageCircle, AtSign, Phone, ShieldCheck, Code2 } from 'lucide-react'
 import { InstagramIcon, FacebookIcon } from '@/components/ui/BrandIcons'
 import { Logo } from '@/components/ui/Logo'
-import { APP_NAME, DEFAULT_DEVELOPER } from '@/constants'
+import { APP_NAME, DEFAULT_DEVELOPER, FEATURE_CLINICS } from '@/constants'
 
 const links = [
   { label: 'الرئيسية', to: '/' },
@@ -14,7 +14,7 @@ const links = [
   { label: 'اسأل دليلك الطبي', to: '/ask' },
   { label: 'باقات الاشتراك', to: '/plans' },
   { label: 'ترقية حسابي', to: '/upgrade' },
-]
+].filter((l) => FEATURE_CLINICS || l.to !== '/clinics')
 
 const legal = [
   { label: 'عن المنصة', to: '/about-platform' },

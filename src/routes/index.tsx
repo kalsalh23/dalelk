@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom'
+import { FEATURE_CLINICS } from '@/constants'
 import { MainLayout } from '@/layouts/MainLayout'
 import { AdminLayout } from '@/layouts/AdminLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
@@ -13,8 +14,12 @@ export const router = createBrowserRouter([
       { path: 'search', lazy: () => import('@/pages/SearchPage').then((m) => ({ Component: m.SearchPage })) },
       { path: 'doctors', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.DoctorsList })) },
       { path: 'doctors/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.DoctorDetail })) },
-      { path: 'clinics', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.ClinicsList })) },
-      { path: 'clinics/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.ClinicDetail })) },
+      ...(FEATURE_CLINICS
+        ? [
+            { path: 'clinics', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.ClinicsList })) },
+            { path: 'clinics/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.ClinicDetail })) },
+          ]
+        : []),
       { path: 'hospitals', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.HospitalsList })) },
       { path: 'hospitals/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.HospitalDetail })) },
       { path: 'health-centers', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.HealthList })) },
