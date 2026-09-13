@@ -121,13 +121,29 @@ export interface UpdateRequestResult {
   accountError?: string
 }
 
+/** ترجمة أخطاء قاعدة البيانات التقنية إلى رسائل مفهومة للمدير */
+function friendlyAccountError(msg: string): string {
+  const m = (msg || '').toLowerCase()
+  if (m.includes('duplicate key') || m.includes('unique')) {
+    return 'تعارض في البريد مع حساب آخر — أعد المحاولة وسيولّد بريد فريد جديد'
+  }
+  if (m.includes('jwt') || m.includes('permission') || m.includes('row-level security')) {
+    return 'انتهت جلسة المشرف — أعد تسجيل الدخول ثم حاول مجدداً'
+  }
+  return msg
+}
+
 /** إنشاء/تجديد حساب جهة (كلمة سر ورابط سحري جديدان) — يُستخدم عند الموافقة وعند إعادة إرسال البيانات */
 export async function ensureEntityAccount(entityType: EntityType, entityId: string): Promise<UpdateRequestResult> {
   const table = ENTITY_TABLES[entityType]
   if (!table) return { ok: false, accountError: 'نوع جهة غير صالح' }
   const { data: ent } = await supabase.from(table).select('slug, name').eq('id', entityId).maybeSingle()
-  const slug = String(ent?.slug ?? entityId).replace(/[^a-z0-9.-]/gi, '-').replace(/^-+|-+$/g, '')
-  const email = `admin-${slug}@gmail.com`
+  // البريد يجب أن يكون فريداً عالمياً: نستخدم السلاغ اللاتيني إن وجد، وندائماً نلحق جزءاً من المعرف
+  // (السلاغ العربي يفرغ عند التعقيم، وبغير المعرف تتكرر القيمة ويفشل قيد البريد الفريد)
+  const rawSlug = String(ent?.slug ?? '')
+  const latinSlug = rawSlug.replace(/[^a-z0-9.-]/gi, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '')
+  const idPart = entityId.replace(/-/g, '').slice(0, 8)
+  const email = `admin-${latinSlug || 'entity'}-${idPart}@gmail.com`
   const password = genEntityPassword()
   const { data: acct, error: acctErr } = await supabase.rpc('entity_create_account', {
     p_entity_type: entityType,
@@ -136,13 +152,13 @@ export async function ensureEntityAccount(entityType: EntityType, entityId: stri
     p_password: password,
   })
   const a = acct as Record<string, unknown> | null
-  if (acctErr) return { ok: true, slug, name: (ent?.name as string) ?? '', accountError: acctErr.message }
-  if (!a || a.error) return { ok: true, slug, name: (ent?.name as string) ?? '', accountError: String(a?.error ?? 'تعذر إنشاء الحساب') }
+  if (acctErr) return { ok: true, slug: rawSlug, name: (ent?.name as string) ?? '', accountError: friendlyAccountError(acctErr.message) }
+  if (!a || a.error) return { ok: true, slug: rawSlug, name: (ent?.name as string) ?? '', accountError: friendlyAccountError(String(a?.error ?? 'تعذر إنشاء الحساب')) }
   return {
     ok: true,
     email: (a.email as string) ?? email,
     password,
-    slug,
+    slug: rawSlug,
     name: (a.name as string) ?? (ent?.name as string) ?? '',
     linkToken: (a.magic_token as string) ?? undefined,
   }
