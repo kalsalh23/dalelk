@@ -3,13 +3,13 @@ import { NavLink, Link, Outlet, useNavigate, useLocation, Navigate } from 'react
 import {
   LayoutDashboard, Stethoscope, Building2, Hospital, HeartPulse, Pill, Moon,
   FlaskConical, ScanLine, Newspaper, MessagesSquare, Inbox, CreditCard,
-  ArrowUpCircle, BarChart3, Settings, LogOut, Menu, X, ShieldCheck, Megaphone, Info,
+  ArrowUpCircle, BarChart3, Settings, LogOut, Menu, X, ShieldCheck, Megaphone, Info, Code2,
 } from 'lucide-react'
 import { AdminAuthProvider, useAdminAuth } from '@/features/admin/auth'
 import type { Profile } from '@/types'
 import { FullPageLoader } from '@/components/ui/States'
 import { cn } from '@/lib/utils'
-import { APP_NAME } from '@/constants'
+import { APP_NAME, DEFAULT_DEVELOPER } from '@/constants'
 
 const NAV = [
   {
@@ -142,6 +142,13 @@ function AdminContent({ profile }: { profile: Profile }) {
             <LogOut className="size-4.5" />
             تسجيل الخروج
           </button>
+          <a
+            href={`tel:${DEFAULT_DEVELOPER.phone}`}
+            className="mt-2 flex items-center gap-1.5 rounded-xl bg-subtle px-3 py-2.5 text-[11px] leading-5 text-muted transition-colors hover:text-primary"
+          >
+            <Code2 className="size-3.5 shrink-0 text-primary" />
+            <span>تطوير: {DEFAULT_DEVELOPER.name}<br /><span dir="ltr">{DEFAULT_DEVELOPER.phone}</span></span>
+          </a>
         </div>
       </aside>
 
@@ -180,6 +187,13 @@ function AdminContent({ profile }: { profile: Profile }) {
                 تسجيل الخروج
               </button>
             </nav>
+            <a
+              href={`tel:${DEFAULT_DEVELOPER.phone}`}
+              className="mt-2 flex items-center gap-1.5 rounded-xl bg-subtle px-3 py-2 text-[11px] text-muted"
+            >
+              <Code2 className="size-3.5 shrink-0 text-primary" />
+              تطوير: {DEFAULT_DEVELOPER.name} — <span dir="ltr">{DEFAULT_DEVELOPER.phone}</span>
+            </a>
           </div>
         )}
         <main className="p-4 sm:p-6 lg:p-8">

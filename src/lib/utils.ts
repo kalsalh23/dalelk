@@ -89,3 +89,27 @@ export function todaySQL(): string {
 }
 
 export const waitFor = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+
+/** مدة الاشتراك المدفوع بالأيام (شهر واحد) */
+export const PLAN_DURATION_DAYS = 30
+
+/** تاريخ انتهاء الباقة من الآن */
+export function planExpiryFromNow(days = PLAN_DURATION_DAYS): string {
+  return new Date(Date.now() + days * 24 * 3600 * 1000).toISOString()
+}
+
+/** هل انتهت صلاحية اشتراك الجهة؟ */
+export function isPlanExpired(row: { plan_expires_at?: string | null } | null | undefined): boolean {
+  const exp = row?.plan_expires_at
+  if (!exp) return false
+  return new Date(exp).getTime() < Date.now()
+}
+
+/** الباقة الفعلية المعروضة: ترجع «مجاني» إذا انتهت صلاحية الاشتراك المدفوع */
+export function effectivePlan(
+  row: { plan?: string | null; plan_expires_at?: string | null } | null | undefined,
+): string {
+  const p = String(row?.plan ?? 'free')
+  if ((p === 'pro' || p === 'gold') && isPlanExpired(row)) return 'free'
+  return p
+}

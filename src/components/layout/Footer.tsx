@@ -17,6 +17,7 @@ const links = [
 ]
 
 const legal = [
+  { label: 'عن المنصة', to: '/about-platform' },
   { label: 'من نحن', to: '/about' },
   { label: 'تواصل معنا', to: '/contact' },
   { label: 'سياسة الخصوصية', to: '/privacy' },

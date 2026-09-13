@@ -13,7 +13,7 @@ import { Card, CardBody } from '@/components/ui/Card'
 import { VerifiedBadge, PlanBadge } from '@/components/ui/Badge'
 import { InteractiveMap } from '@/components/shared/Map'
 import { getPublicUrl } from '@/lib/supabase'
-import { waLink, mapsLink, cn } from '@/lib/utils'
+import { waLink, mapsLink, cn, effectivePlan } from '@/lib/utils'
 import { ENTITY_LABELS } from '@/constants'
 import type { EntityType, WorkHours } from '@/types'
 import { EntityIcon } from '@/components/ui/EntityIcon'
@@ -109,7 +109,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
   const services = (ready.services as string[] | null) ?? null
   const hours = (ready.work_hours as WorkHours) ?? null
   const certified = Boolean(ready.is_verified)
-  const plan = (ready.plan as string) ?? 'free'
+  const plan = effectivePlan(ready as { plan?: string | null; plan_expires_at?: string | null })
   const rating = ready.rating ? Number(ready.rating) : null
 
   const routeLink = `${type === 'health_center' ? 'health-centers' : type === 'radiology' ? 'radiology' : `${type}s`}`

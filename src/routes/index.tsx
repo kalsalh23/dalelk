@@ -34,6 +34,7 @@ export const router = createBrowserRouter([
       { path: 'account/:slug', lazy: () => import('@/pages/account/AccountPage').then((m) => ({ Component: m.AccountPage })) },
       { path: 'contact', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.ContactPage })) },
       { path: 'about', lazy: () => import('@/pages/AboutPage').then((m) => ({ Component: m.AboutPage })) },
+      { path: 'about-platform', lazy: () => import('@/pages/AboutPlatformPage').then((m) => ({ Component: m.AboutPlatformPage })) },
       { path: 'privacy', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.PrivacyPage })) },
       { path: 'terms', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.TermsPage })) },
       { path: 'disclaimer', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.DisclaimerPage })) },

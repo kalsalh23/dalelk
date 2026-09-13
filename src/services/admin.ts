@@ -140,17 +140,17 @@ export async function updateRequestStatus(
   const { error } = await supabase.from('subscription_requests').update(updates).eq('id', id)
   if (error) return { ok: false }
 
-  // تطبيق الخطة المطلوبة فعلياً على جهة (الطبيب/العيادة/…) عند الموافقة
-  if (status === 'approved') {
-    const table = ENTITY_TABLES[req.entity_type as EntityType]
-    if (table) {
-      const { error: entErr } = await supabase
-        .from(table)
-        .update({
-          plan: req.requested_plan,
-          plan_expires_at: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
-        })
-        .eq('id', req.entity_id)
+      // تطبيق الخطة المطلوبة فعلياً على جهة (الطبيب/العيادة/…) عند الموافقة — لمدة شهر واحد
+      if (status === 'approved') {
+        const table = ENTITY_TABLES[req.entity_type as EntityType]
+        if (table) {
+          const { error: entErr } = await supabase
+            .from(table)
+            .update({
+              plan: req.requested_plan,
+              plan_expires_at: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+            })
+            .eq('id', req.entity_id)
       if (entErr) return { ok: false }
 
       // إنشاء حساب الجهة تلقائياً: البريد admin-<slug>@gmail.com وكلمة سر عشوائية + رابط سحري

@@ -1,4 +1,4 @@
-import type { EntityType, Plan } from '@/types'
+﻿import type { EntityType, Plan } from '@/types'
 
 export const APP_NAME = 'دليلك الطبي'
 export const APP_SLOGAN = 'كل ما تحتاجه من خدمات صحية في مدينة طيبة الإمام... في مكان واحد.'
@@ -218,6 +218,6 @@ export const DEFAULT_DEVELOPER = {
   title: 'مطوّر المنصة',
   phone: '0952639157',
   international_phone: '+963952639157',
-  instagram: 'https://www.instagram.com/kosai_al_saleh?igsh=cWM0dzEzaThqN2sz',
-  facebook: 'https://www.facebook.com/share/17m6YZ1NKS/',
+  instagram: 'https://www.instagram.com/kosai_al_saleh?stkn=cWM0dzEzaThqN2sz',
+  facebook: 'https://www.facebook.com/share/18J7tZ9rXD/',
 }

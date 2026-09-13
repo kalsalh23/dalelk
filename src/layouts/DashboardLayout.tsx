@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, User, Images, Clock, MapPin, ShieldCheck, LogOut, Menu, X, ExternalLink, Crown, Eye, Phone,
+  LayoutDashboard, User, Images, Clock, MapPin, ShieldCheck, LogOut, Menu, X, ExternalLink, Crown, Eye, Code2,
 } from 'lucide-react'
 import { fetchEntitySession, readStoredSession, clearStoredSession, entityDisplayName, entityDisplayType, type EntitySessionData } from '@/services/entityAccount'
 import { FullPageLoader } from '@/components/ui/States'
 import { PlanBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { cn } from '@/lib/utils'
+import { cn, effectivePlan } from '@/lib/utils'
+import { DEFAULT_DEVELOPER } from '@/constants'
 
 const NAV = [
   { to: '/dashboard', label: 'الرئيسية', icon: LayoutDashboard, end: true },
@@ -82,7 +83,7 @@ function DashboardShell() {
           <p className="text-sm font-black text-ink line-clamp-1">{entityDisplayName(session.entity)}</p>
           <p className="mt-1 flex items-center gap-2 text-xs text-muted">
             {entityDisplayType(session.entity_type)}
-            <PlanBadge plan={String(session.entity?.plan ?? 'free')} />
+            <PlanBadge plan={effectivePlan(session.entity)} />
           </p>
           <p className="mt-1 text-[11px] text-muted" dir="ltr">{session.email}</p>
           <div className="mt-3 flex gap-2">
@@ -113,17 +114,21 @@ function DashboardShell() {
         </nav>
 
         <div className="border-t border-border p-4">
-          {(String(session.entity?.plan ?? 'free') !== 'free') && (
+          {(effectivePlan(session.entity) !== 'free') && (
             <div className="mb-3 flex items-center gap-2 rounded-xl bg-gold-soft px-3 py-2 text-xs font-bold text-gold-dark">
-              <Crown className="size-4" /> {(String(session.entity?.plan ?? '') === 'gold') ? 'الباقة الذهبية' : 'الباقة الاحترافية'} نشطة
+              <Crown className="size-4" /> {(effectivePlan(session.entity) === 'gold') ? 'الباقة الذهبية' : 'الباقة الاحترافية'} نشطة
             </div>
           )}
           <Button variant="outline" size="sm" className="w-full" onClick={logout}>
             <LogOut className="size-4" /> تسجيل الخروج
           </Button>
-          <p className="mt-2 text-center text-[11px] text-muted flex items-center justify-center gap-1">
-            <Phone className="size-3" /> الدعم: تواصل مع الإدارة
-          </p>
+          <a
+            href={`tel:${DEFAULT_DEVELOPER.phone}`}
+            className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] text-muted transition-colors hover:text-primary"
+          >
+            <Code2 className="size-3 shrink-0 text-primary" />
+            تطوير: {DEFAULT_DEVELOPER.name} — <span dir="ltr">{DEFAULT_DEVELOPER.phone}</span>
+          </a>
         </div>
       </aside>
 
@@ -164,6 +169,13 @@ function DashboardShell() {
             <div className="mt-3 rounded-xl bg-subtle p-3">
               <p className="text-sm font-bold text-ink">{entityDisplayName(session.entity)}</p>
               <p className="text-xs text-muted">{entityDisplayType(session.entity_type)} — {session.email}</p>
+              <a
+                href={`tel:${DEFAULT_DEVELOPER.phone}`}
+                className="mt-1.5 flex items-center gap-1 text-[11px] text-muted transition-colors hover:text-primary"
+              >
+                <Code2 className="size-3 shrink-0 text-primary" />
+                تطوير: {DEFAULT_DEVELOPER.name} — <span dir="ltr">{DEFAULT_DEVELOPER.phone}</span>
+              </a>
             </div>
           </div>
         )}

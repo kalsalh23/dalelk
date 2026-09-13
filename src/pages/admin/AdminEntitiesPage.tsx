@@ -14,7 +14,7 @@ import { Dialog, ConfirmDialog } from '@/components/ui/Dialog'
 import { Skeletons, EmptyState } from '@/components/ui/States'
 import { Pagination } from '@/components/ui/Pagination'
 import { useToast } from '@/components/ui/Toast'
-import { cn, slugify } from '@/lib/utils'
+import { cn, slugify, planExpiryFromNow } from '@/lib/utils'
 import { enumValues, type EntityMeta, ENTITY_META } from '@/features/admin/entityMeta'
 import type { EntityType } from '@/types'
 
@@ -221,7 +221,12 @@ function PlanToggle({ table, row }: { table: string; row: Record<string, unknown
     <select
       value={current}
       onChange={async (e) => {
-        await updateEntity(table as EntityType, String(row.id), { plan: e.target.value })
+        const plan = e.target.value
+        // تفعيل الباقة لمدة شهر من الآن، والرجوع للمجانية يلغي تاريخ الانتهاء
+        await updateEntity(table as EntityType, String(row.id), {
+          plan,
+          plan_expires_at: plan === 'free' ? null : planExpiryFromNow(),
+        })
         void qc.invalidateQueries({ queryKey: ['admin-entities', table] })
       }}
       className={cn(
@@ -328,6 +333,13 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
 
     const workHours = getWorkHours(form)
     if (workHours) payload.work_hours = workHours
+
+    // تفعيل مدة الباقة: عند تغيير الباقة تُحدد لمدة شهر من الآن، والرجوع للمجانية يلغي تاريخ الانتهاء
+    const prevPlan = String(values.plan ?? 'free')
+    const nextPlan = String(form.plan ?? 'free')
+    if (nextPlan !== prevPlan) {
+      payload.plan_expires_at = nextPlan === 'free' ? null : planExpiryFromNow()
+    }
 
     let result
     if (isEdit) {

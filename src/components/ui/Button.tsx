@@ -16,11 +16,11 @@ const variants: Record<Variant, string> = {
   primary:
     'bg-primary text-white hover:bg-primary-dark shadow-sm focus-visible:ring-primary/40 active:scale-[0.98]',
   secondary:
-    'bg-primary-light text-primary-dark hover:bg-[#b3f3e7] active:scale-[0.98]',
+    'bg-primary-light text-primary-dark hover:bg-[#cfe4de] active:scale-[0.98]',
   outline:
     'border border-border bg-surface text-ink hover:border-primary/50 hover:text-primary active:scale-[0.98]',
   ghost: 'text-ink hover:bg-subtle-strong active:scale-[0.98]',
-  danger: 'bg-error text-white hover:bg-[#b91c1c] active:scale-[0.98]',
+  danger: 'bg-error text-white hover:bg-wine-dark active:scale-[0.98]',
   whatsapp: 'bg-[#25D366] text-white hover:bg-[#1fb457] active:scale-[0.98]',
 }
 

@@ -15,6 +15,7 @@ const NAV: { label: string; to: string; extra?: boolean }[] = [
   { label: 'الصيدليات المناوبة', to: '/duty-pharmacies', extra: true },
   { label: 'المراكز الصحية', to: '/health-centers', extra: true },
   { label: 'من نحن', to: '/about', extra: true },
+  { label: 'عن المنصة', to: '/about-platform', extra: true },
   { label: 'اسأل دليلك الطبي', to: '/ask' },
 ]
 
