@@ -401,11 +401,16 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
             <Input value={String(form.name ?? '')} onChange={(e) => set('name', e.target.value)} required />
           </Field>
           {(dataType === 'doctor' || dataType === 'clinic') && (
-            <Field label="الاختصاص">
-              <Select value={String(form.specialty ?? '')} onChange={(e) => set('specialty', e.target.value)}>
-                <option value="">— بدون —</option>
-                {enumValues.specialties.map((s) => <option key={s} value={s}>{s}</option>)}
-              </Select>
+            <Field label="الاختصاص" hint="اختر من القائمة المنسدلة أو اكتب اختصاصاً جديداً غير موجود">
+              <Input
+                list="specialty-suggestions"
+                value={String(form.specialty ?? '')}
+                onChange={(e) => set('specialty', e.target.value)}
+                placeholder="مثال: قلبية، عظام، جهاز هضمي…"
+              />
+              <datalist id="specialty-suggestions">
+                {enumValues.specialties.map((s) => <option key={s} value={s} />)}
+              </datalist>
             </Field>
           )}
           <Field label="رقم الهاتف">
