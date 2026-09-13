@@ -45,7 +45,7 @@ export function Dialog({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-ink/50 backdrop-blur-sm"
           />
           <motion.div
             initial={{ opacity: 0, y: 32, scale: 0.98 }}
@@ -61,7 +61,7 @@ export function Dialog({
               <h3 className="text-lg font-bold text-ink">{title}</h3>
               <button
                 onClick={onClose}
-                className="rounded-xl p-2 text-muted transition-colors hover:bg-slate-100 hover:text-ink cursor-pointer"
+                className="rounded-xl p-2 text-muted transition-colors hover:bg-subtle-strong hover:text-ink cursor-pointer"
                 aria-label="إغلاق"
               >
                 <X className="size-5" />
@@ -104,7 +104,7 @@ export function ConfirmDialog({
         </button>
         <button
           onClick={onClose}
-          className="flex-1 rounded-xl border border-border bg-surface px-4 py-3 text-sm font-bold text-ink transition hover:bg-slate-50 cursor-pointer"
+          className="flex-1 rounded-xl border border-border bg-surface px-4 py-3 text-sm font-bold text-ink transition hover:bg-subtle cursor-pointer"
         >
           إلغاء
         </button>

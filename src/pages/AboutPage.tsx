@@ -70,7 +70,7 @@ export function AboutPage() {
               <h2 className="text-lg font-black text-ink">الدعم الفني</h2>
             </div>
             <div className="space-y-3 text-sm">
-              <details className="group rounded-2xl border border-border bg-slate-50 p-4">
+              <details className="group rounded-2xl border border-border bg-subtle p-4">
                 <summary className="cursor-pointer font-bold text-ink">الاتصال بدعم المنصة</summary>
                 <div className="mt-3 space-y-2">
                   <a href={`tel:${about?.support_phone ?? ''}`} className="flex items-center justify-between rounded-xl bg-surface px-4 py-3">

@@ -19,7 +19,7 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
         const last = i === items.length - 1
         return (
           <span key={i} className="flex items-center gap-1.5">
-            <ChevronLeft className="size-4 text-slate-300" />
+            <ChevronLeft className="size-4 text-faint" />
             {last || !item.to ? (
               <span className={last ? 'font-semibold text-ink' : ''}>{item.label}</span>
             ) : (

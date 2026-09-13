@@ -89,7 +89,7 @@ export function FeaturedDoctors() {
                       key={i}
                       onClick={() => setPage(i)}
                       aria-label={`صفحة ${i + 1}`}
-                      className={cn('h-2 rounded-full transition-all', i === clamped ? 'w-6 bg-primary' : 'w-2 bg-slate-200 hover:bg-slate-300')}
+                      className={cn('h-2 rounded-full transition-all', i === clamped ? 'w-6 bg-primary' : 'w-2 bg-subtle-strong hover:bg-faint')}
                     />
                   ))}
                 </div>
@@ -133,7 +133,7 @@ function FeaturedDoctorCard({ doc, index }: { doc: Record<string, unknown>; inde
       onClick={() => navigate(link)}
       className="group relative cursor-pointer overflow-hidden rounded-[22px] border border-primary/25 bg-gradient-to-l from-primary-light/40 via-surface to-surface shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl"
     >
-      <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-l from-primary via-teal-400 to-amber-400" />
+      <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-l from-primary via-gold to-gold-dark" />
       <div className="absolute -left-10 -top-10 size-32 rounded-full bg-primary/5 blur-2xl transition-all group-hover:bg-primary/10" />
       <div className="flex gap-4 p-5 sm:p-6">
         <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-primary-light/50 sm:size-28">
@@ -144,7 +144,7 @@ function FeaturedDoctorCard({ doc, index }: { doc: Record<string, unknown>; inde
               <EntityIcon type="doctor" className="size-12" />
             </div>
           )}
-          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-black text-white shadow">
+          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 rounded-full bg-gold-dark px-2 py-0.5 text-[10px] font-black text-white shadow">
             <Star className="size-3 fill-white" />
             مميّز
           </span>
@@ -152,7 +152,7 @@ function FeaturedDoctorCard({ doc, index }: { doc: Record<string, unknown>; inde
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <Crown className="size-4 shrink-0 text-amber-500" />
+            <Crown className="size-4 shrink-0 text-gold-dark" />
             <p className="truncate text-lg font-black text-ink transition-colors group-hover:text-primary">{name}</p>
           </div>
           <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted">
@@ -180,7 +180,7 @@ function FeaturedDoctorCard({ doc, index }: { doc: Record<string, unknown>; inde
               </a>
             ) : null}
             <span className="flex items-center gap-1 text-xs font-bold text-primary">
-              <Star className="size-3.5 fill-amber-400 text-amber-500" />
+              <Star className="size-3.5 fill-gold text-gold-dark" />
               طبيب مميّز
             </span>
           </div>

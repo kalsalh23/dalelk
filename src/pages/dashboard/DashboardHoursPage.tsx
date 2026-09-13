@@ -85,7 +85,7 @@ export function DashboardHoursPage() {
               <Field label="ساعات العمل (نص حر) " hint="مثال: يومياً 9 صباحاً - 11 مساءً، الجمعة مغلق">
                 <Textarea rows={3} value={openingHours} onChange={(e) => setOpeningHours(e.target.value)} placeholder="9:00 ص - 10:00 م" />
               </Field>
-              <div className="rounded-xl bg-slate-50 p-4 text-xs text-muted">
+              <div className="rounded-xl bg-subtle p-4 text-xs text-muted">
                 يمكنك أيضاً تعبئة الجدول اليومي أدناه وسيظهر كجدول مفصّل في صفحتك.
               </div>
             </>
@@ -104,7 +104,7 @@ export function DashboardHoursPage() {
                 />
                 <button
                   onClick={() => updateDay(d.key, 'مغلق')}
-                  className="shrink-0 rounded-xl border border-border px-3 py-2 text-xs font-bold text-muted hover:bg-slate-50"
+                  className="shrink-0 rounded-xl border border-border px-3 py-2 text-xs font-bold text-muted hover:bg-subtle"
                   type="button"
                 >
                   مغلق

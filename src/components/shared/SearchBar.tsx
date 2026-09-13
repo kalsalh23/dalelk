@@ -9,15 +9,15 @@ import { EntityIcon } from '@/components/ui/EntityIcon'
 import type { EntityType } from '@/types'
 
 const TYPE_STYLES: Record<string, { label: string; color: string }> = {
-  doctor: { label: 'طبيب', color: '#0F766E' },
-  clinic: { label: 'عيادة', color: '#0D9488' },
-  hospital: { label: 'مشفى', color: '#0284C7' },
-  pharmacy: { label: 'صيدلية', color: '#16A34A' },
-  lab: { label: 'مخبر', color: '#D97706' },
-  radiology: { label: 'أشعة', color: '#E11D48' },
-  health_center: { label: 'مركز صحي', color: '#F59E0B' },
-  article: { label: 'مقال', color: '#7C3AED' },
-  question: { label: 'سؤال', color: '#DB2777' },
+  doctor: { label: 'طبيب', color: '#428177' },
+  clinic: { label: 'عيادة', color: '#054239' },
+  hospital: { label: 'مشفى', color: '#6b1f2a' },
+  pharmacy: { label: 'صيدلية', color: '#988561' },
+  lab: { label: 'مخبر', color: '#4a151e' },
+  radiology: { label: 'أشعة', color: '#260f14' },
+  health_center: { label: 'مركز صحي', color: '#b9a779' },
+  article: { label: 'مقال', color: '#988561' },
+  question: { label: 'سؤال', color: '#6b1f2a' },
 }
 
 export function SearchBar({
@@ -91,7 +91,7 @@ export function SearchBar({
             className={cn(
               'w-full rounded-2xl bg-surface text-ink outline-none transition-all ring-border placeholder:text-muted/70',
               big
-                ? 'h-14 pr-13 pl-24 text-base shadow-lg shadow-slate-200/60 focus:ring-4 focus:ring-primary/15 sm:h-16 sm:text-lg'
+                ? 'h-14 pr-13 pl-24 text-base shadow-lg shadow-faint/40 focus:ring-4 focus:ring-primary/15 sm:h-16 sm:text-lg'
                 : 'h-11 pr-11 pl-4 text-sm border border-border focus:border-primary focus:ring-4 focus:ring-primary/15',
             )}
           />
@@ -101,7 +101,7 @@ export function SearchBar({
               'absolute left-2 top-1/2 -translate-y-1/2 rounded-xl font-bold text-white transition-all hover:bg-primary-dark cursor-pointer',
               big ? 'h-10 px-6 text-sm sm:h-12 sm:px-8' : 'h-8 px-4 text-xs',
             )}
-            style={{ backgroundColor: '#0F766E' }}
+            style={{ backgroundColor: '#428177' }}
           >
             {loading ? <Loader2 className="size-4 animate-spin" /> : 'بحث'}
           </button>
@@ -123,7 +123,7 @@ export function SearchBar({
             const style = TYPE_STYLES[group.type]
             return (
               <div key={group.type} className="mb-1">
-                <p className="flex items-center gap-2 px-3 py-2 text-xs font-bold" style={{ color: style?.color ?? '#0F766E' }}>
+                <p className="flex items-center gap-2 px-3 py-2 text-xs font-bold" style={{ color: style?.color ?? '#428177' }}>
                   <span className="inline-block size-2 rounded-full" style={{ backgroundColor: style?.color }} />
                   {group.label}
                 </p>
@@ -144,7 +144,7 @@ export function SearchBar({
                         setOpen(false)
                         navigate(route)
                       }}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right transition-colors hover:bg-slate-50 cursor-pointer"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right transition-colors hover:bg-subtle cursor-pointer"
                     >
                       {img ? (
                         <img src={img} alt="" className="size-9 rounded-lg object-cover" />

@@ -122,7 +122,7 @@ export function ArticlesListPage() {
           </div>
           <Pagination page={page} totalPages={totalPages} onChange={setPage} />
 
-          <div className="mt-10 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-5 text-sm leading-7 text-amber-900">
+          <div className="mt-10 flex items-start gap-3 rounded-2xl border border-gold/40 bg-gold-soft/70 p-5 text-sm leading-7 text-gold-dark">
             <Lightbulb className="mt-0.5 size-5 shrink-0 text-warning" />
             المعلومات المنشورة للتثقيف الصحي فقط ولا تُغني عن استشارة الطبيب أو المختص.
           </div>

@@ -71,7 +71,7 @@ export function AdminPlansPage() {
           return (
             <Card key={plan}>
               <CardBody>
-                <Icon className={cn('size-6', plan === 'gold' ? 'text-amber-500' : plan === 'pro' ? 'text-primary' : 'text-muted')} />
+                <Icon className={cn('size-6', plan === 'gold' ? 'text-gold-dark' : plan === 'pro' ? 'text-primary' : 'text-muted')} />
                 <p className="mt-2 font-black text-ink">{def.name}</p>
                 <p className="mt-1 text-sm font-black text-ink">{formatNumber(counts[plan])} جهة</p>
                 <ul className="mt-3 space-y-1 text-[11px] text-muted">
@@ -87,7 +87,7 @@ export function AdminPlansPage() {
             <p className="mt-2 font-black">ملخص عام</p>
             <p className="mt-2 text-sm">{formatNumber(active)} اشتراك نشط</p>
             <p className="text-sm">{formatNumber(expired)} منتهي</p>
-            <p className="mt-2 text-xs text-teal-100">يُشغّل الاستلام المالي مستقبلاً بعد انتشار المنصة.</p>
+            <p className="mt-2 text-xs text-white/80">يُشغّل الاستلام المالي مستقبلاً بعد انتشار المنصة.</p>
           </CardBody>
         </Card>
       </div>
@@ -98,11 +98,11 @@ export function AdminPlansPage() {
 }
 
 const statusStyle: Record<string, string> = {
-  new: 'bg-sky-50 text-sky-700',
-  contacting: 'bg-amber-50 text-amber-700',
-  awaiting_payment: 'bg-orange-50 text-orange-700',
+  new: 'bg-primary-light/60 text-primary-dark',
+  contacting: 'bg-gold-soft text-gold-dark',
+  awaiting_payment: 'bg-gold-soft text-gold-dark',
   approved: 'bg-emerald-50 text-success',
-  rejected: 'bg-red-50 text-error',
+  rejected: 'bg-wine-soft text-error',
 }
 const statusLabel: Record<string, string> = {
   new: 'جديد',
@@ -169,7 +169,7 @@ export function AdminRequestsPage() {
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-black text-ink">{r.entity_type}</p>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-muted" dir="ltr">{r.entity_id.slice(0, 8)}</span>
+                  <span className="rounded-full bg-subtle-strong px-2 py-0.5 text-[10px] font-bold text-muted" dir="ltr">{r.entity_id.slice(0, 8)}</span>
                   <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold', statusStyle[r.status])}>{statusLabel[r.status]}</span>
                 </div>
                 <p className="mt-1.5 flex items-center gap-2 text-sm text-muted">
@@ -239,7 +239,7 @@ export function AdminRequestsPage() {
 
 function CredRow({ label, value, onCopy, copied }: { label: string; value: string; onCopy: () => void; copied: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-slate-50 px-4 py-3">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-subtle px-4 py-3">
       <div className="min-w-0">
         <p className="text-[11px] font-bold text-muted">{label}</p>
         <p className="mt-0.5 truncate text-sm font-bold text-ink" dir="ltr">{value}</p>
@@ -365,7 +365,7 @@ export function AdminSettingsPage() {
                 <p className="text-sm font-bold text-ink">{settings.subscriptions_enabled ? 'مفعّلة' : 'معطّلة'}</p>
                 <p className="text-xs text-muted">عند التفعيل يعرض القطاع الحرفي Free Pro Gold</p>
               </div>
-              <div onClick={() => setSettings((s) => ({ ...(s ?? {}), subscriptions_enabled: !settings.subscriptions_enabled }))} className={cn('relative h-7 w-12 rounded-full transition-colors', settings.subscriptions_enabled ? 'bg-primary' : 'bg-slate-300')}>
+              <div onClick={() => setSettings((s) => ({ ...(s ?? {}), subscriptions_enabled: !settings.subscriptions_enabled }))} className={cn('relative h-7 w-12 rounded-full transition-colors', settings.subscriptions_enabled ? 'bg-primary' : 'bg-faint')}>
                 <span className={cn('absolute top-1 size-5 rounded-full bg-white shadow transition-all', settings.subscriptions_enabled ? 'right-6' : 'right-1')} />
               </div>
             </label>

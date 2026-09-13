@@ -86,7 +86,7 @@ export function DutyPharmaciesPage() {
                               {ph.address}
                             </p>
                           ) : null}
-                          <div className="mt-4 space-y-2 rounded-xl bg-slate-50 p-3 text-sm">
+                          <div className="mt-4 space-y-2 rounded-xl bg-subtle p-3 text-sm">
                             <div className="flex items-center justify-between">
                               <span className="flex items-center gap-1.5 text-muted"><Clock className="size-4" />ساعات المناوبة</span>
                               <span className="font-bold text-primary-dark">{d.duty_hours ?? 'خلال الليل'}</span>
@@ -114,7 +114,7 @@ export function DutyPharmaciesPage() {
                               فتح الخريطة
                             </a>
                           </div>
-                          <div className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-slate-50 py-2 text-xs font-bold text-primary">
+                          <div className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-subtle py-2 text-xs font-bold text-primary">
                             عرض تفاصيل الصيدلية
                             <ArrowLeft className="size-3.5" />
                           </div>

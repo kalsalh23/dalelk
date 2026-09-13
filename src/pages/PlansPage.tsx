@@ -22,9 +22,9 @@ const TYPE_OPTIONS = (Object.keys(ENTITY_LABELS) as EntityType[]).map((k) => ({
 
 const planIcon: Record<string, typeof Sparkles> = { free: Lock, pro: Sparkles, gold: Crown }
 const planColor: Record<string, string> = {
-  free: 'bg-slate-100 text-slate-600',
+  free: 'bg-subtle-strong text-muted',
   pro: 'bg-primary-light text-primary-dark',
-  gold: 'bg-amber-100 text-amber-700',
+  gold: 'bg-gold-soft text-gold-dark',
 }
 
 export function PlansPage() {
@@ -131,7 +131,7 @@ export function PlansPage() {
                       </li>
                     ))}
                   </ul>
-                  <span className={cn('mt-5 block rounded-xl py-2.5 text-center text-sm font-black', highlight === p.key ? 'bg-primary text-white' : 'bg-slate-50 text-muted')}>
+                  <span className={cn('mt-5 block rounded-xl py-2.5 text-center text-sm font-black', highlight === p.key ? 'bg-primary text-white' : 'bg-subtle text-muted')}>
                     {highlight === p.key ? '✓ الباقة المختارة' : 'اختيار'}
                   </span>
                 </button>

@@ -112,7 +112,7 @@ export function Footer({ developer = DEFAULT_DEVELOPER }: { developer?: (typeof 
                 <AtSign className="size-4.5" />
               </a>
             </div>
-            <div className="mt-6 flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-xs text-muted">
+            <div className="mt-6 flex items-center gap-2 rounded-xl bg-subtle px-4 py-3 text-xs text-muted">
               <ShieldCheck className="size-5 shrink-0 text-primary" />
               يهدف هذا الدليل للتثقيف ولا يُغني عن استشارة الطبيب المختص.
             </div>

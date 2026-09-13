@@ -17,7 +17,7 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-primary-light/50 via-primary-light/20 to-background">
       <div className="pointer-events-none absolute -left-24 -top-24 size-72 rounded-full bg-primary/10 blur-3xl" />
-      <div className="pointer-events-none absolute -right-20 top-40 size-80 rounded-full bg-teal-200/30 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 top-40 size-80 rounded-full bg-primary/20 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-12 text-center sm:px-6 sm:pb-24 sm:pt-20">
         <motion.div

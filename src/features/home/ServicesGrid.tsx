@@ -9,14 +9,14 @@ import { useEntities, useDutyPharmacies } from '@/hooks/useEntities'
 import { cn } from '@/lib/utils'
 
 const CARD_BG: Record<string, string> = {
-  emerald: 'bg-emerald-100/70 text-emerald-700',
-  teal: 'bg-teal-100/70 text-teal-700',
-  sky: 'bg-sky-100/70 text-sky-700',
-  green: 'bg-green-100/70 text-green-700',
-  indigo: 'bg-indigo-100/70 text-indigo-700',
-  amber: 'bg-amber-100/70 text-amber-700',
-  rose: 'bg-rose-100/70 text-rose-700',
-  orange: 'bg-orange-100/70 text-orange-700',
+  emerald: 'bg-primary-light/70 text-primary-dark',
+  teal: 'bg-primary-light/70 text-primary-dark',
+  sky: 'bg-gold-soft text-gold-dark',
+  green: 'bg-primary-light/50 text-primary-dark',
+  indigo: 'bg-wine-soft/70 text-wine-dark',
+  amber: 'bg-gold-soft/70 text-gold-dark',
+  rose: 'bg-wine-soft text-wine',
+  orange: 'bg-gold-soft/50 text-gold-dark',
 }
 
 export function ServicesGrid() {
@@ -55,7 +55,7 @@ export function ServicesGrid() {
                 <h3 className="text-lg font-black text-ink group-hover:text-primary">{svc.name}</h3>
                 <p className="mt-1.5 flex-1 text-sm leading-6 text-muted">{svc.description}</p>
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-bold text-muted">
+                  <span className="rounded-full bg-subtle px-3 py-1 text-xs font-bold text-muted">
                     {svc.key === 'duty'
                       ? dutyCount > 0
                         ? `${dutyCount} ${countLabel(dutyCount).split(' ').slice(-1)[0]} اليوم`

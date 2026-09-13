@@ -92,7 +92,7 @@ export function AskPage() {
             <HelpCircle className="size-7" />
           </div>
           <h1 className="text-2xl font-black sm:text-3xl">اسأل دليلك الطبي</h1>
-          <p className="mx-auto mt-2 max-w-lg text-sm leading-7 text-teal-50">
+          <p className="mx-auto mt-2 max-w-lg text-sm leading-7 text-white/85">
             اكتب سؤالك الصحي وسنبحث لك في قاعدة المعلومات الطبية.
           </p>
         </div>
@@ -163,7 +163,7 @@ export function AskPage() {
 
             {!loading && notFound && (
               <motion.div key="notfound" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-                <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50/70 p-5 sm:p-6">
+                <div className="mt-8 rounded-2xl border border-gold/40 bg-gold-soft/70 p-5 sm:p-6">
                   <h2 className="flex items-center gap-2 text-base font-black text-ink">
                     <ClipboardList className="size-5 text-warning" />
                     لم نجد إجابة مناسبة لسؤالك حاليًا.
@@ -225,13 +225,13 @@ export function AskPage() {
             )}
 
             {!loading && !results.length && !selected && !notFound && !answered && (
-              <motion.div key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 rounded-2xl bg-slate-50 p-5 text-center text-sm text-muted">
+              <motion.div key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 rounded-2xl bg-subtle p-5 text-center text-sm text-muted">
                 جرّب أسئلة شائعة مثل: «ما علاج السعال؟»، «كيف أخفض الضغط؟»، «ما أعراض السكري؟»
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="mt-8 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs leading-6 text-amber-900">
+          <div className="mt-8 flex items-start gap-3 rounded-2xl border border-gold/40 bg-gold-soft/70 p-4 text-xs leading-6 text-gold-dark">
             <HelpCircle className="mt-0.5 size-4 shrink-0" />
             المعلومات المنشورة للتثقيف الصحي فقط ولا تُغني عن استشارة الطبيب أو المختص.
           </div>

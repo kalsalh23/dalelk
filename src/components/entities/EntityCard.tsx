@@ -96,8 +96,8 @@ export function EntityCard({ type, item, index = 0, highlight }: EntityCardProps
             )}
             <div className="mt-2 flex items-center gap-3">
               {rating ? (
-                <span className="flex items-center gap-1 text-xs font-semibold text-amber-600">
-                  <Star className="size-3.5 fill-amber-500 text-amber-500" />
+                <span className="flex items-center gap-1 text-xs font-semibold text-gold-dark">
+                  <Star className="size-3.5 fill-gold text-gold-dark" />
                   {Number(rating).toFixed(1)}
                 </span>
               ) : null}
@@ -120,12 +120,12 @@ export function EntityCard({ type, item, index = 0, highlight }: EntityCardProps
           </div>
           <div className="flex flex-col items-center justify-center gap-1 pr-1">
             <div
-              className="flex size-9 items-center justify-center rounded-full bg-slate-50 text-muted opacity-0 transition-all duration-300 group-hover:opacity-100 hover:bg-primary hover:text-white"
+              className="flex size-9 items-center justify-center rounded-full bg-subtle text-muted opacity-0 transition-all duration-300 group-hover:opacity-100 hover:bg-primary hover:text-white"
               style={{ color: undefined }}
             >
               <ArrowLeft className="size-4" />
             </div>
-            <span className="text-[10px] font-semibold text-slate-300 sm:hidden">عرض</span>
+            <span className="text-[10px] font-semibold text-faint sm:hidden">عرض</span>
           </div>
         </div>
       </Card>

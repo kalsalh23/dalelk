@@ -154,9 +154,9 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
 
       {/* بانر ترقية الباقات للجهات المجانية */}
       {plan === 'free' && (
-        <div className="mb-6 flex flex-col gap-3 rounded-[18px] border border-primary/20 bg-gradient-to-l from-primary-light/50 to-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div className="mb-6 flex flex-col gap-3 rounded-[18px] border border-primary/20 bg-gradient-to-l from-primary-light/50 to-gold-soft p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div className="flex items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gold-soft text-gold-dark">
               <Crown className="size-5" />
             </span>
             <div>
@@ -205,8 +205,8 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                   {specialty ?? ENTITY_LABELS[type]}
                 </span>
                 {rating ? (
-                  <span className="flex items-center gap-1 text-sm font-bold text-amber-600">
-                    <Star className="size-4 fill-amber-500 text-amber-500" />
+                  <span className="flex items-center gap-1 text-sm font-bold text-gold-dark">
+                    <Star className="size-4 fill-gold text-gold-dark" />
                     {rating.toFixed(1)}
                   </span>
                 ) : null}
@@ -282,7 +282,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
             <Section title={type === 'lab' ? 'الخدمات والتحاليل' : type === 'radiology' ? 'الخدمات والأجهزة' : 'الخدمات'}>
               <div className="flex flex-wrap gap-2">
                 {services.map((s) => (
-                  <span key={s} className="rounded-xl bg-slate-50 border border-border px-3 py-1.5 text-xs font-semibold text-ink">
+                  <span key={s} className="rounded-xl bg-subtle border border-border px-3 py-1.5 text-xs font-semibold text-ink">
                     {s}
                   </span>
                 ))}
@@ -339,28 +339,28 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
         <div className="space-y-6">
           <Section title="معلومات التواصل">
             <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+              <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
                 <span className="text-muted">الهاتف</span>
                 <a href={`tel:${phone}`} className="font-bold text-primary" dir="ltr">{phone ?? '—'}</a>
               </div>
               {ready.emergency_phone ? (
-                <div className="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-wine-soft px-4 py-3">
                   <span className="flex items-center gap-1.5 font-bold text-error"><Siren className="size-4" />الطوارئ</span>
                   <a href={`tel:${ready.emergency_phone}`} className="font-bold text-error" dir="ltr">{String(ready.emergency_phone)}</a>
                 </div>
               ) : null}
               {whatsapp ? (
-                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
                   <span className="text-muted">واتساب</span>
                   <a href={waLink(whatsapp)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary" dir="ltr">{whatsapp}</a>
                 </div>
               ) : null}
-              <div className="flex items-start justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3">
+              <div className="flex items-start justify-between gap-3 rounded-xl bg-subtle px-4 py-3">
                 <span className="text-muted">العنوان</span>
                 <span className="text-left font-semibold text-ink">{address ?? '—'}</span>
               </div>
               {(ready.opening_hours as string | null) && (
-                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
                   <span className="flex items-center gap-1.5 text-muted"><Clock className="size-4" />الدوام</span>
                   <span className="font-semibold text-ink">{String(ready.opening_hours)}</span>
                 </div>

@@ -35,7 +35,7 @@ export function DashboardHomePage() {
 
       {/* expiry / plan banner */}
       {plan === 'free' || days === null ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-border bg-slate-50 p-4">
+        <div className="flex items-start gap-3 rounded-2xl border border-border bg-subtle p-4">
           <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" />
           <div className="flex-1">
             <p className="text-sm font-bold text-ink">أنت على الباقة المجانية <PlanBadge plan={plan} /></p>
@@ -44,7 +44,7 @@ export function DashboardHomePage() {
           <Button asChild size="sm"><Link to="/plans">عرض الباقات <ArrowUpRight className="size-4" /></Link></Button>
         </div>
       ) : days < 0 ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-error/20 bg-red-50 p-4">
+        <div className="flex items-start gap-3 rounded-2xl border border-error/20 bg-wine-soft p-4">
           <AlertTriangle className="mt-0.5 size-5 text-error" />
           <div className="flex-1">
             <p className="text-sm font-bold text-error">انتهى اشتراكك</p>
@@ -53,10 +53,10 @@ export function DashboardHomePage() {
           <Button variant="danger" size="sm" asChild><Link to="/plans">طلب تجديد</Link></Button>
         </div>
       ) : days <= 30 ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <AlertTriangle className="size-5 text-amber-600" />
+        <div className="flex items-start gap-3 rounded-2xl border border-gold/40 bg-gold-soft p-4">
+          <AlertTriangle className="size-5 text-gold-dark" />
           <div className="flex-1">
-            <p className="text-sm font-bold text-amber-700">اشتراكك سينتهي خلال {days} يوم</p>
+            <p className="text-sm font-bold text-gold-dark">اشتراكك سينتهي خلال {days} يوم</p>
             <p className="text-xs text-muted">ينتهي بتاريخ {formatDate(expires)}.</p>
           </div>
           <Button size="sm" variant="outline" asChild><Link to="/plans">طلب تجديد</Link></Button>
@@ -74,8 +74,8 @@ export function DashboardHomePage() {
       {/* stats row */}
       <div className="grid gap-4 sm:grid-cols-3">
         <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-primary-light text-primary"><Eye className="size-5" /></div><div><p className="text-xs text-muted">المشاهدات</p><p className="text-xl font-black text-ink">{views.toLocaleString('ar-SY')}</p></div></CardBody></Card>
-        <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600"><Crown className="size-5" /></div><div><p className="text-xs text-muted">الباقة</p><p className="text-sm font-bold text-ink flex items-center gap-2"><PlanBadge plan={plan} /> {plan === 'gold' ? 'ذهبية' : plan === 'pro' ? 'احترافية' : 'مجانية'}</p></div></CardBody></Card>
-        <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><Star className="size-5" /></div><div><p className="text-xs text-muted">التقييم</p><p className="text-lg font-black text-ink">{String((e.rating as string) ?? '—')}</p></div></CardBody></Card>
+        <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-gold-soft text-gold-dark"><Crown className="size-5" /></div><div><p className="text-xs text-muted">الباقة</p><p className="text-sm font-bold text-ink flex items-center gap-2"><PlanBadge plan={plan} /> {plan === 'gold' ? 'ذهبية' : plan === 'pro' ? 'احترافية' : 'مجانية'}</p></div></CardBody></Card>
+        <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-primary-light text-primary-dark"><Star className="size-5" /></div><div><p className="text-xs text-muted">التقييم</p><p className="text-lg font-black text-ink">{String((e.rating as string) ?? '—')}</p></div></CardBody></Card>
       </div>
 
       {/* quick overview */}
@@ -84,15 +84,15 @@ export function DashboardHomePage() {
           <CardHeader><CardTitle>نظرة سريعة على ملفك</CardTitle></CardHeader>
           <CardBody className="space-y-4">
             <div className="flex gap-4">
-              <div className="size-24 shrink-0 overflow-hidden rounded-2xl border border-border bg-slate-100">
+              <div className="size-24 shrink-0 overflow-hidden rounded-2xl border border-border bg-subtle-strong">
                 {img ? <img src={img} alt="" className="size-full object-cover" /> : <div className="flex size-full items-center justify-center text-muted"><ImageIcon className="size-8" /></div>}
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="font-black text-ink">{String(e.name ?? '—')}</h3>
                 <p className="text-xs text-muted line-clamp-2">{String((e.bio as string) ?? (e.description as string) ?? 'لا توجد نبذة بعد — أضفها من تبويب الملف الشخصي')}</p>
                 <p className="mt-1 flex flex-wrap gap-2 text-xs">
-                  {(e.phone as string | null) ? <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-muted"><Phone className="size-3" /> {String(e.phone)}</span> : null}
-                  {(e.address as string | null) ? <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-muted"><MapPin className="size-3" /> {String(e.address)}</span> : null}
+                  {(e.phone as string | null) ? <span className="inline-flex items-center gap-1 rounded-full bg-subtle-strong px-2.5 py-1 text-muted"><Phone className="size-3" /> {String(e.phone)}</span> : null}
+                  {(e.address as string | null) ? <span className="inline-flex items-center gap-1 rounded-full bg-subtle-strong px-2.5 py-1 text-muted"><MapPin className="size-3" /> {String(e.address)}</span> : null}
                 </p>
               </div>
             </div>
@@ -111,9 +111,9 @@ export function DashboardHomePage() {
           <Card>
             <CardHeader><CardTitle>إجراءات سريعة</CardTitle></CardHeader>
             <CardBody className="grid gap-2">
-              <Link to="/dashboard/profile" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-slate-50"><Phone className="size-4 text-primary" /> تحديث الهاتف والعنوان</Link>
-              <Link to="/dashboard/hours" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-slate-50"><Clock className="size-4 text-primary" /> تعديل أوقات الدوام</Link>
-              <Link to="/dashboard/location" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-slate-50"><MapPin className="size-4 text-primary" /> تحديد الموقع على الخريطة</Link>
+              <Link to="/dashboard/profile" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-subtle"><Phone className="size-4 text-primary" /> تحديث الهاتف والعنوان</Link>
+              <Link to="/dashboard/hours" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-subtle"><Clock className="size-4 text-primary" /> تعديل أوقات الدوام</Link>
+              <Link to="/dashboard/location" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-subtle"><MapPin className="size-4 text-primary" /> تحديد الموقع على الخريطة</Link>
               <a href={mapsLink(e.lat as number | null, e.lng as number | null, e.address as string | null)} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-dark"><MapPin className="size-4" /> عرض موقعي على خرائط Google</a>
             </CardBody>
           </Card>

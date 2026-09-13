@@ -77,7 +77,7 @@ export function SearchPage() {
           <p className="py-10 text-center text-sm text-muted">اكتب كلمة بحث للبدء.</p>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-14 text-center">
-            <SearchX className="size-12 text-slate-300" />
+            <SearchX className="size-12 text-faint" />
             <p className="font-bold text-ink">لا توجد نتائج لـ «{q}»</p>
             <p className="text-sm text-muted">جرّب كلمات بحث أخرى أو تصفح الأقسام الرئيسية.</p>
             <div className="mt-2 flex flex-wrap justify-center gap-2">

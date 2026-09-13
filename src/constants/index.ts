@@ -199,13 +199,13 @@ export const ENTITY_LABELS: Record<EntityType, string> = {
 }
 
 export const MAP_COLORS: Record<EntityType, string> = {
-  doctor: '#0F766E',
-  clinic: '#0D9488',
-  hospital: '#0284C7',
-  health_center: '#F59E0B',
-  pharmacy: '#16A34A',
-  lab: '#D97706',
-  radiology: '#E11D48',
+  doctor: '#428177',
+  clinic: '#054239',
+  hospital: '#6b1f2a',
+  health_center: '#b9a779',
+  pharmacy: '#988561',
+  lab: '#4a151e',
+  radiology: '#260f14',
 }
 
 export const DEFAULT_CITY_COORDS = { lat: 35.2662637, lng: 36.7118709 }

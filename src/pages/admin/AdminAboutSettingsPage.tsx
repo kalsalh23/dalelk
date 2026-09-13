@@ -145,7 +145,7 @@ export function AdminAboutSettingsPage() {
               <Input dir="ltr" value={form.developer_facebook} onChange={(e) => set('developer_facebook', e.target.value)} placeholder="https://facebook.com/…" />
             </Field>
           </div>
-          <div className="flex gap-2 rounded-xl bg-slate-50 p-3 text-xs text-muted">
+          <div className="flex gap-2 rounded-xl bg-subtle p-3 text-xs text-muted">
             <InstagramIcon className="size-4 shrink-0 text-primary" />
             <FacebookIcon className="size-4 shrink-0 text-primary" />
             تُستخدم هذه الروابط في بطاقة المطوّر داخل صفحة من نحن وفي تذييل الموقع (Footer).

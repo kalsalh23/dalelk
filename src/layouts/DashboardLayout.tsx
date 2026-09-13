@@ -78,7 +78,7 @@ function DashboardShell() {
         </Link>
 
         {/* entity card */}
-        <div className="mx-4 rounded-2xl border border-border bg-slate-50 p-4">
+        <div className="mx-4 rounded-2xl border border-border bg-subtle p-4">
           <p className="text-sm font-black text-ink line-clamp-1">{entityDisplayName(session.entity)}</p>
           <p className="mt-1 flex items-center gap-2 text-xs text-muted">
             {entityDisplayType(session.entity_type)}
@@ -103,7 +103,7 @@ function DashboardShell() {
               end={item.end}
               className={({ isActive }) => cn(
                 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors',
-                isActive ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-slate-50 hover:text-primary',
+                isActive ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-subtle hover:text-primary',
               )}
             >
               <item.icon className="size-4.5" />
@@ -114,7 +114,7 @@ function DashboardShell() {
 
         <div className="border-t border-border p-4">
           {(String(session.entity?.plan ?? 'free') !== 'free') && (
-            <div className="mb-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
+            <div className="mb-3 flex items-center gap-2 rounded-xl bg-gold-soft px-3 py-2 text-xs font-bold text-gold-dark">
               <Crown className="size-4" /> {(String(session.entity?.plan ?? '') === 'gold') ? 'الباقة الذهبية' : 'الباقة الاحترافية'} نشطة
             </div>
           )}
@@ -135,7 +135,7 @@ function DashboardShell() {
           </Link>
           <div className="flex items-center gap-2">
             <Link to={`/${routeLink}/${session.slug}`} className="text-xs font-bold text-primary hover:underline">عرض صفحتي</Link>
-            <button onClick={() => setMobileOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-lg text-ink hover:bg-slate-100">
+            <button onClick={() => setMobileOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-lg text-ink hover:bg-subtle-strong">
               {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
           </div>
@@ -151,17 +151,17 @@ function DashboardShell() {
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) => cn(
                     'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold',
-                    isActive ? 'bg-primary text-white' : 'text-muted hover:bg-slate-50',
+                    isActive ? 'bg-primary text-white' : 'text-muted hover:bg-subtle',
                   )}
                 >
                   <item.icon className="size-4.5" /> {item.label}
                 </NavLink>
               ))}
-              <button onClick={logout} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold text-error hover:bg-red-50">
+              <button onClick={logout} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold text-error hover:bg-wine-soft">
                 <LogOut className="size-4.5" /> تسجيل الخروج
               </button>
             </nav>
-            <div className="mt-3 rounded-xl bg-slate-50 p-3">
+            <div className="mt-3 rounded-xl bg-subtle p-3">
               <p className="text-sm font-bold text-ink">{entityDisplayName(session.entity)}</p>
               <p className="text-xs text-muted">{entityDisplayType(session.entity_type)} — {session.email}</p>
             </div>

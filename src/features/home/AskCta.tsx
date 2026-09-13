@@ -18,7 +18,7 @@ export function AskCta() {
             <HelpCircle className="size-7" />
           </div>
           <h2 className="text-2xl font-black sm:text-3xl">عندك سؤال صحي؟</h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-teal-50">
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-white/85">
             اسأل دليلك الطبي وسنبحث لك في قاعدة المعلومات الطبية عن الإجابة الأقرب لسؤالك.
           </p>
           <Link

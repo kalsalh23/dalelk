@@ -20,13 +20,13 @@ const STAT_CARDS = [
 ]
 
 const colorStyles: Record<string, { bg: string; text: string }> = {
-  emerald: { bg: 'bg-emerald-100/70', text: 'text-emerald-700' },
-  teal: { bg: 'bg-teal-100/70', text: 'text-teal-700' },
-  sky: { bg: 'bg-sky-100/70', text: 'text-sky-700' },
-  amber: { bg: 'bg-amber-100/70', text: 'text-amber-700' },
-  green: { bg: 'bg-green-100/70', text: 'text-green-700' },
-  orange: { bg: 'bg-orange-100/70', text: 'text-orange-700' },
-  rose: { bg: 'bg-rose-100/70', text: 'text-rose-700' },
+  emerald: { bg: 'bg-primary-light/70', text: 'text-primary-dark' },
+  teal: { bg: 'bg-primary-light', text: 'text-primary-dark' },
+  sky: { bg: 'bg-gold-soft', text: 'text-gold-dark' },
+  amber: { bg: 'bg-gold-soft/70', text: 'text-gold-dark' },
+  green: { bg: 'bg-primary-light/50', text: 'text-primary-dark' },
+  orange: { bg: 'bg-gold-soft/50', text: 'text-gold-dark' },
+  rose: { bg: 'bg-wine-soft', text: 'text-wine' },
 }
 
 export function AdminHomePage() {
@@ -38,11 +38,11 @@ export function AdminHomePage() {
   const evMetrics = useMemo(
     () => [
       { label: 'زيارات الصفحات', value: traffic?.pageViews ?? 0, icon: Eye, color: 'text-primary' },
-      { label: 'عمليات البحث', value: traffic?.searches ?? 0, icon: BarChart3, color: 'text-sky-600' },
+      { label: 'عمليات البحث', value: traffic?.searches ?? 0, icon: BarChart3, color: 'text-primary' },
       { label: 'ضغطات الاتصال', value: traffic?.phoneClicks ?? 0, icon: ArrowLeft, color: 'text-success' },
-      { label: 'ضغطات واتساب', value: traffic?.whatsappClicks ?? 0, icon: ArrowLeft, color: 'text-emerald-600' },
+      { label: 'ضغطات واتساب', value: traffic?.whatsappClicks ?? 0, icon: ArrowLeft, color: 'text-primary' },
       { label: 'ضغطات الخريطة', value: traffic?.mapClicks ?? 0, icon: ArrowLeft, color: 'text-warning' },
-      { label: 'مشاهدات الملفات', value: traffic?.profileViews ?? 0, icon: Eye, color: 'text-rose-600' },
+      { label: 'مشاهدات الملفات', value: traffic?.profileViews ?? 0, icon: Eye, color: 'text-wine' },
     ],
     [traffic],
   )
@@ -95,7 +95,7 @@ export function AdminHomePage() {
           <CardBody>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {evMetrics.map((m) => (
-                <div key={m.label} className="rounded-2xl bg-slate-50 p-3.5 sm:p-4">
+                <div key={m.label} className="rounded-2xl bg-subtle p-3.5 sm:p-4">
                   <m.icon className={cn('size-5', m.color)} />
                   <p className="mt-2 text-xl font-black text-ink sm:text-2xl">{formatNumber(m.value)}</p>
                   <p className="text-[11px] font-semibold text-muted sm:text-xs">{m.label}</p>
@@ -118,8 +118,8 @@ export function AdminHomePage() {
                       <span className="truncate font-semibold text-ink" dir="ltr">{p.path === '/' ? 'الرئيسية' : p.path}</span>
                       <span className="font-bold text-muted">{p.count}</span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-gradient-to-l from-primary to-teal-300 transition-all" style={{ width: `${(p.count / maxPage) * 100}%` }} />
+                    <div className="h-2 overflow-hidden rounded-full bg-subtle-strong">
+                      <div className="h-full rounded-full bg-gradient-to-l from-primary to-gold transition-all" style={{ width: `${(p.count / maxPage) * 100}%` }} />
                     </div>
                   </div>
                 ))}
@@ -138,19 +138,19 @@ export function AdminHomePage() {
             ) : (
               <div className="flex flex-wrap gap-4">
                 {[
-                  { label: 'مجاني', value: stats.plans.free, color: 'bg-slate-400' },
+                  { label: 'مجاني', value: stats.plans.free, color: 'bg-faint' },
                   { label: 'احترافي', value: stats.plans.pro, color: 'bg-primary' },
-                  { label: 'ذهبي', value: stats.plans.gold, color: 'bg-amber-500' },
+                  { label: 'ذهبي', value: stats.plans.gold, color: 'bg-gold-soft0' },
                 ].map((p) => {
                   const total = stats.plans.free + stats.plans.pro + stats.plans.gold
                   const pct = total ? Math.round((p.value / total) * 100) : 0
                   return (
-                    <div key={p.label} className="flex-1 rounded-2xl bg-slate-50 p-4">
+                    <div key={p.label} className="flex-1 rounded-2xl bg-subtle p-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-muted">{p.label}</span>
                         <span className="text-lg font-black text-ink">{p.value}</span>
                       </div>
-                      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200">
+                      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-subtle-strong">
                         <div className={cn('h-full rounded-full', p.color)} style={{ width: `${pct}%` }} />
                       </div>
                       <p className="mt-1 text-[11px] text-muted">{pct}%</p>
@@ -168,7 +168,7 @@ export function AdminHomePage() {
           <BarChart3 className="size-4.5" />
           عرض الإحصائيات التفصيلية
         </Link>
-        <Link to="/admin/settings" className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-border bg-surface py-3.5 text-sm font-bold text-ink hover:bg-slate-50">
+        <Link to="/admin/settings" className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-border bg-surface py-3.5 text-sm font-bold text-ink hover:bg-subtle">
           الإعدادات
         </Link>
       </div>
@@ -178,10 +178,10 @@ export function AdminHomePage() {
 
 function MetricCard({ label, value, color, to }: { label: string; value: number; color: string; to: string }) {
   const palette: Record<string, string> = {
-    violet: 'bg-violet-100/70 text-violet-700',
-    sky: 'bg-sky-100/70 text-sky-700',
-    amber: 'bg-amber-100/70 text-amber-700',
-    rose: 'bg-rose-100/70 text-rose-700',
+    violet: 'bg-wine-soft/70 text-wine-dark',
+    sky: 'bg-gold-soft text-gold-dark',
+    amber: 'bg-gold-soft/70 text-gold-dark',
+    rose: 'bg-wine-soft text-wine',
   }
   return (
     <Link to={to} className="min-w-0">

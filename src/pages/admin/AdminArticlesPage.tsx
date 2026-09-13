@@ -83,7 +83,7 @@ export function AdminArticlesPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold text-ink">{String(a.title)}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-xs text-muted">
-                    <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', a.is_published ? 'bg-emerald-50 text-success' : 'bg-slate-100 text-muted')}>
+                    <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', a.is_published ? 'bg-emerald-50 text-success' : 'bg-subtle-strong text-muted')}>
                       {a.is_published ? 'منشور' : 'مسودة'}
                     </span>
                     <span>{categories?.find((c) => c.id === a.category_id)?.name ?? 'عام'}</span>
@@ -225,7 +225,7 @@ function ArticleForm({ values, categories, onClose, onDone }: {
           </label>
         </div>
 
-        {error && <p className="rounded-xl bg-red-50 px-3 py-2.5 text-xs font-semibold text-error">{error}</p>}
+        {error && <p className="rounded-xl bg-wine-soft px-3 py-2.5 text-xs font-semibold text-error">{error}</p>}
         <div className="flex gap-3">
           <Button type="submit" loading={saving} className="flex-1">{isEdit ? 'حفظ التعديلات' : 'نشر المقال'}</Button>
           <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>

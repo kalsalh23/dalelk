@@ -97,7 +97,7 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-right text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-slate-50 text-xs font-black text-muted">
+                  <tr className="border-b border-border bg-subtle text-xs font-black text-muted">
                     <th className="px-5 py-3.5">الاسم</th>
                     <th className="px-5 py-3.5">الاختصاص</th>
                     <th className="px-5 py-3.5">الهاتف</th>
@@ -108,7 +108,7 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
                 </thead>
                 <tbody className="divide-y divide-border">
                   {data.data.map((row) => (
-                    <tr key={String(row.id)} className="transition-colors hover:bg-slate-50/70">
+                    <tr key={String(row.id)} className="transition-colors hover:bg-subtle/70">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           {row.image ? (
@@ -129,7 +129,7 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
                       <td className="px-5 py-3.5 text-muted">{String(row.specialty ?? '—')}</td>
                       <td className="px-5 py-3.5 text-muted" dir="ltr">{String(row.phone ?? '—')}</td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('rounded-full px-2.5 py-1 text-[11px] font-bold', row.is_active ? 'bg-emerald-50 text-success' : 'bg-slate-100 text-muted')}>
+                        <span className={cn('rounded-full px-2.5 py-1 text-[11px] font-bold', row.is_active ? 'bg-emerald-50 text-success' : 'bg-subtle-strong text-muted')}>
                           {row.is_active ? 'مفعّل' : 'مخفّي'}
                         </span>
                       </td>
@@ -151,9 +151,9 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
                                 }
                               })()}
                               title={row.is_featured ? 'إزالة من المميزين' : 'إضافة إلى المميزين'}
-                              className={`flex size-9 items-center justify-center rounded-xl border transition cursor-pointer ${row.is_featured ? 'border-amber-300 bg-amber-50 text-amber-600' : 'border-border text-muted hover:border-amber-300 hover:text-amber-500'}`}
+                              className={`flex size-9 items-center justify-center rounded-xl border transition cursor-pointer ${row.is_featured ? 'border-gold bg-gold-soft text-gold-dark' : 'border-border text-muted hover:border-gold hover:text-gold-dark'}`}
                             >
-                              <Star className={`size-4 ${row.is_featured ? 'fill-amber-400' : ''}`} />
+                              <Star className={`size-4 ${row.is_featured ? 'fill-gold' : ''}`} />
                             </button>
                           )}
                           <button
@@ -226,9 +226,9 @@ function PlanToggle({ table, row }: { table: string; row: Record<string, unknown
       }}
       className={cn(
         'cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-bold outline-none',
-        current === 'free' && 'border-border bg-slate-50 text-muted',
+        current === 'free' && 'border-border bg-subtle text-muted',
         current === 'pro' && 'border-primary/30 bg-primary-light text-primary-dark',
-        current === 'gold' && 'border-amber-300 bg-amber-50 text-amber-700',
+        current === 'gold' && 'border-gold bg-gold-soft text-gold-dark',
       )}
     >
       <option value="free">مجاني</option>
@@ -504,18 +504,18 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
             مفعّل
           </label>
           {dataType === 'doctor' && (
-            <label className={cn('flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-bold transition', form.is_featured ? 'border-amber-300 bg-amber-50 text-amber-600' : 'border-border text-muted hover:border-amber-300/60')}>
+            <label className={cn('flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-bold transition', form.is_featured ? 'border-gold bg-gold-soft text-gold-dark' : 'border-border text-muted hover:border-gold/60')}>
               <input type="checkbox" className="hidden" checked={Boolean(form.is_featured)} onChange={(e) => set('is_featured', e.target.checked)} />
-              <Star className={`size-4 ${form.is_featured ? 'fill-amber-400' : ''}`} />
+              <Star className={`size-4 ${form.is_featured ? 'fill-gold' : ''}`} />
               مميّز
             </label>
           )}
-          <div className="rounded-xl bg-slate-50 px-3 py-3 text-center text-xs font-bold text-muted">
+          <div className="rounded-xl bg-subtle px-3 py-3 text-center text-xs font-bold text-muted">
             عدد الزيارات: {String(form.view_count ?? 0)}
           </div>
         </div>
 
-        {error && <p className="rounded-xl bg-red-50 px-3 py-2.5 text-xs font-semibold text-error">{error}</p>}
+        {error && <p className="rounded-xl bg-wine-soft px-3 py-2.5 text-xs font-semibold text-error">{error}</p>}
 
         <div className="flex gap-3 pt-2">
           <Button type="submit" loading={saving} className="flex-1">

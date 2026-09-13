@@ -28,7 +28,7 @@ function ExpiryBanner({ plan, expires }: { plan: string | null; expires: string 
   const days = daysLeft(expires)
   if (plan === 'free' || days === null) {
     return (
-      <div className="flex items-start gap-3 rounded-2xl border border-border bg-slate-50 p-4">
+      <div className="flex items-start gap-3 rounded-2xl border border-border bg-subtle p-4">
         <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" />
         <div>
           <p className="text-sm font-bold text-ink">أنت على الباقة المجانية</p>
@@ -41,7 +41,7 @@ function ExpiryBanner({ plan, expires }: { plan: string | null; expires: string 
   }
   if (days < 0) {
     return (
-      <div className="flex items-start gap-3 rounded-2xl border border-error/20 bg-red-50 p-4">
+      <div className="flex items-start gap-3 rounded-2xl border border-error/20 bg-wine-soft p-4">
         <AlertTriangle className="mt-0.5 size-5 shrink-0 text-error" />
         <div>
           <p className="text-sm font-bold text-error">انتهى اشتراكك</p>
@@ -53,20 +53,20 @@ function ExpiryBanner({ plan, expires }: { plan: string | null; expires: string 
   }
   if (days <= 30) {
     return (
-      <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-        <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" />
+      <div className="flex items-start gap-3 rounded-2xl border border-gold/40 bg-gold-soft p-4">
+        <AlertTriangle className="mt-0.5 size-5 shrink-0 text-gold-dark" />
         <div>
-          <p className="text-sm font-bold text-amber-700">اشتراكك سينتهي خلال {days} يوم</p>
+          <p className="text-sm font-bold text-gold-dark">اشتراكك سينتهي خلال {days} يوم</p>
           <p className="mt-1 text-xs leading-6 text-muted">
             اشتراكك الحالي (الذهبي) ينتهي بتاريخ {formatDate(expires)} — جدّده لتفادي توقف المزايا.
           </p>
-          <Link to="/plans" className="mt-2 inline-block text-xs font-bold text-amber-700 hover:underline">طلب تجديد ←</Link>
+          <Link to="/plans" className="mt-2 inline-block text-xs font-bold text-gold-dark hover:underline">طلب تجديد ←</Link>
         </div>
       </div>
     )
   }
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-border bg-slate-50 p-4">
+    <div className="flex items-start gap-3 rounded-2xl border border-border bg-subtle p-4">
       <CalendarClock className="mt-0.5 size-5 shrink-0 text-primary" />
       <div>
         <p className="text-sm font-bold text-ink">اشتراكك نشط</p>
@@ -280,7 +280,7 @@ export function AccountPage() {
                     onChange={(e) => { setLoginPass(e.target.value); setBadLogin(false) }}
                   />
                 </Field>
-                {badLogin && <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-error">بيانات الدخول غير صحيحة</p>}
+                {badLogin && <p className="rounded-xl bg-wine-soft px-3 py-2 text-xs font-bold text-error">بيانات الدخول غير صحيحة</p>}
                 <Button type="submit" loading={logging} className="w-full">
                   <KeyRound className="size-4" />
                   دخول

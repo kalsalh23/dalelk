@@ -67,7 +67,7 @@ export function Header() {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'rounded-xl px-3 py-2 text-sm font-semibold text-muted transition-colors hover:bg-slate-50 hover:text-primary',
+                  'rounded-xl px-3 py-2 text-sm font-semibold text-muted transition-colors hover:bg-subtle hover:text-primary',
                   item.extra && 'hidden xl:inline-flex',
                   isActive && 'bg-primary-light/70 text-primary-dark',
                 )
@@ -108,7 +108,7 @@ export function Header() {
           </button>
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="flex size-10 items-center justify-center rounded-xl text-ink transition hover:bg-slate-100 lg:hidden cursor-pointer"
+            className="flex size-10 items-center justify-center rounded-xl text-ink transition hover:bg-subtle-strong lg:hidden cursor-pointer"
             aria-label="القائمة"
           >
             {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
@@ -132,7 +132,7 @@ export function Header() {
                   onClick={() => setMenuOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      'rounded-xl px-4 py-3 text-sm font-semibold text-muted transition-colors hover:bg-slate-50 hover:text-primary',
+                      'rounded-xl px-4 py-3 text-sm font-semibold text-muted transition-colors hover:bg-subtle hover:text-primary',
                       isActive && 'bg-primary-light/70 text-primary-dark',
                     )
                   }
