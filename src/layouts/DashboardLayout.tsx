@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, User, Images, Clock, MapPin, ShieldCheck, LogOut, Menu, X, ExternalLink, Crown, Eye, Code2,
+  LayoutDashboard, User, Images, Clock, MapPin, ShieldCheck, LogOut, Menu, X, ExternalLink, Crown, Eye, Code2, CalendarClock,
 } from 'lucide-react'
 import { fetchEntitySession, readStoredSession, clearStoredSession, entityDisplayName, entityDisplayType, type EntitySessionData } from '@/services/entityAccount'
 import { FullPageLoader } from '@/components/ui/States'
@@ -12,6 +12,7 @@ import { DEFAULT_DEVELOPER } from '@/constants'
 
 const NAV = [
   { to: '/dashboard', label: 'الرئيسية', icon: LayoutDashboard, end: true },
+  { to: '/dashboard/appointments', label: 'طلبات المواعيد', icon: CalendarClock },
   { to: '/dashboard/profile', label: 'الملف الشخصي', icon: User },
   { to: '/dashboard/media', label: 'الصور والمعرض', icon: Images },
   { to: '/dashboard/hours', label: 'أوقات الدوام', icon: Clock },

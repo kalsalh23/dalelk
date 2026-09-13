@@ -2,16 +2,20 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   Phone, MessageCircle, MapPin, Clock, BadgeCheck,
-  Monitor, Siren, Star,
+  Monitor, Siren, Star, CalendarClock,
 } from 'lucide-react'
 import { useEntity } from '@/hooks/useEntities'
 import { ENTITY_TABLES } from '@/services/content'
+import { createAppointmentRequest, APPOINTMENT_DAYS } from '@/services/appointments'
 import { FullPageLoader, ErrorState } from '@/components/ui/States'
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody } from '@/components/ui/Card'
 import { VerifiedBadge, PlanBadge } from '@/components/ui/Badge'
 import { InteractiveMap } from '@/components/shared/Map'
+import { Dialog } from '@/components/ui/Dialog'
+import { Field, Input, Textarea } from '@/components/ui/Field'
+import { useToast } from '@/components/ui/Toast'
 import { getPublicUrl } from '@/lib/supabase'
 import { waLink, mapsLink, cn, effectivePlan } from '@/lib/utils'
 import { ENTITY_LABELS } from '@/constants'
@@ -82,6 +86,39 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
   const { data, isLoading, isError, refetch } = useEntity<Record<string, unknown>>(type, slug)
   const [imgError, setImgError] = useState(false)
   const [ready, setReady] = useState(data)
+  const toast = useToast()
+  const [apptOpen, setApptOpen] = useState(false)
+  const [apptDay, setApptDay] = useState('')
+  const [apptTime, setApptTime] = useState('')
+  const [apptName, setApptName] = useState('')
+  const [apptPhone, setApptPhone] = useState('')
+  const [apptNote, setApptNote] = useState('')
+  const [apptSending, setApptSending] = useState(false)
+  const [apptDone, setApptDone] = useState(false)
+
+  const submitAppointment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!ready) return
+    if (!apptDay) { toast.show('اختر اليوم المناسب', 'error'); return }
+    if (!apptName.trim() || !apptPhone.trim()) { toast.show('أدخل الاسم ورقم الهاتف', 'error'); return }
+    setApptSending(true)
+    const ok = await createAppointmentRequest({
+      doctor_id: String(ready.id),
+      doctor_name: String(ready.name ?? ''),
+      patient_name: apptName.trim(),
+      patient_phone: apptPhone.trim(),
+      preferred_day: apptDay,
+      preferred_time: apptTime.trim() || null,
+      note: apptNote.trim() || null,
+    })
+    setApptSending(false)
+    if (ok) {
+      setApptDone(true)
+      void track('appointment_request', { entityType: type, entityId: String(ready.id) })
+    } else {
+      toast.show('تعذر إرسال الطلب، حاول مجدداً', 'error')
+    }
+  }
 
   useEffect(() => {
     if (data) {
@@ -195,7 +232,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
             </div>
           </div>
 
-          {(phone || whatsapp) && (
+          {(phone || whatsapp || type === 'doctor') && (
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               {phone && (
                 <Button size="lg" onClick={() => void track('phone_click', { entityType: type, entityId: String(ready.id) })} asChild>
@@ -213,8 +250,19 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                   </a>
                 </Button>
               )}
+              {type === 'doctor' && (
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  onClick={() => { setApptOpen(true); setApptDone(false) }}
+                  className="!w-full sm:!flex-1"
+                >
+                  <CalendarClock className="size-5" />
+                  طلب موعد
+                </Button>
+              )}
               {(lat && lng) || address ? (
-                <Button size="lg" variant="secondary" onClick={() => void track('map_click', { entityType: type, entityId: String(ready.id) })} asChild>
+                <Button size="lg" variant="outline" onClick={() => void track('map_click', { entityType: type, entityId: String(ready.id) })} asChild>
                   <a href={mapsLink(lat, lng, address)} target="_blank" rel="noopener noreferrer" className="!w-full sm:!flex-1">
                     <MapPin className="size-5" />
                     الموقع
@@ -382,6 +430,99 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
           </Section>
         </div>
       </div>
+
+      {/* حوار طلب موعد — للأطباء فقط */}
+      {type === 'doctor' && (
+        <Dialog open={apptOpen} onClose={() => setApptOpen(false)} title={`طلب موعد — ${name}`}>
+          {apptDone ? (
+            <div className="py-6 text-center">
+              <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-primary-light text-primary-dark">
+                <CalendarClock className="size-7" />
+              </span>
+              <h3 className="mt-4 text-lg font-black text-ink">تم إرسال طلب موعدك</h3>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-muted">
+                وصل طلبك إلى {name} وسيتم التواصل معك على رقمك
+                <span className="font-bold text-ink" dir="ltr"> {apptPhone}</span> لتأكيد الموعد.
+              </p>
+              <Button variant="outline" className="mt-5" onClick={() => { setApptOpen(false); setApptDone(false); setApptDay(''); setApptTime(''); setApptName(''); setApptPhone(''); setApptNote('') }}>
+                إغلاق
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={submitAppointment} className="space-y-4">
+              <p className="rounded-xl bg-subtle px-4 py-3 text-xs leading-6 text-muted">
+                هذه خدمة <strong className="text-ink">طلب موعد</strong> — يصل طلبك إلى الطبيب ليؤكده، وستتم تسوية الوقت النهائي معكم هاتفياً أو عبر واتساب.
+              </p>
+
+              <div>
+                <p className="mb-2 text-sm font-bold text-ink">اختر اليوم:</p>
+                {hours && Object.keys(hours).length > 0 ? (
+                  <>
+                    <div className="flex flex-wrap gap-2">
+                      {APPOINTMENT_DAYS.map((d) => {
+                        const available = Boolean(hours[d.key]?.trim())
+                        return available ? (
+                          <button
+                            key={d.key}
+                            type="button"
+                            onClick={() => setApptDay(d.key)}
+                            className={cn(
+                              'cursor-pointer rounded-xl border px-3.5 py-2 text-xs font-bold transition',
+                              apptDay === d.key ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-ink hover:border-primary/50',
+                            )}
+                          >
+                            {d.label}
+                          </button>
+                        ) : null
+                      })}
+                    </div>
+                    <p className="mt-2 text-[11px] text-muted">أيام دوام الطبيب المذكورة أعلاه فقط.</p>
+                  </>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {APPOINTMENT_DAYS.map((d) => (
+                      <button
+                        key={d.key}
+                        type="button"
+                        onClick={() => setApptDay(d.key)}
+                        className={cn(
+                          'cursor-pointer rounded-xl border px-3.5 py-2 text-xs font-bold transition',
+                          apptDay === d.key ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-ink hover:border-primary/50',
+                        )}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!apptDay && hours && Object.keys(hours).length > 0 && (
+                  <p className="mt-2 text-[11px] font-bold text-error">الطبيب لا يعمل في أيام أخرى غير المذكورة.</p>
+                )}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="الوقت المفضل (تقريبي)">
+                  <Input value={apptTime} onChange={(e) => setApptTime(e.target.value)} placeholder="مثال: 10:00 صباحاً" />
+                </Field>
+                <Field label="رقم الهاتف" required>
+                  <Input type="tel" value={apptPhone} onChange={(e) => setApptPhone(e.target.value)} placeholder="09xx xxx xxx" dir="ltr" />
+                </Field>
+              </div>
+              <Field label="الاسم" required>
+                <Input value={apptName} onChange={(e) => setApptName(e.target.value)} placeholder="اسمك الكريم" />
+              </Field>
+              <Field label="ملاحظات (اختياري)">
+                <Textarea rows={2} value={apptNote} onChange={(e) => setApptNote(e.target.value)} placeholder="سبب الزيارة أو أي تفاصيل تهم الطبيب…" />
+              </Field>
+
+              <Button type="submit" loading={apptSending} className="w-full">
+                <CalendarClock className="size-4" />
+                إرسال طلب الموعد
+              </Button>
+            </form>
+          )}
+        </Dialog>
+      )}
     </div>
   )
 }

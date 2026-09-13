@@ -3,7 +3,7 @@ import { NavLink, Link, Outlet, useNavigate, useLocation, Navigate } from 'react
 import {
   LayoutDashboard, Stethoscope, Building2, Hospital, HeartPulse, Pill, Moon,
   FlaskConical, ScanLine, MessagesSquare, Inbox, CreditCard,
-  ArrowUpCircle, BarChart3, Settings, LogOut, Menu, X, ShieldCheck, Megaphone, Code2,
+  ArrowUpCircle, BarChart3, Settings, LogOut, Menu, X, ShieldCheck, Megaphone, Code2, CalendarClock,
 } from 'lucide-react'
 import { AdminAuthProvider, useAdminAuth } from '@/features/admin/auth'
 import type { Profile } from '@/types'
@@ -46,6 +46,7 @@ const NAV = [
     items: [
       { to: '/admin/plans', label: 'الاشتراكات', icon: CreditCard },
       { to: '/admin/requests', label: 'طلبات الترقية', icon: ArrowUpCircle },
+      { to: '/admin/appointments', label: 'طلبات المواعيد', icon: CalendarClock },
     ],
   },
 ]

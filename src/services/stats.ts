@@ -8,6 +8,7 @@ export type TrackEvent =
   | 'whatsapp_click'
   | 'map_click'
   | 'profile_view'
+  | 'appointment_request'
 
 export async function track(event: TrackEvent, opts?: {
   entityType?: EntityType
