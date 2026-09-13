@@ -5,7 +5,7 @@ import { Card, CardBody } from '@/components/ui/Card'
 import { Seo } from '@/components/seo/Seo'
 import { DeveloperFeatureCard } from '@/components/ui/DeveloperCard'
 import { fetchSiteSettings } from '@/services/site'
-import { APP_NAME, ABOUT_TEXT, DEFAULT_CITY } from '@/constants'
+import { APP_NAME, ABOUT_TEXT, DEFAULT_CITY, DEFAULT_DEVELOPER } from '@/constants'
 
 const FEATURES = [
   { icon: Stethoscope, title: 'دليل طبي موثّق', text: 'الأطباء والعيادات والمشافي والصيدليات والمراكز الصحية في مكان واحد.' },
@@ -85,11 +85,11 @@ export function AboutPlatformPage() {
             <p className="mt-1 text-xs text-muted">للإبلاغ عن خطأ في البيانات أو إضافة جهة جديدة أو الاستفسار عن الباقات.</p>
           </div>
           <a
-            href={`tel:${settings?.about?.support_phone ?? ''}`}
+            href={`tel:${settings?.about?.support_phone ?? DEFAULT_DEVELOPER.phone}`}
             className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-dark"
           >
             <Phone className="size-4" />
-            <span dir="ltr">{settings?.about?.support_phone ?? '—'}</span>
+            <span dir="ltr">{settings?.about?.support_phone ?? DEFAULT_DEVELOPER.phone}</span>
           </a>
         </CardBody>
       </Card>
