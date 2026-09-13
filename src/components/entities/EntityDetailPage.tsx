@@ -237,7 +237,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
               {phone && (
                 <Button size="lg" onClick={() => void track('phone_click', { entityType: type, entityId: String(ready.id) })} asChild>
                   <a href={`tel:${phone}`} className="!w-full sm:!flex-1">
-                    <Phone className="size-5" />
+                    <Phone className="size-5 shrink-0" />
                     اتصال
                   </a>
                 </Button>
@@ -245,7 +245,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
               {whatsapp && (
                 <Button size="lg" variant="whatsapp" onClick={() => void track('whatsapp_click', { entityType: type, entityId: String(ready.id) })} asChild>
                   <a href={waLink(whatsapp, `مرحباً، أود الاستفسار من ${name}`)} target="_blank" rel="noopener noreferrer" className="!w-full sm:!flex-1">
-                    <MessageCircle className="size-5" />
+                    <MessageCircle className="size-5 shrink-0" />
                     واتساب
                   </a>
                 </Button>
@@ -257,16 +257,19 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                   disabled={plan === 'free'}
                   title={plan === 'free' ? 'طلبات المواعيد متاحة للأطباء المشتركين في باقة مدفوعة — اشترك من صفحة الباقات لتفعيلها' : undefined}
                   onClick={() => { if (plan !== 'free') { setApptOpen(true); setApptDone(false) } }}
-                  className={cn('!w-full sm:!flex-1', plan === 'free' && 'cursor-not-allowed')}
+                  className={cn(
+                    '!w-full sm:!flex-1 bg-none bg-gradient-to-l from-gold to-gold-dark text-primary-dark font-black shadow-lg shadow-gold/40 hover:brightness-105 hover:text-primary-dark border border-gold-dark/30',
+                    plan === 'free' && 'cursor-not-allowed',
+                  )}
                 >
-                  <CalendarClock className="size-5" />
+                  <CalendarClock className="size-5 shrink-0" />
                   طلب موعد
                 </Button>
               )}
               {(lat && lng) || address ? (
                 <Button size="lg" variant="outline" onClick={() => void track('map_click', { entityType: type, entityId: String(ready.id) })} asChild>
                   <a href={mapsLink(lat, lng, address)} target="_blank" rel="noopener noreferrer" className="!w-full sm:!flex-1">
-                    <MapPin className="size-5" />
+                    <MapPin className="size-5 shrink-0" />
                     الموقع
                   </a>
                 </Button>
