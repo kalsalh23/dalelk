@@ -138,14 +138,16 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center justify-end gap-1.5">
-                          {table === 'doctors' && (
+                          {(table === 'doctors' || table === 'pharmacies') && (
                             <button
                               onClick={() => void (async () => {
                                 const ok = await toggleFeatured(table, String(row.id), Boolean(row.is_featured))
                                 if (ok) {
                                   await qc.invalidateQueries({ queryKey: ['admin-entities', table] })
                                   await qc.invalidateQueries({ queryKey: ['entities'] })
-                                  toast.show(row.is_featured ? 'أُزيل من الأطباء المميّزين' : 'أُضيف إلى الأطباء المميّزين')
+                                  await qc.invalidateQueries({ queryKey: ['featured-doctors'] })
+                                  await qc.invalidateQueries({ queryKey: ['featured-pharmacies'] })
+                                  toast.show(row.is_featured ? 'أُزيل من المميّزين' : 'أُضيف إلى المميّزين')
                                 } else {
                                   toast.show('تعذر تحديث الحالة', 'error')
                                 }
@@ -281,7 +283,7 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
       lng: form.lng ? Number(form.lng) : null,
       is_verified: Boolean(form.is_verified),
       is_active: Boolean(form.is_active),
-      is_featured: dataType === 'doctor' ? Boolean(form.is_featured) : undefined,
+      is_featured: dataType === 'doctor' || dataType === 'pharmacy' ? Boolean(form.is_featured) : undefined,
       is_featured_placeholder: undefined,
       is_active_placeholder: undefined,
       image: form.image ? String(form.image) : null,
@@ -520,7 +522,7 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
             {form.is_active ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
             مفعّل
           </label>
-          {dataType === 'doctor' && (
+          {(dataType === 'doctor' || dataType === 'pharmacy') && (
             <label className={cn('flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-bold transition', form.is_featured ? 'border-gold bg-gold-soft text-gold-dark' : 'border-border text-muted hover:border-gold/60')}>
               <input type="checkbox" className="hidden" checked={Boolean(form.is_featured)} onChange={(e) => set('is_featured', e.target.checked)} />
               <Star className={`size-4 ${form.is_featured ? 'fill-gold' : ''}`} />

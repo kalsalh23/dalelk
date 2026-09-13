@@ -71,6 +71,19 @@ export async function fetchFeaturedDoctors(limit = 8): Promise<Doctor[]> {
   return (data ?? []) as Doctor[]
 }
 
+/** الصيدليات المميّزة (اختيارها من لوحة التحكم) */
+export async function fetchFeaturedPharmacies(limit = 8): Promise<Pharmacy[]> {
+  const { data, error } = await supabase
+    .from('pharmacies')
+    .select('*')
+    .eq('is_active', true)
+    .eq('is_featured', true)
+    .order('sort_order', { ascending: true })
+    .limit(limit)
+  if (error) return []
+  return (data ?? []) as Pharmacy[]
+}
+
 export async function fetchEntity<T>(type: EntityType, slugOrId: string): Promise<T | null> {
   const table = ENTITY_TABLES[type]
   // المصطلح قد يكون slug نصياً أو id UUID — جرّب slug أولاً ثم id
