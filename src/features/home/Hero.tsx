@@ -1,17 +1,20 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Sparkles, ArrowLeft } from 'lucide-react'
+import {
+  Sparkles, ArrowLeft, Stethoscope, Pill, Moon, Building2, Hospital, FlaskConical,
+} from 'lucide-react'
 import { SearchBar } from '@/components/shared/SearchBar'
 import { APP_NAME } from '@/constants'
+import { cn } from '@/lib/utils'
 
-const QUICK_STATS = [
-  { label: 'أطباء', emoji: '👨‍⚕️' },
-  { label: 'عيادات', emoji: '🏥' },
-  { label: 'صيدليات', emoji: '💊' },
-  { label: 'صيدليات مناوبة', emoji: '🌙' },
-  { label: 'مشافي', emoji: '🏨' },
-  { label: 'مخابر', emoji: '🧪' },
-]
+const QUICK_LINKS = [
+  { label: 'الأطباء', to: '/doctors', icon: Stethoscope, tone: 'primary' },
+  { label: 'الصيدليات', to: '/pharmacies', icon: Pill, tone: 'gold' },
+  { label: 'صيدليات المناوبة', to: '/duty-pharmacies', icon: Moon, tone: 'primary' },
+  { label: 'العيادات', to: '/clinics', icon: Building2, tone: 'gold' },
+  { label: 'المشافي', to: '/hospitals', icon: Hospital, tone: 'primary' },
+  { label: 'المخابر', to: '/labs', icon: FlaskConical, tone: 'gold' },
+] as const
 
 export function Hero() {
   return (
@@ -55,18 +58,30 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.28 }}
-          className="mt-7 flex flex-wrap items-center justify-center gap-2"
+          className="mt-8 flex flex-wrap items-center justify-center gap-2.5"
         >
-          <span className="text-xs font-semibold text-muted">اقتراحات سريعة:</span>
-          {QUICK_STATS.map((q) => (
+          <span className="w-full text-center text-sm font-bold text-muted sm:w-auto">اقتراحات سريعة:</span>
+          {QUICK_LINKS.map((q) => (
             <Link
               key={q.label}
-              to={q.label === 'أطباء' ? '/doctors' : q.label === 'عيادات' ? '/clinics' : q.label === 'صيدليات' ? '/pharmacies' : q.label === 'صيدليات مناوبة' ? '/duty-pharmacies' : q.label === 'مشافي' ? '/hospitals' : '/labs'}
-              className="group flex items-center gap-1 rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs font-bold text-muted shadow-sm transition-all hover:border-primary hover:text-primary"
+              to={q.to}
+              className={cn(
+                'group flex items-center gap-2.5 rounded-2xl border bg-surface py-2.5 pe-4 ps-2.5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg',
+                q.tone === 'primary' ? 'border-primary/25 hover:border-primary' : 'border-gold/40 hover:border-gold',
+              )}
             >
-              <span>{q.emoji}</span>
-              {q.label}
-              <ArrowLeft className="size-3 opacity-0 transition group-hover:opacity-100" />
+              <span
+                className={cn(
+                  'flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-300',
+                  q.tone === 'primary'
+                    ? 'bg-primary-light text-primary-dark group-hover:bg-primary group-hover:text-white'
+                    : 'bg-gold-soft text-gold-dark group-hover:bg-gold group-hover:text-primary-dark',
+                )}
+              >
+                <q.icon className="size-5.5" />
+              </span>
+              <span className="text-sm font-black text-ink">{q.label}</span>
+              <ArrowLeft className="size-4 -translate-x-1 text-primary opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
             </Link>
           ))}
         </motion.div>
