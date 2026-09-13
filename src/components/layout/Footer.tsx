@@ -14,6 +14,7 @@ const links = [
   { label: 'النصائح الطبية', to: '/articles' },
   { label: 'اسأل دليلك الطبي', to: '/ask' },
   { label: 'باقات الاشتراك', to: '/plans' },
+  { label: 'ترقية حسابي', to: '/upgrade' },
 ]
 
 const legal = [

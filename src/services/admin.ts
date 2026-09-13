@@ -190,6 +190,33 @@ export async function createSubscriptionRequest(v: {
   return !error
 }
 
+export interface RequestStatusResult {
+  found: boolean
+  status?: string
+  requested_plan?: string
+  created_at?: string
+  entity_type?: EntityType
+  entity_name?: string | null
+}
+
+/** متابعة حالة طلب الترقية برقم الهاتف (دالة آمنة في قاعدة البيانات) */
+export async function checkRequestStatus(phone: string): Promise<RequestStatusResult | null> {
+  const { data, error } = await supabase.rpc('request_status_by_phone', { p_phone: phone.trim() })
+  if (error) return null
+  return (data ?? null) as RequestStatusResult | null
+}
+
+export const REQUEST_STATUS_LABELS: Record<string, string> = {
+  new: 'قيد المراجعة',
+  contacting: 'تم التواصل معك',
+  awaiting_payment: 'بانتظار الدفع',
+  approved: 'تمت الموافقة',
+  rejected: 'مرفوض',
+}
+
+/** الطلبات التي ما تزال قيد المعالجة (لمنع التكرار) */
+export const PENDING_REQUEST_STATUSES = ['new', 'contacting', 'awaiting_payment']
+
 export async function fetchSettings(): Promise<Record<string, unknown>> {
   const { data, error } = await supabase.from('app_settings').select('*').eq('key', 'site')
   if (error || !data?.length) return {}

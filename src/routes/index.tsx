@@ -30,6 +30,7 @@ export const router = createBrowserRouter([
       { path: 'articles/:slug', lazy: () => import('@/pages/ArticleDetailPage').then((m) => ({ Component: m.ArticleDetailPage })) },
       { path: 'ask', lazy: () => import('@/pages/AskPage').then((m) => ({ Component: m.AskPage })) },
       { path: 'plans', lazy: () => import('@/pages/PlansPage').then((m) => ({ Component: m.PlansPage })) },
+      { path: 'upgrade', lazy: () => import('@/pages/UpgradeAccountPage').then((m) => ({ Component: m.UpgradeAccountPage })) },
       { path: 'account', lazy: () => import('@/pages/account/AccountPage').then((m) => ({ Component: m.AccountPage })) },
       { path: 'account/:slug', lazy: () => import('@/pages/account/AccountPage').then((m) => ({ Component: m.AccountPage })) },
       { path: 'contact', lazy: () => import('@/pages/LegalPages').then((m) => ({ Component: m.ContactPage })) },
