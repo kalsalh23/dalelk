@@ -7,6 +7,7 @@ import {
 import { useEntity } from '@/hooks/useEntities'
 import { ENTITY_TABLES } from '@/services/content'
 import { createAppointmentRequest, APPOINTMENT_DAYS } from '@/services/appointments'
+import { subscribePush } from '@/services/push'
 import { FullPageLoader, ErrorState } from '@/components/ui/States'
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
 import { Button } from '@/components/ui/Button'
@@ -95,6 +96,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
   const [apptNote, setApptNote] = useState('')
   const [apptSending, setApptSending] = useState(false)
   const [apptDone, setApptDone] = useState(false)
+  const [apptNotify, setApptNotify] = useState(true)
 
   const submitAppointment = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,7 +104,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
     if (!apptDay) { toast.show('اختر اليوم المناسب', 'error'); return }
     if (!apptName.trim() || !apptPhone.trim()) { toast.show('أدخل الاسم ورقم الهاتف', 'error'); return }
     setApptSending(true)
-    const ok = await createAppointmentRequest({
+    const apptId = await createAppointmentRequest({
       doctor_id: String(ready.id),
       doctor_name: String(ready.name ?? ''),
       patient_name: apptName.trim(),
@@ -112,9 +114,16 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
       note: apptNote.trim() || null,
     })
     setApptSending(false)
-    if (ok) {
+    if (apptId) {
       setApptDone(true)
       void track('appointment_request', { entityType: type, entityId: String(ready.id) })
+      // إشعار خارجي عند تحديث حالة الطلب (اختياري — ضمن نفس ضغطة الإرسال)
+      if (apptNotify) {
+        const r = await subscribePush({ appointmentId: apptId })
+        if (r !== 'ok') {
+          toast.show('يمكنك متابعة حالة الطلب من الطبيب مباشرة')
+        }
+      }
     } else {
       toast.show('تعذر إرسال الطلب، حاول مجدداً', 'error')
     }
@@ -519,6 +528,18 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
               <Field label="ملاحظات (اختياري)">
                 <Textarea rows={2} value={apptNote} onChange={(e) => setApptNote(e.target.value)} placeholder="سبب الزيارة أو أي تفاصيل تهم الطبيب…" />
               </Field>
+
+              <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-primary/20 bg-primary-light/30 px-4 py-3">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 size-4 accent-[#428177]"
+                  checked={apptNotify}
+                  onChange={(e) => setApptNotify(e.target.checked)}
+                />
+                <span className="text-xs leading-6 text-muted">
+                  <strong className="text-ink">أبلغني عند تحديث حالة الطلب</strong> — إشعار متصفح يصلك فور تأكيد الطبيب للموعد (حتى وأنت خارج الموقع).
+                </span>
+              </label>
 
               <Button type="submit" loading={apptSending} className="w-full">
                 <CalendarClock className="size-4" />

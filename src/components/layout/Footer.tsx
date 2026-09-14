@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Globe, MessageCircle, AtSign, Phone, ShieldCheck, Code2 } from 'lucide-react'
+import { Globe, MessageCircle, AtSign, Phone, ShieldCheck, Code2, BellRing, BellOff } from 'lucide-react'
 import { InstagramIcon, FacebookIcon } from '@/components/ui/BrandIcons'
 import { Logo } from '@/components/ui/Logo'
 import { APP_NAME, DEFAULT_DEVELOPER, FEATURE_CLINICS } from '@/constants'
+import { subscribePush, pushSupported } from '@/services/push'
 
 const links = [
   { label: 'الرئيسية', to: '/' },
@@ -26,6 +28,21 @@ const legal = [
 ]
 
 export function Footer({ developer = DEFAULT_DEVELOPER }: { developer?: (typeof DEFAULT_DEVELOPER) }) {
+  const [pushBusy, setPushBusy] = useState(false)
+  const [pushOn, setPushOn] = useState(() => typeof Notification !== 'undefined' && Notification.permission === 'granted')
+  const [pushMsg, setPushMsg] = useState('')
+
+  const enablePush = async () => {
+    setPushBusy(true)
+    setPushMsg('')
+    const r = await subscribePush({ news: true, dailyDuty: true })
+    setPushBusy(false)
+    if (r === 'ok') { setPushOn(true); setPushMsg('تم تفعيل الإشعارات بنجاح — ستصلك أخبار المنصة وصيدلية المناوبة كل صباح.') }
+    else if (r === 'denied') setPushMsg('حظرت المتصفح الإشعارات — فعّلها من إعدادات الموقع في المتصفح.')
+    else if (r === 'unsupported') setPushMsg('متصفحك لا يدعم الإشعارات — على آيفون أضف الموقع إلى الشاشة الرئيسية أولاً.')
+    else setPushMsg('تعذر التفعيل، حاول مجدداً.')
+  }
+
   return (
     <footer className="mt-16 border-t border-border bg-surface">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
@@ -118,6 +135,32 @@ export function Footer({ developer = DEFAULT_DEVELOPER }: { developer?: (typeof 
             </div>
           </div>
         </div>
+        {/* بطاقة تفعيل الإشعارات */}
+        {pushSupported() && (
+          <div className="mt-10 flex flex-col items-start gap-4 rounded-[18px] border border-primary/20 bg-primary-light/30 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-white shadow-md">
+                {pushOn ? <BellRing className="size-5" /> : <BellOff className="size-5" />}
+              </span>
+              <div>
+                <p className="text-sm font-black text-ink">إشعارات {APP_NAME}</p>
+                <p className="mt-0.5 text-xs leading-6 text-muted">
+                  صيدلية المناوبة كل صباح، الجهات الجديدة، وتحديثات طلبات المواعيد — تصلك حتى وأنت خارج الموقع.
+                </p>
+                {pushMsg && <p className="mt-1 text-[11px] font-bold text-primary-dark">{pushMsg}</p>}
+              </div>
+            </div>
+            <button
+              onClick={() => void enablePush()}
+              disabled={pushOn || pushBusy}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow transition hover:bg-primary-dark disabled:opacity-60 disabled:pointer-events-none cursor-pointer"
+            >
+              <BellRing className="size-4" />
+              {pushOn ? 'الإشعارات مفعّلة' : pushBusy ? 'جارٍ التفعيل…' : 'تفعيل الإشعارات'}
+            </button>
+          </div>
+        )}
+
         <div className="mt-10 flex flex-col items-center gap-3 border-t border-border pt-6 text-xs text-muted sm:flex-row sm:justify-between">
           <p>© {new Date().getFullYear()} {APP_NAME} — جميع الحقوق محفوظة</p>
           <p className="flex items-center gap-1.5">

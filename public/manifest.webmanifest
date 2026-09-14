@@ -1,0 +1,14 @@
+{
+  "name": "دليلك الطبي — طيبة الإمام",
+  "short_name": "دليلك الطبي",
+  "description": "دليل الخدمات الطبية في مدينة طيبة الإمام",
+  "start_url": "/",
+  "display": "standalone",
+  "dir": "rtl",
+  "lang": "ar",
+  "background_color": "#054239",
+  "theme_color": "#054239",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -35,7 +35,7 @@ export const APPOINTMENT_DAYS: { key: string; label: string }[] = [
 export const dayLabel = (key: string): string =>
   APPOINTMENT_DAYS.find((d) => d.key === key)?.label ?? key
 
-/** المواطن يرسل طلب موعد (مسموح للزوار) */
+/** المواطن يرسل طلب موعد (مسموح للزوار) — يُعيد معرّف الطلب عند النجاح */
 export async function createAppointmentRequest(v: {
   doctor_id: string
   doctor_name?: string | null
@@ -44,9 +44,10 @@ export async function createAppointmentRequest(v: {
   preferred_day: string
   preferred_time?: string | null
   note?: string | null
-}): Promise<boolean> {
-  const { error } = await supabase.from('appointment_requests').insert(v)
-  return !error
+}): Promise<string | null> {
+  const { data, error } = await supabase.from('appointment_requests').insert(v).select('id').single()
+  if (error) return null
+  return (data?.id as string) ?? null
 }
 
 /** طلبات المواعيد الخاصة بالطبيب صاحب الجلسة (عبر توكن لوحة الجهة) */
