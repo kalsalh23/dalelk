@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   Phone, MessageCircle, MapPin, Clock, BadgeCheck,
-  Monitor, Siren, Star, CalendarClock,
+  Monitor, Siren, Star, CalendarClock, ArrowLeft, User,
 } from 'lucide-react'
 import { useEntity } from '@/hooks/useEntities'
 import { ENTITY_TABLES } from '@/services/content'
-import { createAppointmentRequest, APPOINTMENT_DAYS } from '@/services/appointments'
+import { createAppointmentRequest, APPOINTMENT_DAYS, dayLabel } from '@/services/appointments'
 import { subscribePush } from '@/services/push'
 import { FullPageLoader, ErrorState } from '@/components/ui/States'
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
@@ -97,6 +97,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
   const [apptSending, setApptSending] = useState(false)
   const [apptDone, setApptDone] = useState(false)
   const [apptNotify, setApptNotify] = useState(true)
+  const [apptStep, setApptStep] = useState<1 | 2>(1)
 
   const submitAppointment = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -265,7 +266,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                   variant="secondary"
                   disabled={plan === 'free'}
                   title={plan === 'free' ? 'طلبات المواعيد متاحة للأطباء المشتركين في باقة مدفوعة — اشترك من صفحة الباقات لتفعيلها' : undefined}
-                  onClick={() => { if (plan !== 'free') { setApptOpen(true); setApptDone(false) } }}
+                  onClick={() => { if (plan !== 'free') { setApptOpen(true); setApptDone(false); setApptStep(1) } }}
                   className={cn(
                     '!w-full sm:!flex-1 bg-none bg-gradient-to-l from-gold to-gold-dark text-primary-dark font-black shadow-lg shadow-gold/40 hover:brightness-105 hover:text-primary-dark border border-gold-dark/30',
                     plan === 'free' && 'cursor-not-allowed',
@@ -458,24 +459,42 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                 وصل طلبك إلى {name} وسيتم التواصل معك على رقمك
                 <span className="font-bold text-ink" dir="ltr"> {apptPhone}</span> لتأكيد الموعد.
               </p>
-              <Button variant="outline" className="mt-5" onClick={() => { setApptOpen(false); setApptDone(false); setApptDay(''); setApptTime(''); setApptName(''); setApptPhone(''); setApptNote('') }}>
+              <Button variant="outline" className="mt-5" onClick={() => { setApptOpen(false); setApptDone(false); setApptStep(1); setApptDay(''); setApptTime(''); setApptName(''); setApptPhone(''); setApptNote('') }}>
                 إغلاق
               </Button>
             </div>
           ) : (
             <form onSubmit={submitAppointment} className="space-y-4">
-              <p className="rounded-xl bg-subtle px-4 py-3 text-xs leading-6 text-muted">
-                هذه خدمة <strong className="text-ink">طلب موعد</strong> — يصل طلبك إلى الطبيب ليؤكده، وستتم تسوية الوقت النهائي معكم هاتفياً أو عبر واتساب.
-              </p>
+              {/* مؤشر الخطوات */}
+              <div className="flex items-center justify-center gap-2" aria-hidden="true">
+                {[1, 2].map((n) => (
+                  <span
+                    key={n}
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black transition',
+                      apptStep === n ? 'bg-primary text-white' : 'bg-subtle text-muted',
+                    )}
+                  >
+                    {n === 1 ? <CalendarClock className="size-3.5" /> : <User className="size-3.5" />}
+                    {n === 1 ? 'الموعد' : 'بياناتك'}
+                  </span>
+                ))}
+                <span className={cn('h-0.5 w-6 rounded-full transition', apptStep === 2 ? 'bg-primary' : 'bg-subtle-strong')} />
+              </div>
 
-              <div>
-                <p className="mb-2 text-sm font-bold text-ink">اختر اليوم:</p>
-                {hours && Object.keys(hours).length > 0 ? (
-                  <>
+              {apptStep === 1 ? (
+                <>
+                  <p className="rounded-xl bg-subtle px-4 py-3 text-xs leading-6 text-muted">
+                    هذه خدمة <strong className="text-ink">طلب موعد</strong> — يصل طلبك إلى الطبيب ليؤكده، وستتم تسوية الوقت النهائي معكم هاتفياً أو عبر واتساب.
+                  </p>
+
+                  <div>
+                    <p className="mb-2 text-sm font-bold text-ink">اختر اليوم:</p>
                     <div className="flex flex-wrap gap-2">
                       {APPOINTMENT_DAYS.map((d) => {
-                        const available = Boolean(hours[d.key]?.trim())
-                        return available ? (
+                        const available = !hours || !Object.keys(hours).length || Boolean(hours[d.key]?.trim())
+                        if (!available) return null
+                        return (
                           <button
                             key={d.key}
                             type="button"
@@ -487,64 +506,78 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                           >
                             {d.label}
                           </button>
-                        ) : null
+                        )
                       })}
                     </div>
-                    <p className="mt-2 text-[11px] text-muted">أيام دوام الطبيب المذكورة أعلاه فقط.</p>
-                  </>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {APPOINTMENT_DAYS.map((d) => (
-                      <button
-                        key={d.key}
-                        type="button"
-                        onClick={() => setApptDay(d.key)}
-                        className={cn(
-                          'cursor-pointer rounded-xl border px-3.5 py-2 text-xs font-bold transition',
-                          apptDay === d.key ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-ink hover:border-primary/50',
-                        )}
-                      >
-                        {d.label}
-                      </button>
-                    ))}
+                    {hours && Object.keys(hours).length > 0 && (
+                      <p className="mt-2 text-[11px] text-muted">أيام دوام الطبيب المذكورة أعلاه فقط.</p>
+                    )}
                   </div>
-                )}
-                {!apptDay && hours && Object.keys(hours).length > 0 && (
-                  <p className="mt-2 text-[11px] font-bold text-error">الطبيب لا يعمل في أيام أخرى غير المذكورة.</p>
-                )}
-              </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="الوقت المفضل (تقريبي)">
-                  <Input value={apptTime} onChange={(e) => setApptTime(e.target.value)} placeholder="مثال: 10:00 صباحاً" />
-                </Field>
-                <Field label="رقم الهاتف" required>
-                  <Input type="tel" value={apptPhone} onChange={(e) => setApptPhone(e.target.value)} placeholder="09xx xxx xxx" dir="ltr" />
-                </Field>
-              </div>
-              <Field label="الاسم" required>
-                <Input value={apptName} onChange={(e) => setApptName(e.target.value)} placeholder="اسمك الكريم" />
-              </Field>
-              <Field label="ملاحظات (اختياري)">
-                <Textarea rows={2} value={apptNote} onChange={(e) => setApptNote(e.target.value)} placeholder="سبب الزيارة أو أي تفاصيل تهم الطبيب…" />
-              </Field>
+                  <Field label="الوقت المفضل (تقريبي)">
+                    <Input value={apptTime} onChange={(e) => setApptTime(e.target.value)} placeholder="مثال: 10:00 صباحاً" />
+                  </Field>
 
-              <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-primary/20 bg-primary-light/30 px-4 py-3">
-                <input
-                  type="checkbox"
-                  className="mt-0.5 size-4 accent-[#428177]"
-                  checked={apptNotify}
-                  onChange={(e) => setApptNotify(e.target.checked)}
-                />
-                <span className="text-xs leading-6 text-muted">
-                  <strong className="text-ink">أبلغني عند تحديث حالة الطلب</strong> — إشعار متصفح يصلك فور تأكيد الطبيب للموعد (حتى وأنت خارج الموقع).
-                </span>
-              </label>
+                  <Button
+                    type="button"
+                    className="w-full"
+                    disabled={!apptDay}
+                    onClick={() => setApptStep(2)}
+                  >
+                    التالي
+                    <ArrowLeft className="size-4" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {/* ملخص المختارات من الخطوة السابقة */}
+                  <button
+                    type="button"
+                    onClick={() => setApptStep(1)}
+                    className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-primary/20 bg-primary-light/30 px-4 py-3 text-right transition hover:border-primary/50"
+                  >
+                    <span className="flex items-center gap-2 text-sm font-bold text-primary-dark">
+                      <CalendarClock className="size-4" />
+                      {dayLabel(apptDay)}{apptTime ? ` — ${apptTime}` : ''}
+                    </span>
+                    <span className="text-[11px] font-bold text-primary hover:underline">تعديل</span>
+                  </button>
 
-              <Button type="submit" loading={apptSending} className="w-full">
-                <CalendarClock className="size-4" />
-                إرسال طلب الموعد
-              </Button>
+                  <div className="grid gap-4">
+                    <Field label="الاسم" required>
+                      <Input value={apptName} onChange={(e) => setApptName(e.target.value)} placeholder="اسمك الكريم" />
+                    </Field>
+                    <Field label="رقم الهاتف" required>
+                      <Input type="tel" value={apptPhone} onChange={(e) => setApptPhone(e.target.value)} placeholder="09xx xxx xxx" dir="ltr" />
+                    </Field>
+                    <Field label="ملاحظات (اختياري)">
+                      <Textarea rows={2} value={apptNote} onChange={(e) => setApptNote(e.target.value)} placeholder="سبب الزيارة أو أي تفاصيل تهم الطبيب…" />
+                    </Field>
+                  </div>
+
+                  <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-primary/20 bg-primary-light/30 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 size-4 accent-[#428177]"
+                      checked={apptNotify}
+                      onChange={(e) => setApptNotify(e.target.checked)}
+                    />
+                    <span className="text-xs leading-6 text-muted">
+                      <strong className="text-ink">أبلغني عند تحديث حالة الطلب</strong> — إشعار متصفح يصلك فور تأكيد الطبيب للموعد (حتى وأنت خارج الموقع).
+                    </span>
+                  </label>
+
+                  <div className="flex gap-3">
+                    <Button type="submit" loading={apptSending} className="flex-1">
+                      <CalendarClock className="size-4" />
+                      حجز موعد
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setApptStep(1)}>
+                      السابق
+                    </Button>
+                  </div>
+                </>
+              )}
             </form>
           )}
         </Dialog>
