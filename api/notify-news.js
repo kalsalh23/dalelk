@@ -1,7 +1,7 @@
 // إشعار أخبار المنصة (طبيب/صيدلية جديدة) — يُستدعى من مشغلات قاعدة البيانات
-const { configured, checkSecret, sendToSubscription, json } = require('./_push')
+import { configured, checkSecret, sendToSubscription, json } from './_push.js'
 
-module.exports = async (req, res) => {
+export default async (req, res) => {
   if (!configured()) return json(res, 500, { error: 'notifications not configured' })
   if (req.method !== 'POST') return json(res, 405, { error: 'method not allowed' })
   if (!checkSecret(req)) return json(res, 401, { error: 'unauthorized' })

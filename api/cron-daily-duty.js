@@ -1,10 +1,10 @@
 // إشعار يومي بالصيدليات المناوبة — cron Vercel (0 6 * * * UTC = 9:00 صباحاً بتوقيت سوريا)
-const { configured, sendToSubscription, json } = require('./_push')
+import { configured, sendToSubscription, json } from './_push.js'
 
 const SUPABASE_URL = 'https://nwgtpljltnangevhdsdz.supabase.co'
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53Z3RwbGpsdG5hbmdldmhkc2R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NzMxOTYsImV4cCI6MjEwMjA0OTE5Nn0.BzFe8UYvw0gjwb7RcRbTFDgLa_5AMVn5b_ug-YJvWmo'
 
-module.exports = async (req, res) => {
+export default async (req, res) => {
   if (!configured()) return json(res, 500, { error: 'notifications not configured' })
   const secret = (req.query && req.query.secret) || ''
   if (!secret) return json(res, 401, { error: 'unauthorized' })

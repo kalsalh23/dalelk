@@ -1,13 +1,8 @@
-// مكتبة مشتركة لدوال الإشعارات الخادمية
+// مكتبة مشتركة لدوال الإشعارات الخادمية (ESM — type: module في package.json)
 const NOTIFY_SECRET = process.env.NOTIFY_SECRET
 
 function configured() {
   return Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && NOTIFY_SECRET)
-}
-
-function checkSecret(req) {
-  const key = req.headers['x-notify-secret'] || req.query.secret
-  return configured() && key === NOTIFY_SECRET
 }
 
 function missingEnv() {
@@ -18,10 +13,14 @@ function missingEnv() {
   return missing.join(', ')
 }
 
+function checkSecret(req) {
+  const key = req.headers['x-notify-secret'] || req.query.secret
+  return configured() && key === NOTIFY_SECRET
+}
+
 async function sendToSubscription(subscription, notification) {
   try {
-    // تحميل مؤجل مع التقاط رسالة الخطأ الفعلية
-    const webpush = require('web-push')
+    const webpush = (await import('web-push')).default
     await webpush.sendNotification(
       { endpoint: subscription.endpoint, keys: { p256dh: subscription.keys.p256dh, auth: subscription.keys.auth } },
       JSON.stringify(notification),
@@ -40,4 +39,4 @@ function json(res, code, body) {
   res.end(JSON.stringify(body))
 }
 
-module.exports = { configured, checkSecret, sendToSubscription, json, missingEnv }
+export { configured, missingEnv, checkSecret, sendToSubscription, json }
