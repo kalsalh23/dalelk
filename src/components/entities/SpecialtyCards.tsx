@@ -25,7 +25,7 @@ const SPECIALTY_ICONS: Record<string, React.ReactNode> = {
 
 export function SpecialtyCards() {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 pt-16 lg:pt-0">
       {SPECIALTIES.map((specialty, index) => {
         const icon = SPECIALTY_ICONS[specialty] ?? <Stethoscope className="size-6" />
         return (
