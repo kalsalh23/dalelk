@@ -1,6 +1,6 @@
 import { EntityListPage } from '@/components/entities/EntityListPage'
-import { EntityDetailPage } from '@/components/entities/EntityDetailPage'
 import { SpecialtyCards } from '@/components/entities/SpecialtyCards'
+import { EntityDetailPage } from '@/components/entities/EntityDetailPage'
 
 const defs = {
   doctors: {
@@ -41,7 +41,7 @@ const defs = {
   },
 }
 
-export const DoctorsList = () => <><SpecialtyCards /><EntityListPage type={defs.doctors.type} title={defs.doctors.title} subtitle={defs.doctors.subtitle} showSpecialtyFilter /></>
+export const DoctorsList = () => <SpecialtyCards />
 export const DoctorDetail = () => <EntityDetailPage type="doctor" title="الأطباء" />
 export const ClinicsList = () => <EntityListPage type={defs.clinics.type} title={defs.clinics.title} subtitle={defs.clinics.subtitle} />
 export const ClinicDetail = () => <EntityDetailPage type="clinic" title="العيادات" />
