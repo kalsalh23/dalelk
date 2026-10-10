@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { useEntities } from '@/hooks/useEntities'
@@ -28,8 +28,8 @@ export function EntityListPage({
   navPrefix?: string
 }) {
   const [params, setParams] = useSearchParams()
-  const [search, setSearch] = useState(params.get('q') ?? '')
-  const [specialty, setSpecialty] = useState(params.get('specialty') ?? '')
+  const search = params.get('q') ?? ''
+  const specialty = params.get('specialty') ?? ''
   const page = Math.max(1, Number(params.get('page') ?? '1') || 1)
 
   const { data, isLoading, isError, refetch } = useEntities<Record<string, unknown>>(type, {
@@ -67,14 +67,13 @@ export function EntityListPage({
           <Search className="absolute right-3.5 top-1/2 size-4.5 -translate-y-1/2 text-muted" />
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setParams((p) => { const next = new URLSearchParams(p); next.set('q', e.target.value); next.set('page', '1'); return next })}
             placeholder="ابحث بالاسم…"
             className="pr-11"
           />
         </form>
         {showSpecialtyFilter && (
           <Select value={specialty} onChange={(e) => {
-            setSpecialty(e.target.value)
             setParams((p) => {
               const next = new URLSearchParams(p)
               if (e.target.value) next.set('specialty', e.target.value)
