@@ -52,3 +52,5 @@ export function SpecialtyCards() {
       })}
       </div>
     </div>
+  )
+}
