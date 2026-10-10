@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Stethoscope, HeartPulse, Bone, Eye, Ear, Flower2, Baby, Shield, Scissors, Activity, Thermometer, Droplet, Bandage } from 'lucide-react'
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
 import { SPECIALTIES } from '@/constants'
 
 const SPECIALTY_ICONS: Record<string, React.ReactNode> = {
@@ -24,7 +25,9 @@ const SPECIALTY_ICONS: Record<string, React.ReactNode> = {
 
 export function SpecialtyCards() {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 pt-12 lg:pt-0">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <Breadcrumbs items={[{ label: 'الأطباء' }]} />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 pt-12 lg:pt-0">
       {SPECIALTIES.map((specialty, index) => {
         const icon = SPECIALTY_ICONS[specialty] ?? <Stethoscope className="size-6" />
         return (
@@ -47,6 +50,5 @@ export function SpecialtyCards() {
           </motion.div>
         )
       })}
+      </div>
     </div>
-  )
-}
