@@ -6,7 +6,7 @@ import {
   Sparkles, ArrowLeft, Stethoscope, Pill, Moon, Hospital, FlaskConical, Megaphone,
 } from 'lucide-react'
 import { SearchBar } from '@/components/shared/SearchBar'
-import { APP_NAME, FEATURE_CLINICS, DEFAULT_DEVELOPER } from '@/constants'
+import { APP_NAME, FEATURE_CLINICS } from '@/constants'
 import { fetchAds, incrementAdClick } from '@/services/site'
 import { getPublicUrl } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -165,25 +165,6 @@ export function Hero() {
         </motion.div>
 
         <HeroAds />
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-10 text-center"
-        >
-          <p className="text-xs font-medium text-muted">
-            تم تطوير المنصة من قبل{' '}
-            <a
-              href={`https://wa.me/${DEFAULT_DEVELOPER.international_phone.replace('+', '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold text-primary hover:underline"
-            >
-              {DEFAULT_DEVELOPER.name}
-            </a>
-          </p>
-        </motion.div>
       </div>
     </section>
   )
