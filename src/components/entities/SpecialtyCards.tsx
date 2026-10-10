@@ -5,8 +5,7 @@ import { SPECIALTIES } from '@/constants'
 
 const SPECIALTY_ICONS: Record<string, React.ReactNode> = {
   'طب عام': <Stethoscope className="size-6" />,
-  'طبChildren': <Baby className="size-6" />,
-  'طب الأطفال': <Baby className="size-6" />,
+  'طب%Baby': <Baby className="size-6" />,
   'النسائية والتوليد': <Flower2 className="size-6" />,
   'القلبية': <HeartPulse className="size-6" />,
   'الأذن والأنف والحنجرة': <Ear className="size-6" />,
@@ -25,7 +24,7 @@ const SPECIALTY_ICONS: Record<string, React.ReactNode> = {
 
 export function SpecialtyCards() {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 pt-16 lg:pt-0">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 pt-12 lg:pt-0">
       {SPECIALTIES.map((specialty, index) => {
         const icon = SPECIALTY_ICONS[specialty] ?? <Stethoscope className="size-6" />
         return (

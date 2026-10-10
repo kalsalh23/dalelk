@@ -1,7 +1,5 @@
 import { useMemo } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Stethoscope } from 'lucide-react'
 import { useEntities } from '@/hooks/useEntities'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { Skeletons, EmptyState, ErrorState } from '@/components/ui/States'
@@ -39,25 +37,10 @@ export function SpecialtyDetailPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <Breadcrumbs items={[{ label: 'الأطباء', to: '/doctors' }, { label: decodedSpecialty }]} />
 
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <div className="mt-4 flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-right">
-          <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary-light/50 text-primary">
-            <Stethoscope className="size-8" />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-black text-ink sm:text-3xl">{decodedSpecialty || 'كل الأطباء'}</h1>
-            <p className="mt-1 text-sm text-muted">
-              {data?.count ?? 0} طبيب في تخصص {decodedSpecialty} في مدينة {DEFAULT_CITY}
-            </p>
-          </div>
-        </div>
-      </motion.div>
-
       <div className="mt-6">
         <SectionTitle
-          title="أطباء هذا التخصص"
-          subtitle="قائمة موثّقة بالأطباء المتخصصين في هذا مجال"
-          icon={<Stethoscope className="size-5" />}
+          title={decodedSpecialty || 'كل الأطباء'}
+          subtitle={data?.count ? `${data.count} طبيب في تخصص ${decodedSpecialty} في مدينة ${DEFAULT_CITY}` : 'قائمة موثّقة بالأطباء المتخصصين في هذا مجال'}
         />
       </div>
 
@@ -72,9 +55,6 @@ export function SpecialtyDetailPage() {
         />
       ) : (
         <>
-          <div className="flex items-center justify-between text-xs text-muted">
-            <span>{data.count} طبيب</span>
-          </div>
           <div className="mt-2 space-y-3">
             {data.data.map((item, i) => (
               <EntityCard key={String(item.id)} type="doctor" item={item} index={i} />
