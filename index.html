@@ -58,30 +58,21 @@
         line-height: 1.9;
         opacity: 0.82;
       }
-      #splash .bar {
-        width: 170px;
-        height: 3px;
-        margin-top: 12px;
-        border-radius: 99px;
-        background: rgba(255, 255, 255, 0.16);
-        overflow: hidden;
+      #splash .spinner {
+        width: 40px;
+        height: 40px;
+        margin-top: 8px;
+        border: 3px solid rgba(255, 255, 255, 0.16);
+        border-top-color: #b9a779;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
       }
-      #splash .bar::after {
-        content: '';
-        display: block;
-        height: 100%;
-        width: 45%;
-        border-radius: 99px;
-        background: #b9a779;
-        animation: splashBar 1.3s ease-in-out infinite;
+      @keyframes spin {
+        to { transform: rotate(360deg); }
       }
       @keyframes splashPulse {
         0%, 100% { transform: scale(1); opacity: 0.92; }
         50% { transform: scale(1.1); opacity: 1; }
-      }
-      @keyframes splashBar {
-        0% { transform: translateX(130%); }
-        100% { transform: translateX(-320%); }
       }
     </style>
   </head>
@@ -91,7 +82,7 @@
       <img src="/favicon.svg" alt="" />
       <h1>أهلاً بك في دليل طيبة Emanuel الطبي</h1>
       <p>كل ما يحتاجه منخدمات صحية في مدينة طيبة Emanuel — أطباء وعيادات وصيدليات ومخابر ونصائح طبية، في مكان واحد.</p>
-      <div class="bar"></div>
+      <div class="spinner"></div>
       <div class="spacer" style="flex:1;"></div>
       <p style="font-size: 11px; opacity: 0.6;">تم تطوير المنصة من قبل م. قصي مهند الصالح</p>
       <p style="font-size: 11px; opacity: 0.6;" dir="ltr">0952639157</p>
