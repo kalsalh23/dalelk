@@ -36,7 +36,7 @@ export function SpecialtyCards() {
             transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.3) }}
           >
             <Link
-              to={`/doctors/${encodeURIComponent(specialty)}`}
+              to={`/specialty/${encodeURIComponent(specialty)}`}
               className="group flex flex-col items-center gap-3 rounded-2xl border border-border bg-surface p-5 text-center transition-all hover:-translate-y-1 hover:border-primary/50 hover:shadow-lg"
             >
               <div className="flex size-14 items-center justify-center rounded-2xl bg-primary-light/50 text-primary transition-colors group-hover:bg-primary group-hover:text-white">

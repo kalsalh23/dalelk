@@ -13,8 +13,8 @@ export const router = createBrowserRouter([
       { index: true, lazy: () => import('@/pages/HomePage').then((m) => ({ Component: m.HomePage })) },
       { path: 'search', lazy: () => import('@/pages/SearchPage').then((m) => ({ Component: m.SearchPage })) },
       { path: 'doctors', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.DoctorsList })) },
-      { path: 'doctors/:specialty', lazy: () => import('@/components/entities/SpecialtyDetailPage').then((m) => ({ Component: m.SpecialtyDetailPage })) },
       { path: 'doctors/:slug', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.DoctorDetail })) },
+      { path: 'specialty/:specialty', lazy: () => import('@/components/entities/SpecialtyDetailPage').then((m) => ({ Component: m.SpecialtyDetailPage })) },
       ...(FEATURE_CLINICS
         ? [
             { path: 'clinics', lazy: () => import('@/pages/Entities').then((m) => ({ Component: m.ClinicsList })) },
