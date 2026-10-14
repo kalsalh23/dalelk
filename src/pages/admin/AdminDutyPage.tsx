@@ -145,8 +145,12 @@ function DutyForm({ values, pharmacies, onClose, onDone }: {
      const result = isEdit
        ? await supabase.from('duty_pharmacies').update(payload).eq('id', String(values.id))
        : await supabase.from('duty_pharmacies').insert(payload)
-     setSaving(false)
-     if (result.error) { toast.show('تعذر الحفظ', 'error'); return }
+      setSaving(false)
+      if (result.error) { 
+        console.error('Save error:', result.error)
+        toast.show(`تعذر الحفظ: ${result.error.message ?? JSON.stringify(result.error)}`, 'error'); 
+        return 
+      }
      toast.show('تم حفظ المناوبة')
      onDone()
    }
