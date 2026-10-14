@@ -109,29 +109,47 @@ function DutyForm({ values, pharmacies, onClose, onDone }: {
   const isEdit = Boolean(values.id)
   const set = (k: string, v: unknown) => setForm((f) => ({ ...f, [k]: v }))
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-      const payload = {
-        pharmacy_id: String(form.pharmacy_id ?? ''),
-        city_id: null,
-        start_date: String(form.start_date ?? ''),
-        end_date: String(form.end_date ?? ''),
-        duty_hours: String(form.duty_hours ?? '').trim() || null,
-        open_time: String(form.open_time ?? '').trim() || null,
-        close_time: String(form.close_time ?? '').trim() || null,
-        notes: String(form.notes ?? '').trim() || null,
-        is_active: true,
-        updated_at: new Date().toISOString(),
-      }
-    const result = isEdit
-      ? await supabase.from('duty_pharmacies').update(payload).eq('id', String(values.id))
-      : await supabase.from('duty_pharmacies').insert(payload)
-    setSaving(false)
-    if (result.error) { toast.show('تعذر الحفظ', 'error'); return }
-    toast.show('تم حفظ المناوبة')
-    onDone()
-  }
+   const submit = async (e: React.FormEvent) => {
+     e.preventDefault()
+     setSaving(true)
+     
+     let openTime = String(form.open_time ?? '').trim()
+     let dutyHoursStr = String(form.duty_hours ?? '').trim()
+     let closeTime = String(form.close_time ?? '').trim()
+     
+     if (openTime && dutyHoursStr) {
+       const hours = parseFloat(dutyHoursStr)
+       if (!isNaN(hours)) {
+         const parts = openTime.split(':').map(Number)
+         let totalMinutes = parts[0] * 60 + parts[1] + hours * 60
+         totalMinutes = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60)
+         const newHours = Math.floor(totalMinutes / 60)
+         const newMinutes = totalMinutes % 60
+         closeTime = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`
+       }
+     }
+     
+     const payload = {
+       pharmacy_id: String(form.pharmacy_id ?? ''),
+       city_id: null,
+       start_date: String(form.start_date ?? ''),
+       end_date: String(form.end_date ?? ''),
+       duty_hours: dutyHoursStr || null,
+       open_time: openTime || null,
+       close_time: closeTime || null,
+       notes: String(form.notes ?? '').trim() || null,
+       is_active: true,
+       updated_at: new Date().toISOString(),
+     }
+     
+     const result = isEdit
+       ? await supabase.from('duty_pharmacies').update(payload).eq('id', String(values.id))
+       : await supabase.from('duty_pharmacies').insert(payload)
+     setSaving(false)
+     if (result.error) { toast.show('تعذر الحفظ', 'error'); return }
+     toast.show('تم حفظ المناوبة')
+     onDone()
+   }
 
   return (
     <Dialog open onClose={onClose} title={isEdit ? 'تعديل المناوبة' : 'مناوبة جديدة'} size="md">
@@ -150,17 +168,12 @@ function DutyForm({ values, pharmacies, onClose, onDone }: {
             <Input type="date" value={String(form.end_date ?? '')} onChange={(e) => set('end_date', e.target.value)} required />
           </Field>
         </div>
-          <Field label="ساعات المناوبة">
-            <Input value={String(form.duty_hours ?? '')} placeholder="مثال: 8 مساءً حتى 8 صباحاً" onChange={(e) => set('duty_hours', e.target.value)} />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="وقت الافتتاح">
-              <Input type="time" value={String(form.open_time ?? '')} onChange={(e) => set('open_time', e.target.value)} />
-            </Field>
-            <Field label="وقت الإغلاق" hint="إن كان الإغلاق قبل الفتح فهو يعني اليوم التالي">
-              <Input type="time" value={String(form.close_time ?? '')} onChange={(e) => set('close_time', e.target.value)} />
-            </Field>
-          </div>
+           <Field label="وقت الافتتاح">
+             <Input type="time" value={String(form.open_time ?? '')} onChange={(e) => set('open_time', e.target.value)} />
+           </Field>
+           <Field label="عدد ساعات العمل">
+             <Input type="number" value={String(form.duty_hours ?? '')} onChange={(e) => set('duty_hours', e.target.value)} />
+           </Field>
         <Field label="ملاحظات">
           <Textarea rows={2} value={String(form.notes ?? '')} onChange={(e) => set('notes', e.target.value)} />
         </Field>
