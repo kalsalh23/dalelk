@@ -104,10 +104,10 @@ export function DashboardMediaPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Star className="size-4 text-amber-500" /> الصورة الرئيسية</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Star className="size-4 text-gold-dark" /> الصورة الرئيسية</CardTitle></CardHeader>
         <CardBody>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <div className="flex size-40 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-slate-100">
+            <div className="flex size-40 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-subtle-strong">
               {mainUrl ? <img src={mainUrl} alt="الصورة الرئيسية" className="size-full object-cover" /> : <ImageIcon className="size-10 text-muted" />}
             </div>
             <div className="flex-1 space-y-3">
@@ -125,14 +125,14 @@ export function DashboardMediaPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2"><Images className="size-4 text-primary" /> معرض الصور ({gallery.length}/12)</CardTitle>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold hover:bg-slate-50">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold hover:bg-subtle">
             <Upload className="size-4" /> إضافة صور
             <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) void handleGalleryUpload(e.target.files); e.target.value = '' }} disabled={uploading} />
           </label>
         </CardHeader>
         <CardBody>
           {gallery.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-slate-50 py-12 text-center">
+            <div className="rounded-2xl border border-dashed border-border bg-subtle py-12 text-center">
               <Images className="mx-auto size-8 text-muted" />
               <p className="mt-2 text-sm text-muted">لا توجد صور في المعرض — أضف صوراً لعيادتك أو تجهيزاتك</p>
             </div>
@@ -141,9 +141,9 @@ export function DashboardMediaPage() {
               {gallery.map((p, i) => {
                 const url = getPublicUrl(p) ?? p
                 return (
-                  <div key={`${p}-${i}`} className="group relative overflow-hidden rounded-2xl border border-border bg-slate-100">
+                  <div key={`${p}-${i}`} className="group relative overflow-hidden rounded-2xl border border-border bg-subtle-strong">
                     <img src={url} alt="" className="aspect-square w-full object-cover" />
-                    <button onClick={() => removeGallery(i)} className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-xl bg-red-500 text-white opacity-0 shadow transition group-hover:opacity-100 hover:bg-red-600">
+                    <button onClick={() => removeGallery(i)} className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-xl bg-wine-soft0 text-white opacity-0 shadow transition group-hover:opacity-100 hover:bg-wine-dark">
                       <Trash2 className="size-4" />
                     </button>
                   </div>

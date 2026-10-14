@@ -41,13 +41,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               className={cn(
                 'pointer-events-auto flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-lg backdrop-blur',
                 t.type === 'success' && 'border-emerald-200 bg-white text-emerald-700',
-                t.type === 'error' && 'border-red-200 bg-white text-red-700',
-                t.type === 'info' && 'border-sky-200 bg-white text-sky-700',
+                t.type === 'error' && 'border-wine/30 bg-white text-wine',
+                t.type === 'info' && 'border-primary/30 bg-white text-primary-dark',
               )}
             >
               {t.type === 'success' && <CheckCircle2 className="size-5 text-success" />}
               {t.type === 'error' && <XCircle className="size-5 text-error" />}
-              {t.type === 'info' && <Info className="size-5 text-sky-600" />}
+              {t.type === 'info' && <Info className="size-5 text-primary" />}
               {t.message}
             </motion.div>
           ))}

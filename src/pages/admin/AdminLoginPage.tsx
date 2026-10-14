@@ -74,7 +74,7 @@ export function AdminLoginPage() {
               </button>
             </div>
           </div>
-          {error && <p className="rounded-xl bg-red-50 px-3 py-2.5 text-xs font-semibold text-error">{error}</p>}
+          {error && <p className="rounded-xl bg-wine-soft px-3 py-2.5 text-xs font-semibold text-error">{error}</p>}
           <button
             type="submit"
             disabled={loading}

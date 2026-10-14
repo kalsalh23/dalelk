@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Stethoscope, HeartPulse, Bone, Eye, Ear, Flower2, Baby, Shield, Scissors, Activity, Thermometer, Droplet, Bandage } from 'lucide-react'
+import { Stethoscope, HeartPulse, Bone, Eye, Ear, Flower2, Baby, Shield, Scissors, Activity, Thermometer, Droplet, Bandage, Cross } from 'lucide-react'
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
 import { SPECIALTIES } from '@/constants'
 
@@ -21,6 +21,7 @@ const SPECIALTY_ICONS: Record<string, React.ReactNode> = {
   'العصبية': <Activity className="size-6" />,
   'الغدد والسكري': <Thermometer className="size-6" />,
   'العلاج الفيزيائي': <Bandage className="size-6" />,
+  'التمريض': <Cross className="size-6" />,
 }
 
 export function SpecialtyCards() {

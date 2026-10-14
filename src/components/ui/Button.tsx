@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, forwardRef } from 'react'
+import { type ButtonHTMLAttributes, cloneElement, forwardRef, isValidElement, type ReactElement } from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,35 +16,54 @@ const variants: Record<Variant, string> = {
   primary:
     'bg-primary text-white hover:bg-primary-dark shadow-sm focus-visible:ring-primary/40 active:scale-[0.98]',
   secondary:
-    'bg-primary-light text-primary-dark hover:bg-[#b3f3e7] active:scale-[0.98]',
+    'bg-primary-light text-primary-dark hover:bg-[#cfe4de] active:scale-[0.98]',
   outline:
     'border border-border bg-surface text-ink hover:border-primary/50 hover:text-primary active:scale-[0.98]',
-  ghost: 'text-ink hover:bg-slate-100 active:scale-[0.98]',
-  danger: 'bg-error text-white hover:bg-[#b91c1c] active:scale-[0.98]',
+  ghost: 'text-ink hover:bg-subtle-strong active:scale-[0.98]',
+  danger: 'bg-error text-white hover:bg-wine-dark active:scale-[0.98]',
   whatsapp: 'bg-[#25D366] text-white hover:bg-[#1fb457] active:scale-[0.98]',
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-9 px-3.5 text-sm gap-1.5',
-  md: 'h-11 px-5 text-sm gap-2',
-  lg: 'h-13 px-7 text-base gap-2.5 py-3.5',
+  sm: 'h-9 px-3.5 text-sm gap-1.5 whitespace-nowrap',
+  md: 'h-11 px-5 text-sm gap-2 whitespace-nowrap',
+  lg: 'h-13 px-7 text-base gap-2.5 py-3.5 whitespace-nowrap',
   icon: 'h-10 w-10 p-0',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant = 'primary', size = 'md', loading, children, disabled, ...props },
+  { className, variant = 'primary', size = 'md', loading, asChild, children, disabled, ...props },
   ref,
 ) {
+  const classes = cn(
+    'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 outline-none focus-visible:ring-4 disabled:opacity-55 disabled:pointer-events-none cursor-pointer select-none',
+    variants[variant],
+    sizes[size],
+    className,
+  )
+
+  // asChild حقيقية: العنصر الابن (رابط عادةً) يحمل أنماط الزر نفسها — محاذاة صحيحة للأيقونة والنص
+  if (asChild && isValidElement(children)) {
+    const child = children as ReactElement<{ className?: string; onClick?: (e: React.MouseEvent) => void }>
+    const childProps = child.props
+    const buttonOnClick = props.onClick as ((e: React.MouseEvent) => void) | undefined
+    const merged: { className: string; onClick?: (e: React.MouseEvent) => void } = {
+      className: cn(classes, childProps.className),
+    }
+    if (buttonOnClick || childProps.onClick) {
+      merged.onClick = (e) => {
+        buttonOnClick?.(e)
+        childProps.onClick?.(e)
+      }
+    }
+    return cloneElement(child, merged)
+  }
+
   return (
     <button
       ref={ref}
       disabled={disabled || loading}
-      className={cn(
-        'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 outline-none focus-visible:ring-4 disabled:opacity-55 disabled:pointer-events-none cursor-pointer select-none',
-        variants[variant],
-        sizes[size],
-        className,
-      )}
+      className={classes}
       {...props}
     >
       {loading && <Loader2 className="size-4 animate-spin" />}

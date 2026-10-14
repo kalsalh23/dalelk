@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { ENTITY_TABLES } from '@/services/content'
+import { FEATURE_CLINICS } from '@/constants'
 import type { EntityType } from '@/types'
 
 export interface SearchResult {
@@ -38,19 +39,8 @@ export async function globalSearch(query: string, cityId?: string | null): Promi
   }
 
   await Promise.all([
-    ...TABLES.map((t) => searchTable(t.table, t.label, t.type, t.type === 'doctor' ? 'specialty' : '')),
+    ...TABLES.filter((t) => FEATURE_CLINICS || t.type !== 'clinic').map((t) => searchTable(t.table, t.label, t.type, t.type === 'doctor' ? 'specialty' : '')),
   ])
-
-  // المقالات
-  const art = await supabase
-    .from('articles')
-    .select('id, title, slug, image, excerpt')
-    .eq('is_published', true)
-    .or(`title.ilike.%${term}%,excerpt.ilike.%${term}%`)
-    .limit(5)
-  if (!art.error && art.data?.length) {
-    groups.push({ type: 'article', label: 'مقالات', items: art.data })
-  }
 
   // الأسئلة الطبية
   const qs = await supabase

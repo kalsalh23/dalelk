@@ -56,7 +56,7 @@ export function AdminAdsPage() {
             return (
             <Card key={ad.id} className={cn('overflow-hidden', (expired || !ad.is_active) && 'opacity-60')}>
               {ad.image ? (
-                <div className="relative h-28 w-full bg-slate-100">
+                <div className="relative h-28 w-full bg-subtle-strong">
                   <img src={getPublicUrl(ad.image) ?? undefined} alt={ad.title} className="h-full w-full object-cover" />
                   <span className="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">{ad.placement === 'home' ? 'الرئيسية' : 'من نحن'}</span>
                 </div>
@@ -68,7 +68,7 @@ export function AdminAdsPage() {
               <div className="p-4">
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-black text-ink">{ad.title}</p>
-                  <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold', expired ? 'bg-red-50 text-error' : ad.is_active ? 'bg-emerald-50 text-success' : 'bg-slate-100 text-muted')}>
+                  <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold', expired ? 'bg-wine-soft text-error' : ad.is_active ? 'bg-emerald-50 text-success' : 'bg-subtle-strong text-muted')}>
                     {expired ? 'منتهي' : ad.is_active ? 'مفعّل' : 'معطّل'}
                   </span>
                 </div>
@@ -189,7 +189,7 @@ function AdForm({ values, onClose, onDone }: {
           <input
             type="file" accept="image/*"
             onChange={(e) => void pickImage(e.target.files?.[0])}
-            className="block w-full cursor-pointer rounded-xl border border-dashed border-border bg-slate-50 p-3 text-xs text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white"
+            className="block w-full cursor-pointer rounded-xl border border-dashed border-border bg-subtle p-3 text-xs text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white"
           />
           {uploading && <p className="mt-1 text-xs text-muted">جارٍ رفع الصورة…</p>}
           {form.image ? (

@@ -14,7 +14,7 @@ if (!url || !serviceKey || !password) {
 
 const sb = createClient(url, serviceKey, { auth: { persistSession: false } })
 
-const { data: existing, error: listErr } = await sb.auth.admin.listUsers()
+const { data: existing } = await sb.auth.admin.listUsers()
 const user = existing?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase())
 
 if (user) {

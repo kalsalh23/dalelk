@@ -6,7 +6,7 @@ import { useDutyPharmacies } from '@/hooks/useEntities'
 import { Breadcrumbs, SectionTitle } from '@/components/ui/Breadcrumbs'
 import { Card } from '@/components/ui/Card'
 import { EmptyState, Skeletons } from '@/components/ui/States'
-import { formatDateShort, todaySQL } from '@/lib/utils'
+import { formatDateShort, formatDutyTime, todaySQL } from '@/lib/utils'
 import { track } from '@/services/stats'
 import { Seo } from '@/components/seo/Seo'
 import type { DutyPharmacy } from '@/types'
@@ -86,12 +86,14 @@ export function DutyPharmaciesPage() {
                               {ph.address}
                             </p>
                           ) : null}
-                          <div className="mt-4 space-y-2 rounded-xl bg-slate-50 p-3 text-sm">
-                            <div className="flex items-center justify-between">
-                              <span className="flex items-center gap-1.5 text-muted"><Clock className="size-4" />ساعات المناوبة</span>
-                              <span className="font-bold text-primary-dark">{d.duty_hours ?? 'خلال الليل'}</span>
-                            </div>
-                            {d.notes ? <p className="text-xs text-muted">{d.notes}</p> : null}
+                          <div className="mt-4 space-y-2 rounded-xl bg-subtle p-3 text-sm">
+                             <div className="flex items-center justify-between">
+                               <span className="flex items-center gap-1.5 text-muted"><Clock className="size-4" />ساعات المناوبة</span>
+                               <span className="font-bold text-primary-dark">
+                                 {d.open_time || d.close_time ? formatDutyTime(String(d.open_time ?? ''), String(d.close_time ?? '')) : (d.duty_hours ?? 'خلال الليل')}
+                               </span>
+                             </div>
+                             {d.notes ? <p className="text-xs text-muted">{d.notes}</p> : null}
                           </div>
                           <div className="mt-4 flex gap-2">
                             {ph?.phone ? (
@@ -114,7 +116,7 @@ export function DutyPharmaciesPage() {
                               فتح الخريطة
                             </a>
                           </div>
-                          <div className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-slate-50 py-2 text-xs font-bold text-primary">
+                          <div className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-subtle py-2 text-xs font-bold text-primary">
                             عرض تفاصيل الصيدلية
                             <ArrowLeft className="size-3.5" />
                           </div>
@@ -131,7 +133,7 @@ export function DutyPharmaciesPage() {
 
       <div className="mt-10 rounded-2xl border border-primary/20 bg-primary-light/30 p-5 text-center text-sm text-muted">
         هل تحتاج صيدلية في وقت متأخر؟
-        <Link to="/ask" className="mx-1 font-bold text-primary hover:underline">اسأل دليلك الطبي</Link>
+        <Link to="/ask" className="mx-1 font-bold text-primary hover:underline">اسأل دليلك</Link>
         وسنجيبك في أقرب وقت.
       </div>
     </div>

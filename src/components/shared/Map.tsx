@@ -76,19 +76,19 @@ export function InteractiveMap({
     }
     <span style="position:absolute;top:8px;right:8px;background:${c};color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px">${chip}</span>
   </div>
-  <div style="font-weight:800;font-size:14px;color:#1e293b;line-height:1.4">${mk.name}</div>
+  <div style="font-weight:800;font-size:14px;color:#161616;line-height:1.4">${mk.name}</div>
   ${
     mk.address
-      ? `<div style="display:flex;gap:4px;margin-top:4px;font-size:11px;color:#64748b;align-items:flex-start"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.4"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>${mk.address}</div>`
+      ? `<div style="display:flex;gap:4px;margin-top:4px;font-size:11px;color:#3d3a3b;align-items:flex-start"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#428177" stroke-width="2.4"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>${mk.address}</div>`
       : ''
   }
   <div style="display:flex;gap:6px;margin-top:8px">
     ${
       mk.phone
-        ? `<a href="tel:${mk.phone}" style="flex:1;text-align:center;background:#0F766E;color:white;font-size:11px;font-weight:700;padding:7px 0;border-radius:10px;text-decoration:none">اتصال</a>`
+        ? `<a href="tel:${mk.phone}" style="flex:1;text-align:center;background:#428177;color:white;font-size:11px;font-weight:700;padding:7px 0;border-radius:10px;text-decoration:none">اتصال</a>`
         : ''
     }
-    <a href="${mapsLink(mk.lat, mk.lng, mk.address)}" target="_blank" rel="noopener" style="flex:1;text-align:center;background:#f1f5f9;color:#0F766E;font-size:11px;font-weight:700;padding:7px 0;border-radius:10px;text-decoration:underline">الموقع</a>
+    <a href="${mapsLink(mk.lat, mk.lng, mk.address)}" target="_blank" rel="noopener" style="flex:1;text-align:center;background:#f6f4ec;color:#428177;font-size:11px;font-weight:700;padding:7px 0;border-radius:10px;text-decoration:underline">الموقع</a>
   </div>
 </div>`
       marker.bindPopup(html, { maxWidth: 260, closeButton: true })

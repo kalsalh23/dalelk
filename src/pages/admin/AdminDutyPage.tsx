@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, Moon } from 'lucide-react'
+import { Plus, Trash2, Moon, Clock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Field, Input, Select, Textarea } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card'
 import { Dialog, ConfirmDialog } from '@/components/ui/Dialog'
 import { Skeletons, EmptyState } from '@/components/ui/States'
 import { useToast } from '@/components/ui/Toast'
-import { formatDateShort } from '@/lib/utils'
+import { formatDateShort, formatDutyTime } from '@/lib/utils'
 
 export function AdminDutyPage() {
   const qc = useQueryClient()
@@ -67,7 +67,12 @@ export function AdminDutyPage() {
                   <p className="mt-2 text-xs text-muted">
                     من {formatDateShort(String(d.start_date))} — حتى {formatDateShort(String(d.end_date))}
                   </p>
-                  <p className="mt-1 text-sm font-bold text-primary-dark">{String(d.duty_hours ?? 'خلال الليل')}</p>
+                  {d.open_time || d.close_time ? (
+                    <p className="mt-1 text-sm font-bold text-primary-dark">
+                      <Clock className="inline size-4" /> {formatDutyTime(String(d.open_time ?? ''), String(d.close_time ?? ''))}
+                    </p>
+                  ) : null}
+                  {d.duty_hours ? <p className="mt-1 text-sm font-bold text-primary-dark">{String(d.duty_hours)}</p> : null}
                 </div>
                 <div className="flex gap-1.5">
                   <button onClick={() => setEditing({ ...d })} className="flex size-8 items-center justify-center rounded-lg border border-border text-muted hover:border-primary hover:text-primary cursor-pointer">✎</button>
@@ -107,16 +112,18 @@ function DutyForm({ values, pharmacies, onClose, onDone }: {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    const payload = {
-      pharmacy_id: String(form.pharmacy_id ?? ''),
-      city_id: null,
-      start_date: String(form.start_date ?? ''),
-      end_date: String(form.end_date ?? ''),
-      duty_hours: String(form.duty_hours ?? '').trim() || null,
-      notes: String(form.notes ?? '').trim() || null,
-      is_active: true,
-      updated_at: new Date().toISOString(),
-    }
+      const payload = {
+        pharmacy_id: String(form.pharmacy_id ?? ''),
+        city_id: null,
+        start_date: String(form.start_date ?? ''),
+        end_date: String(form.end_date ?? ''),
+        duty_hours: String(form.duty_hours ?? '').trim() || null,
+        open_time: String(form.open_time ?? '').trim() || null,
+        close_time: String(form.close_time ?? '').trim() || null,
+        notes: String(form.notes ?? '').trim() || null,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      }
     const result = isEdit
       ? await supabase.from('duty_pharmacies').update(payload).eq('id', String(values.id))
       : await supabase.from('duty_pharmacies').insert(payload)
@@ -143,9 +150,17 @@ function DutyForm({ values, pharmacies, onClose, onDone }: {
             <Input type="date" value={String(form.end_date ?? '')} onChange={(e) => set('end_date', e.target.value)} required />
           </Field>
         </div>
-        <Field label="ساعات المناوبة">
-          <Input value={String(form.duty_hours ?? '')} placeholder="مثال: 8 مساءً حتى 8 صباحاً" onChange={(e) => set('duty_hours', e.target.value)} />
-        </Field>
+          <Field label="ساعات المناوبة">
+            <Input value={String(form.duty_hours ?? '')} placeholder="مثال: 8 مساءً حتى 8 صباحاً" onChange={(e) => set('duty_hours', e.target.value)} />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="وقت الافتتاح">
+              <Input type="time" value={String(form.open_time ?? '')} onChange={(e) => set('open_time', e.target.value)} />
+            </Field>
+            <Field label="وقت الإغلاق" hint="إن كان الإغلاق قبل الفتح فهو يعني اليوم التالي">
+              <Input type="time" value={String(form.close_time ?? '')} onChange={(e) => set('close_time', e.target.value)} />
+            </Field>
+          </div>
         <Field label="ملاحظات">
           <Textarea rows={2} value={String(form.notes ?? '')} onChange={(e) => set('notes', e.target.value)} />
         </Field>

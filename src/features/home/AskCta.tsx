@@ -18,14 +18,14 @@ export function AskCta() {
             <HelpCircle className="size-7" />
           </div>
           <h2 className="text-2xl font-black sm:text-3xl">عندك سؤال صحي؟</h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-teal-50">
-            اسأل دليلك الطبي وسنبحث لك في قاعدة المعلومات الطبية عن الإجابة الأقرب لسؤالك.
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-white/85">
+            اسأل دليلك وسنبحث لك في قاعدة المعلومات الطبية عن الإجابة الأقرب لسؤالك.
           </p>
           <Link
             to="/ask"
             className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-white px-7 py-3 text-sm font-black text-primary-dark shadow-lg transition-transform hover:scale-[1.03]"
           >
-            اسأل دليلك الطبي
+            اسأل دليلك
             <ArrowLeft className="size-4" />
           </Link>
         </div>

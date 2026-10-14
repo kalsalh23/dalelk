@@ -240,7 +240,7 @@ const pharmRows = pharmacies.map((p, i) => ({
   address: p.addr, lat: 35.26389 + (i % 4 - 1.5) * 0.002, lng: 36.70667 + (Math.floor(i / 4) - 1) * 0.002,
   image: pharmImg, sort_order: i,
 }))
-const pharmInserted = await insert('pharmacies', pharmRows)
+await insert('pharmacies', pharmRows)
 
 // ---------- الصيدليات المناوبة (القائمة الحقيقية للصفحة الرسمية) ----------
 const dutyNames = ['صيدلية ندى الرحال', 'صيدلية رابعة اليوسف', 'صيدلية ياسمين الكيال', 'صيدلية محمد العيسى', 'صيدلية غالب الحامد', 'صيدلية محمد الخضر']

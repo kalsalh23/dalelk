@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, User, Images, Clock, MapPin, ShieldCheck, LogOut, Menu, X, ExternalLink, Crown, Eye, Phone,
+  LayoutDashboard, User, Images, Clock, MapPin, ShieldCheck, LogOut, Menu, X, ExternalLink, Crown, Eye, Code2, CalendarClock, HelpCircle, BarChart3, QrCode,
 } from 'lucide-react'
 import { fetchEntitySession, readStoredSession, clearStoredSession, entityDisplayName, entityDisplayType, type EntitySessionData } from '@/services/entityAccount'
 import { FullPageLoader } from '@/components/ui/States'
 import { PlanBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { cn } from '@/lib/utils'
+import { cn, effectivePlan } from '@/lib/utils'
+import { DEFAULT_DEVELOPER } from '@/constants'
 
-const NAV = [
+const NAV: Array<{ to: string; label: string; icon: typeof LayoutDashboard; end?: boolean; doctorOnly?: boolean }> = [
   { to: '/dashboard', label: 'الرئيسية', icon: LayoutDashboard, end: true },
+  { to: '/dashboard/appointments', label: 'طلبات المواعيد', icon: CalendarClock },
+  { to: '/dashboard/stats', label: 'إحصائياتي', icon: BarChart3 },
+  { to: '/dashboard/qr', label: 'رمز QR', icon: QrCode },
+  { to: '/dashboard/qa', label: 'اكتب سؤالك', icon: HelpCircle, doctorOnly: true },
   { to: '/dashboard/profile', label: 'الملف الشخصي', icon: User },
   { to: '/dashboard/media', label: 'الصور والمعرض', icon: Images },
   { to: '/dashboard/hours', label: 'أوقات الدوام', icon: Clock },
@@ -72,17 +77,17 @@ function DashboardShell() {
             <ShieldCheck className="size-5" />
           </div>
           <div>
-            <p className="text-sm font-black text-ink">دليلك الطبي</p>
+            <p className="text-sm font-black text-ink">دليل طيبة الإمام الطبي</p>
             <p className="text-[10px] font-bold text-primary">لوحة تحكم الجهة</p>
           </div>
         </Link>
 
         {/* entity card */}
-        <div className="mx-4 rounded-2xl border border-border bg-slate-50 p-4">
+        <div className="mx-4 rounded-2xl border border-border bg-subtle p-4">
           <p className="text-sm font-black text-ink line-clamp-1">{entityDisplayName(session.entity)}</p>
           <p className="mt-1 flex items-center gap-2 text-xs text-muted">
             {entityDisplayType(session.entity_type)}
-            <PlanBadge plan={String(session.entity?.plan ?? 'free')} />
+            <PlanBadge plan={effectivePlan(session.entity)} />
           </p>
           <p className="mt-1 text-[11px] text-muted" dir="ltr">{session.email}</p>
           <div className="mt-3 flex gap-2">
@@ -96,14 +101,14 @@ function DashboardShell() {
         </div>
 
         <nav className="mt-4 flex-1 space-y-1 px-3">
-          {NAV.map((item) => (
+          {NAV.filter((item) => !item.doctorOnly || session.entity_type === 'doctor').map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
               className={({ isActive }) => cn(
                 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors',
-                isActive ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-slate-50 hover:text-primary',
+                isActive ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-subtle hover:text-primary',
               )}
             >
               <item.icon className="size-4.5" />
@@ -113,17 +118,21 @@ function DashboardShell() {
         </nav>
 
         <div className="border-t border-border p-4">
-          {(String(session.entity?.plan ?? 'free') !== 'free') && (
-            <div className="mb-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
-              <Crown className="size-4" /> {(String(session.entity?.plan ?? '') === 'gold') ? 'الباقة الذهبية' : 'الباقة الاحترافية'} نشطة
+          {(effectivePlan(session.entity) !== 'free') && (
+            <div className="mb-3 flex items-center gap-2 rounded-xl bg-gold-soft px-3 py-2 text-xs font-bold text-gold-dark">
+              <Crown className="size-4" /> {(effectivePlan(session.entity) === 'gold') ? 'الباقة الذهبية' : 'الباقة الاحترافية'} نشطة
             </div>
           )}
           <Button variant="outline" size="sm" className="w-full" onClick={logout}>
             <LogOut className="size-4" /> تسجيل الخروج
           </Button>
-          <p className="mt-2 text-center text-[11px] text-muted flex items-center justify-center gap-1">
-            <Phone className="size-3" /> الدعم: تواصل مع الإدارة
-          </p>
+          <a
+            href={`tel:${DEFAULT_DEVELOPER.phone}`}
+            className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] text-muted transition-colors hover:text-primary"
+          >
+            <Code2 className="size-3 shrink-0 text-primary" />
+            تطوير: {DEFAULT_DEVELOPER.name} — <span dir="ltr">{DEFAULT_DEVELOPER.phone}</span>
+          </a>
         </div>
       </aside>
 
@@ -135,7 +144,7 @@ function DashboardShell() {
           </Link>
           <div className="flex items-center gap-2">
             <Link to={`/${routeLink}/${session.slug}`} className="text-xs font-bold text-primary hover:underline">عرض صفحتي</Link>
-            <button onClick={() => setMobileOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-lg text-ink hover:bg-slate-100">
+            <button onClick={() => setMobileOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-lg text-ink hover:bg-subtle-strong">
               {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
           </div>
@@ -143,7 +152,7 @@ function DashboardShell() {
         {mobileOpen && (
           <div className="border-b border-border bg-surface p-3 lg:hidden">
             <nav className="grid gap-1">
-              {NAV.map((item) => (
+              {NAV.filter((item) => !item.doctorOnly || session.entity_type === 'doctor').map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -151,19 +160,26 @@ function DashboardShell() {
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) => cn(
                     'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold',
-                    isActive ? 'bg-primary text-white' : 'text-muted hover:bg-slate-50',
+                    isActive ? 'bg-primary text-white' : 'text-muted hover:bg-subtle',
                   )}
                 >
                   <item.icon className="size-4.5" /> {item.label}
                 </NavLink>
               ))}
-              <button onClick={logout} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold text-error hover:bg-red-50">
+              <button onClick={logout} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold text-error hover:bg-wine-soft">
                 <LogOut className="size-4.5" /> تسجيل الخروج
               </button>
             </nav>
-            <div className="mt-3 rounded-xl bg-slate-50 p-3">
+            <div className="mt-3 rounded-xl bg-subtle p-3">
               <p className="text-sm font-bold text-ink">{entityDisplayName(session.entity)}</p>
               <p className="text-xs text-muted">{entityDisplayType(session.entity_type)} — {session.email}</p>
+              <a
+                href={`tel:${DEFAULT_DEVELOPER.phone}`}
+                className="mt-1.5 flex items-center gap-1 text-[11px] text-muted transition-colors hover:text-primary"
+              >
+                <Code2 className="size-3 shrink-0 text-primary" />
+                تطوير: {DEFAULT_DEVELOPER.name} — <span dir="ltr">{DEFAULT_DEVELOPER.phone}</span>
+              </a>
             </div>
           </div>
         )}

@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { HelpCircle, Search, Send, ClipboardList, Stethoscope, Newspaper, MessageSquareText } from 'lucide-react'
+import { HelpCircle, Search, Send, ClipboardList, Stethoscope, MessageSquareText } from 'lucide-react'
 import { searchQuestions, saveUnansweredQuestion } from '@/services/articles'
-import { useArticles } from '@/hooks/useArticles'
 import { useEntities } from '@/hooks/useEntities'
 import { Skeletons } from '@/components/ui/States'
 import { useToast } from '@/components/ui/Toast'
@@ -21,13 +20,11 @@ export function AskPage() {
   const [notFound, setNotFound] = useState(false)
   const [answered, setAnswered] = useState(false)
   const [suggestions, setSuggestions] = useState<{
-    articles: Array<Record<string, unknown>>
     doctors: Array<Record<string, unknown>>
     clinics: Array<Record<string, unknown>>
-  }>({ articles: [], doctors: [], clinics: [] })
+  }>({ doctors: [], clinics: [] })
   const toast = useToast()
 
-  const { data: tips } = useArticles({ limit: 4 })
   const { data: doctors } = useEntities('doctor', { limit: 4 })
   const { data: clinics } = useEntities('clinic', { limit: 4 })
 
@@ -54,7 +51,6 @@ export function AskPage() {
       setResults([])
       setNotFound(true)
       setSuggestions({
-        articles: (tips?.data ?? []) as unknown as Array<Record<string, unknown>>,
         doctors: (doctors?.data ?? []) as unknown as Array<Record<string, unknown>>,
         clinics: (clinics?.data ?? []) as unknown as Array<Record<string, unknown>>,
       })
@@ -81,7 +77,7 @@ export function AskPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <Seo
-        title="اسأل دليلك الطبي"
+        title="اسأل دليلك"
         description="اكتب سؤالك الصحي وسنبحث لك في قاعدة المعلومات الطبية عن الإجابة الأقرب لسؤالك."
         path="/ask"
       />
@@ -91,8 +87,8 @@ export function AskPage() {
           <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
             <HelpCircle className="size-7" />
           </div>
-          <h1 className="text-2xl font-black sm:text-3xl">اسأل دليلك الطبي</h1>
-          <p className="mx-auto mt-2 max-w-lg text-sm leading-7 text-teal-50">
+          <h1 className="text-2xl font-black sm:text-3xl">اسأل دليلك</h1>
+          <p className="mx-auto mt-2 max-w-lg text-sm leading-7 text-white/85">
             اكتب سؤالك الصحي وسنبحث لك في قاعدة المعلومات الطبية.
           </p>
         </div>
@@ -154,8 +150,6 @@ export function AskPage() {
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
                   <span>هل كان هذا مفيداً؟ يمكنك دائماً:</span>
-                  <Link to="/articles" className="font-bold text-primary hover:underline">تصفح النصائح الطبية</Link>
-                  <span>أو</span>
                   <Link to="/doctors" className="font-bold text-primary hover:underline">البحث عن طبيب</Link>
                 </div>
               </motion.div>
@@ -163,22 +157,13 @@ export function AskPage() {
 
             {!loading && notFound && (
               <motion.div key="notfound" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-                <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50/70 p-5 sm:p-6">
+                <div className="mt-8 overflow-hidden rounded-2xl border border-gold/40 bg-gold-soft/70 p-5 sm:p-6">
                   <h2 className="flex items-center gap-2 text-base font-black text-ink">
                     <ClipboardList className="size-5 text-warning" />
                     لم نجد إجابة مناسبة لسؤالك حاليًا.
                   </h2>
                   <p className="mt-2 text-sm text-muted">ربما يفيدك البحث في الأقسام التالية:</p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-border bg-surface p-4">
-                      <p className="flex items-center gap-1.5 text-xs font-black text-ink"><Newspaper className="size-4 text-primary" />نصائح طبية</p>
-                      <ul className="mt-2 space-y-1.5 text-xs text-muted">
-                        {(suggestions.articles.slice(0, 3) as Array<{ slug: string; title: string }>).map((a) => (
-                          <li key={a.slug}><Link to={`/articles/${a.slug}`} className="line-clamp-1 hover:text-primary hover:underline">{a.title}</Link></li>
-                        ))}
-                      </ul>
-                      <Link to="/articles" className="mt-2 block text-[11px] font-bold text-primary hover:underline">عرض الكل ←</Link>
-                    </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-border bg-surface p-4">
                       <p className="flex items-center gap-1.5 text-xs font-black text-ink"><Stethoscope className="size-4 text-primary" />أطباء</p>
                       <ul className="mt-2 space-y-1.5 text-xs text-muted">
@@ -198,7 +183,7 @@ export function AskPage() {
                       <Link to="/clinics" className="mt-2 block text-[11px] font-bold text-primary hover:underline">عرض الكل ←</Link>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center gap-2 text-xs text-muted">
+                  <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
                     <span className="font-semibold">اختصاصات متوفرة:</span>
                     {SPECIALTIES.slice(0, 6).map((s) => (
                       <Link key={s} to={`/doctors?specialty=${encodeURIComponent(s)}`} className="rounded-full bg-surface border border-border px-2.5 py-1 font-bold text-primary hover:bg-primary-light/40">
@@ -225,13 +210,13 @@ export function AskPage() {
             )}
 
             {!loading && !results.length && !selected && !notFound && !answered && (
-              <motion.div key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 rounded-2xl bg-slate-50 p-5 text-center text-sm text-muted">
+              <motion.div key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 rounded-2xl bg-subtle p-5 text-center text-sm text-muted">
                 جرّب أسئلة شائعة مثل: «ما علاج السعال؟»، «كيف أخفض الضغط؟»، «ما أعراض السكري؟»
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="mt-8 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs leading-6 text-amber-900">
+          <div className="mt-8 flex items-start gap-3 rounded-2xl border border-gold/40 bg-gold-soft/70 p-4 text-xs leading-6 text-gold-dark">
             <HelpCircle className="mt-0.5 size-4 shrink-0" />
             المعلومات المنشورة للتثقيف الصحي فقط ولا تُغني عن استشارة الطبيب أو المختص.
           </div>

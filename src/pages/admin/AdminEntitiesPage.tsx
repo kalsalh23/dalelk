@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Plus, Search, Pencil, Trash2, ExternalLink, Eye, EyeOff, Upload, X, Star,
+  Plus, Search, Pencil, Trash2, ExternalLink, Eye, EyeOff, Upload, X, Star, Gift, Copy, Check, MessageCircle, KeyRound, Sparkles,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { compressImage, deleteImage, updateEntity } from '@/services/admin'
+import { compressImage, deleteImage, updateEntity, startDoctorTrial, ensureEntityAccount, type TrialResult, type UpdateRequestResult } from '@/services/admin'
 import { uploadImage } from '@/services/admin'
 import { Input, Select, Textarea, Field } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
@@ -14,7 +14,7 @@ import { Dialog, ConfirmDialog } from '@/components/ui/Dialog'
 import { Skeletons, EmptyState } from '@/components/ui/States'
 import { Pagination } from '@/components/ui/Pagination'
 import { useToast } from '@/components/ui/Toast'
-import { cn, slugify } from '@/lib/utils'
+import { cn, slugify, planExpiryFromNow } from '@/lib/utils'
 import { enumValues, type EntityMeta, ENTITY_META } from '@/features/admin/entityMeta'
 import type { EntityType } from '@/types'
 
@@ -30,6 +30,8 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
   const [deleting, setDeleting] = useState<Record<string, unknown> | null>(null)
+  const [trial, setTrial] = useState<{ row: Record<string, unknown>; result?: TrialResult } | null>(null)
+  const [creds, setCreds] = useState<{ row: Record<string, unknown>; result?: UpdateRequestResult } | null>(null)
   const qc = useQueryClient()
   const toast = useToast()
   const PAGE_SIZE = 10
@@ -60,6 +62,34 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
       setDeleting(null)
     },
     onError: () => toast.show('تعذر الحذف', 'error'),
+  })
+
+  const trialMut = useMutation({
+    mutationFn: async ({ id, plan }: { id: string; plan: 'pro' | 'gold' }) => {
+      const res = await startDoctorTrial(id, plan)
+      if (!res || res.error || !res.ok) throw new Error(res?.error ?? 'تعذر تفعيل التجربة')
+      return res
+    },
+    onSuccess: (res) => {
+      void qc.invalidateQueries({ queryKey: ['admin-entities', table] })
+      void qc.invalidateQueries({ queryKey: ['entities'] })
+      toast.show('تم تفعيل/تمديد التجربة شهراً كاملاً')
+      setTrial({ row: trial!.row, result: res })
+    },
+    onError: (e: Error) => toast.show(e.message || 'تعذر تفعيل التجربة', 'error'),
+  })
+
+  const credMut = useMutation({
+    mutationFn: async (row: Record<string, unknown>) => {
+      const res = await ensureEntityAccount(dataType as EntityType, String(row.id))
+      if (res.accountError) throw new Error(res.accountError)
+      return res
+    },
+    onSuccess: (res) => {
+      toast.show('تم توليد بيانات دخول جديدة')
+      setCreds((prev) => prev ? { row: { ...prev.row, __creds: res }, result: res } : null)
+    },
+    onError: (e: Error) => toast.show(e.message || 'تعذر توليد البيانات', 'error'),
   })
 
   const totalPages = Math.max(1, Math.ceil((data?.count ?? 0) / PAGE_SIZE))
@@ -97,7 +127,7 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-right text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-slate-50 text-xs font-black text-muted">
+                  <tr className="border-b border-border bg-subtle text-xs font-black text-muted">
                     <th className="px-5 py-3.5">الاسم</th>
                     <th className="px-5 py-3.5">الاختصاص</th>
                     <th className="px-5 py-3.5">الهاتف</th>
@@ -108,7 +138,7 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
                 </thead>
                 <tbody className="divide-y divide-border">
                   {data.data.map((row) => (
-                    <tr key={String(row.id)} className="transition-colors hover:bg-slate-50/70">
+                    <tr key={String(row.id)} className="transition-colors hover:bg-subtle/70">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           {row.image ? (
@@ -129,7 +159,7 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
                       <td className="px-5 py-3.5 text-muted">{String(row.specialty ?? '—')}</td>
                       <td className="px-5 py-3.5 text-muted" dir="ltr">{String(row.phone ?? '—')}</td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('rounded-full px-2.5 py-1 text-[11px] font-bold', row.is_active ? 'bg-emerald-50 text-success' : 'bg-slate-100 text-muted')}>
+                        <span className={cn('rounded-full px-2.5 py-1 text-[11px] font-bold', row.is_active ? 'bg-emerald-50 text-success' : 'bg-subtle-strong text-muted')}>
                           {row.is_active ? 'مفعّل' : 'مخفّي'}
                         </span>
                       </td>
@@ -140,20 +170,40 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
                         <div className="flex items-center justify-end gap-1.5">
                           {table === 'doctors' && (
                             <button
+                              onClick={() => setTrial({ row })}
+                              title="تفعيل/تمديد تجربة شهر كامل + بيانات دخول جديدة للوحة"
+                              className="flex size-9 items-center justify-center rounded-xl border border-gold/40 bg-gold-soft text-gold-dark transition hover:border-gold hover:bg-gold hover:text-primary-dark cursor-pointer"
+                            >
+                              <Gift className="size-4" />
+                            </button>
+                          )}
+                          {table === 'doctors' && String(row.plan ?? 'free') !== 'free' && Boolean(row.plan_expires_at && new Date(String(row.plan_expires_at)) > new Date()) && (
+                            <button
+                              onClick={() => setCreds({ row })}
+                              title="توليد بيانات دخول لوحة الطبيب وإرسالها"
+                              className="flex size-9 items-center justify-center rounded-xl border border-primary/30 bg-primary-light text-primary-dark transition hover:border-primary hover:bg-primary hover:text-white cursor-pointer"
+                            >
+                              <KeyRound className="size-4" />
+                            </button>
+                          )}
+                          {(table === 'doctors' || table === 'pharmacies') && (
+                            <button
                               onClick={() => void (async () => {
                                 const ok = await toggleFeatured(table, String(row.id), Boolean(row.is_featured))
                                 if (ok) {
                                   await qc.invalidateQueries({ queryKey: ['admin-entities', table] })
                                   await qc.invalidateQueries({ queryKey: ['entities'] })
-                                  toast.show(row.is_featured ? 'أُزيل من الأطباء المميّزين' : 'أُضيف إلى الأطباء المميّزين')
+                                  await qc.invalidateQueries({ queryKey: ['featured-doctors'] })
+                                  await qc.invalidateQueries({ queryKey: ['featured-pharmacies'] })
+                                  toast.show(row.is_featured ? 'أُزيل من المميّزين' : 'أُضيف إلى المميّزين')
                                 } else {
                                   toast.show('تعذر تحديث الحالة', 'error')
                                 }
                               })()}
                               title={row.is_featured ? 'إزالة من المميزين' : 'إضافة إلى المميزين'}
-                              className={`flex size-9 items-center justify-center rounded-xl border transition cursor-pointer ${row.is_featured ? 'border-amber-300 bg-amber-50 text-amber-600' : 'border-border text-muted hover:border-amber-300 hover:text-amber-500'}`}
+                              className={`flex size-9 items-center justify-center rounded-xl border transition cursor-pointer ${row.is_featured ? 'border-gold bg-gold-soft text-gold-dark' : 'border-border text-muted hover:border-gold hover:text-gold-dark'}`}
                             >
-                              <Star className={`size-4 ${row.is_featured ? 'fill-amber-400' : ''}`} />
+                              <Star className={`size-4 ${row.is_featured ? 'fill-gold' : ''}`} />
                             </button>
                           )}
                           <button
@@ -197,6 +247,36 @@ function AdminEntityContent({ table, meta, dataType }: { table: string; meta: En
         />
       )}
 
+      {trial !== null && (
+        <Dialog open onClose={() => setTrial(null)} title="تجربة شهر مجاني — كاملة المزايا" size="md">
+          {trial.result ? (
+            <TrialCredsView
+              result={trial.result}
+              phone={String(trial.row.phone ?? '')}
+              onDone={() => setTrial(null)}
+            />
+          ) : (
+            <TrialConfirmForm
+              name={String(trial.row.name ?? '')}
+              loading={trialMut.isPending}
+              onConfirm={(plan) => trialMut.mutate({ id: String(trial.row.id), plan })}
+            />
+          )}
+        </Dialog>
+      )}
+
+      {creds !== null && (
+        <Dialog open onClose={() => setCreds(null)} title="بيانات دخول لوحة الطبيب" size="md">
+          <EntityCredsView
+            row={creds.row}
+            loading={credMut.isPending}
+            hasResult={Boolean(creds.result && !creds.result.accountError)}
+            onGenerate={() => credMut.mutate(creds.row)}
+            onDone={() => setCreds(null)}
+          />
+        </Dialog>
+      )}
+
       <ConfirmDialog
         open={deleting !== null}
         onClose={() => setDeleting(null)}
@@ -221,14 +301,19 @@ function PlanToggle({ table, row }: { table: string; row: Record<string, unknown
     <select
       value={current}
       onChange={async (e) => {
-        await updateEntity(table as EntityType, String(row.id), { plan: e.target.value })
+        const plan = e.target.value
+        // تفعيل الباقة لمدة شهر من الآن، والرجوع للمجانية يلغي تاريخ الانتهاء
+        await updateEntity(table as EntityType, String(row.id), {
+          plan,
+          plan_expires_at: plan === 'free' ? null : planExpiryFromNow(),
+        })
         void qc.invalidateQueries({ queryKey: ['admin-entities', table] })
       }}
       className={cn(
         'cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-bold outline-none',
-        current === 'free' && 'border-border bg-slate-50 text-muted',
+        current === 'free' && 'border-border bg-subtle text-muted',
         current === 'pro' && 'border-primary/30 bg-primary-light text-primary-dark',
-        current === 'gold' && 'border-amber-300 bg-amber-50 text-amber-700',
+        current === 'gold' && 'border-gold bg-gold-soft text-gold-dark',
       )}
     >
       <option value="free">مجاني</option>
@@ -276,7 +361,7 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
       lng: form.lng ? Number(form.lng) : null,
       is_verified: Boolean(form.is_verified),
       is_active: Boolean(form.is_active),
-      is_featured: dataType === 'doctor' ? Boolean(form.is_featured) : undefined,
+      is_featured: dataType === 'doctor' || dataType === 'pharmacy' ? Boolean(form.is_featured) : undefined,
       is_featured_placeholder: undefined,
       is_active_placeholder: undefined,
       image: form.image ? String(form.image) : null,
@@ -328,6 +413,13 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
 
     const workHours = getWorkHours(form)
     if (workHours) payload.work_hours = workHours
+
+    // تفعيل مدة الباقة: عند تغيير الباقة تُحدد لمدة شهر من الآن، والرجوع للمجانية يلغي تاريخ الانتهاء
+    const prevPlan = String(values.plan ?? 'free')
+    const nextPlan = String(form.plan ?? 'free')
+    if (nextPlan !== prevPlan) {
+      payload.plan_expires_at = nextPlan === 'free' ? null : planExpiryFromNow()
+    }
 
     let result
     if (isEdit) {
@@ -389,11 +481,16 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
             <Input value={String(form.name ?? '')} onChange={(e) => set('name', e.target.value)} required />
           </Field>
           {(dataType === 'doctor' || dataType === 'clinic') && (
-            <Field label="الاختصاص">
-              <Select value={String(form.specialty ?? '')} onChange={(e) => set('specialty', e.target.value)}>
-                <option value="">— بدون —</option>
-                {enumValues.specialties.map((s) => <option key={s} value={s}>{s}</option>)}
-              </Select>
+            <Field label="الاختصاص" hint="اختر من القائمة المنسدلة أو اكتب اختصاصاً جديداً غير موجود">
+              <Input
+                list="specialty-suggestions"
+                value={String(form.specialty ?? '')}
+                onChange={(e) => set('specialty', e.target.value)}
+                placeholder="مثال: قلبية، عظام، جهاز هضمي…"
+              />
+              <datalist id="specialty-suggestions">
+                {enumValues.specialties.map((s) => <option key={s} value={s} />)}
+              </datalist>
             </Field>
           )}
           <Field label="رقم الهاتف">
@@ -503,19 +600,19 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
             {form.is_active ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
             مفعّل
           </label>
-          {dataType === 'doctor' && (
-            <label className={cn('flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-bold transition', form.is_featured ? 'border-amber-300 bg-amber-50 text-amber-600' : 'border-border text-muted hover:border-amber-300/60')}>
+          {(dataType === 'doctor' || dataType === 'pharmacy') && (
+            <label className={cn('flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-bold transition', form.is_featured ? 'border-gold bg-gold-soft text-gold-dark' : 'border-border text-muted hover:border-gold/60')}>
               <input type="checkbox" className="hidden" checked={Boolean(form.is_featured)} onChange={(e) => set('is_featured', e.target.checked)} />
-              <Star className={`size-4 ${form.is_featured ? 'fill-amber-400' : ''}`} />
+              <Star className={`size-4 ${form.is_featured ? 'fill-gold' : ''}`} />
               مميّز
             </label>
           )}
-          <div className="rounded-xl bg-slate-50 px-3 py-3 text-center text-xs font-bold text-muted">
+          <div className="rounded-xl bg-subtle px-3 py-3 text-center text-xs font-bold text-muted">
             عدد الزيارات: {String(form.view_count ?? 0)}
           </div>
         </div>
 
-        {error && <p className="rounded-xl bg-red-50 px-3 py-2.5 text-xs font-semibold text-error">{error}</p>}
+        {error && <p className="rounded-xl bg-wine-soft px-3 py-2.5 text-xs font-semibold text-error">{error}</p>}
 
         <div className="flex gap-3 pt-2">
           <Button type="submit" loading={saving} className="flex-1">
@@ -582,6 +679,167 @@ function WorkHoursEditor({ value, onChange }: { value?: Record<string, string> |
           <Input value={current[d] ?? ''} placeholder="9:00 - 17:00 أو مغلق" onChange={(e) => onChange({ ...current, [d]: e.target.value })} />
         </div>
       ))}
+    </div>
+  )
+}
+function TrialConfirmForm({ name, loading, onConfirm }: { name: string; loading: boolean; onConfirm: (plan: 'pro' | 'gold') => void }) {
+  const [plan, setPlan] = useState<'pro' | 'gold'>('pro')
+  return (
+    <div className="space-y-4">
+      <p className="rounded-xl bg-gold-soft px-4 py-3 text-xs leading-6 text-gold-dark">
+        ستُفعَّل للطبيب <strong className="text-ink">{name}</strong> باقة كاملة لمدة <strong className="text-ink">شهر واحد</strong> تُحتسب من الآن: طلبات المواعيد وشارة الباقة وتحديث الملف — <strong className="text-ink">دون شارة «مميّز» في الواجهة الرئيسية</strong>. إن كانت له تجربة سابقة فستُمدَّد شهراً جديداً من الآن، وتُنشأ بيانات دخول لوحته فوراً لتسليمها له.
+      </p>
+      <Field label="الباقة التجريبية">
+        <Select value={plan} onChange={(e) => setPlan(e.target.value as 'pro' | 'gold')}>
+          <option value="pro">احترافية</option>
+          <option value="gold">ذهبية</option>
+        </Select>
+      </Field>
+      <Button loading={loading} className="flex-1" onClick={() => onConfirm(plan)}>
+        <Gift className="size-4" />
+        تفعيل التجربة وإنشاء الحساب
+      </Button>
+    </div>
+  )
+}
+
+function TrialCredsView({ result, phone, onDone }: { result: TrialResult; phone: string; onDone: () => void }) {
+  const toast = useToast()
+  const [copied, setCopied] = useState<string | null>(null)
+  const magic = result.magic_token ? `${window.location.origin}/account/${result.slug}?tk=${encodeURIComponent(result.magic_token)}` : ''
+  const message = `مرحباً ${result.name ?? ''}، تم تفعيل تجربة شهر مجاني كامل في دليل طيبة الإمام الطبي:\nرابط لوحة تحكمك: ${magic}\nالبريد: ${result.email ?? ''}\nكلمة السر: ${result.password ?? ''}\nتشمل: طلبات المواعيد وإدارة ملفك الكامل. بالتوفيق!`
+  const copy = async (text: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(key)
+      setTimeout(() => setCopied(null), 1200)
+    } catch {
+      toast.show('تعذر النسخ', 'error')
+    }
+  }
+  const wa = phone ? `https://wa.me/963${phone.replace(/\D/g, '').replace(/^0/, '')}?text=${encodeURIComponent(message)}` : ''
+  const row = (label: string, value: string, key: string) => (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-subtle px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-[11px] font-bold text-muted">{label}</p>
+        <p className="mt-0.5 truncate text-sm font-bold text-ink" dir="ltr">{value}</p>
+      </div>
+      <button onClick={() => void copy(value, key)} className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-muted transition hover:text-primary cursor-pointer" aria-label={`نسخ ${label}`}>
+        {copied === key ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
+      </button>
+    </div>
+  )
+  return (
+    <div className="space-y-4">
+      <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-success">
+        <Sparkles className="size-4" />
+        تم تفعيل/تمديد تجربة شهر كامل لـ«{result.name}»{result.times_activated && result.times_activated > 1 ? ` (التفعيل رقم ${result.times_activated})` : ''} مع بيانات دخول جديدة للوحة.
+      </p>
+      <div className="space-y-3">
+        {row('رابط الدخول المباشر للوحة', magic, 'link')}
+        {row('البريد الإلكتروني', result.email ?? '', 'email')}
+        {row('كلمة السر', result.password ?? '', 'pass')}
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {wa && (
+          <Button variant="whatsapp" asChild>
+            <a href={wa} target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="size-4" /> إرسال عبر واتساب
+            </a>
+          </Button>
+        )}
+        <Button variant="secondary" onClick={() => void copy(message, 'all')}>
+          {copied === 'all' ? <Check className="size-4" /> : <Copy className="size-4" />}
+          نسخ البيانات معاً
+        </Button>
+      </div>
+      <p className="flex items-start gap-1.5 text-[11px] leading-5 text-muted">
+        <KeyRound className="mt-0.5 size-3.5 shrink-0 text-primary" />
+        تنتهي التجربة تلقائياً بعد شهر — ويمكنك إعادة تفعيلها من زر الهدية 🎁 في أي وقت، أو توليد بيانات دخول جديدة من زر «بيانات الدخول» دون تمديد.
+      </p>
+      <Button variant="outline" className="w-full" onClick={onDone}>إغلاق</Button>
+    </div>
+  )
+}
+
+/** توليد/إعادة إرسال بيانات دخول لوحة طبيب لديه حساب فعّال (تجربة أو اشتراك) */
+function EntityCredsView({ row, loading, hasResult, onGenerate, onDone }: {
+  row: Record<string, unknown>
+  loading: boolean
+  hasResult: boolean
+  onGenerate: () => void
+  onDone: () => void
+}) {
+  const [copied, setCopied] = useState<string | null>(null)
+  const toast = useToast()
+  const result = hasResult ? row.__creds as UpdateRequestResult | undefined : undefined
+  const phone = String(row.phone ?? '')
+  const magic = result?.linkToken && result?.slug
+    ? `${window.location.origin}/account/${result.slug}?tk=${encodeURIComponent(result.linkToken)}`
+    : ''
+  const message = `مرحباً ${result?.name ?? String(row.name ?? '')}، بيانات دخول لوحة تحكمك في دليل طيبة الإمام الطبي:\nرابط الدخول المباشر: ${magic}\nالبريد: ${result?.email ?? ''}\nكلمة السر: ${result?.password ?? ''}\nيمكنك من اللوحة إدارة ملفك وساعات دوامك وطلبات المواعيد. بالتوفيق!`
+  const copy = async (text: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(key)
+      setTimeout(() => setCopied(null), 1200)
+    } catch {
+      toast.show('تعذر النسخ', 'error')
+    }
+  }
+  const wa = phone ? `https://wa.me/963${phone.replace(/\D/g, '').replace(/^0/, '')}?text=${encodeURIComponent(message)}` : ''
+
+  if (!result) {
+    return (
+      <div className="space-y-4">
+        <p className="rounded-xl bg-subtle px-4 py-3 text-xs leading-6 text-muted">
+          سيتم توليد <strong className="text-ink">كلمة سر ورابط دخول سحري جديدين</strong> للطبيب <strong className="text-ink">{String(row.name ?? '')}</strong> — البيانات القديمة لم تعد بحوزتك (كلمة السر مخزنة مشفرة) وهذا التوليد يعطيك نسخة جديدة كاملة لتسليمها له. الدخول السابق بكلمة السر القديمة سيتوقف.
+        </p>
+        <Button loading={loading} className="w-full" onClick={onGenerate}>
+          <KeyRound className="size-4" />
+          توليد بيانات دخول جديدة
+        </Button>
+      </div>
+    )
+  }
+
+  const credRow = (label: string, value: string, key: string) => (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-subtle px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-[11px] font-bold text-muted">{label}</p>
+        <p className="mt-0.5 truncate text-sm font-bold text-ink" dir="ltr">{value}</p>
+      </div>
+      <button onClick={() => void copy(value, key)} className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-muted transition hover:text-primary cursor-pointer" aria-label={`نسخ ${label}`}>
+        {copied === key ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
+      </button>
+    </div>
+  )
+
+  return (
+    <div className="space-y-4">
+      <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-success">
+        <KeyRound className="size-4" />
+        بيانات دخول جديدة لـ«{result.name ?? String(row.name ?? '')}» — جاهزة للإرسال.
+      </p>
+      <div className="space-y-3">
+        {credRow('رابط الدخول المباشر للوحة', magic, 'link')}
+        {credRow('البريد الإلكتروني', result.email ?? '', 'email')}
+        {credRow('كلمة السر', result.password ?? '', 'pass')}
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {wa && (
+          <Button variant="whatsapp" asChild>
+            <a href={wa} target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="size-4" /> إرسال عبر واتساب
+            </a>
+          </Button>
+        )}
+        <Button variant="secondary" onClick={() => void copy(message, 'all')}>
+          {copied === 'all' ? <Check className="size-4" /> : <Copy className="size-4" />}
+          نسخ البيانات معاً
+        </Button>
+      </div>
+      <Button variant="outline" className="w-full" onClick={onDone}>إغلاق</Button>
     </div>
   )
 }

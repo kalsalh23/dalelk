@@ -5,7 +5,7 @@ import { useDutyPharmacies } from '@/hooks/useEntities'
 import { SectionTitle } from '@/components/ui/Breadcrumbs'
 import { Card } from '@/components/ui/Card'
 import { EmptyState, Skeletons } from '@/components/ui/States'
-import { formatDateShort, todaySQL } from '@/lib/utils'
+import { formatDateShort, formatDutyTime, todaySQL } from '@/lib/utils'
 import { track } from '@/services/stats'
 
 export function DutyPharmacies() {
@@ -39,7 +39,7 @@ export function DutyPharmacies() {
                 transition={{ duration: 0.3, delay: Math.min(i * 0.06, 0.3) }}
               >
                 <Card className="relative overflow-hidden border-primary/20">
-                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-primary to-teal-300" />
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-primary to-gold" />
                   <div className="p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -55,9 +55,11 @@ export function DutyPharmacies() {
                       </span>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5 text-xs">
+                    <div className="mt-4 flex items-center justify-between rounded-xl bg-subtle px-4 py-2.5 text-xs">
                       <span className="flex items-center gap-1.5 text-muted"><Clock className="size-3.5" />ساعات المناوبة</span>
-                      <span className="font-bold text-primary-dark">{d.duty_hours ?? 'خلال الليل'}</span>
+                      <span className="font-bold text-primary-dark">
+                        {d.open_time || d.close_time ? formatDutyTime(String(d.open_time ?? ''), String(d.close_time ?? '')) : (d.duty_hours ?? 'خلال الليل')}
+                      </span>
                     </div>
 
                     <div className="mt-4 flex gap-2">

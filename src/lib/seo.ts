@@ -1,4 +1,4 @@
-import { APP_NAME } from '@/constants'
+﻿import { APP_FULL_NAME } from '@/constants'
 
 export interface SeoProps {
   title?: string
@@ -12,7 +12,7 @@ export interface SeoProps {
 const SITE_URL = import.meta.env.VITE_SITE_URL?.replace(/\/$/, '') ?? ''
 
 export function applySeo({ title, description, image, path, type = 'website', jsonLd }: SeoProps) {
-  const docTitle = title ? `${title} | ${APP_NAME}` : `${APP_NAME} — دليل الخدمات الطبية في طيبة الإمام`
+  const docTitle = title ? `${title} | ${APP_FULL_NAME}` : APP_FULL_NAME
   const description_ =
     description ??
     'كل ما تحتاجه من خدمات صحية في مدينة طيبة الإمام في مكان واحد: أطباء، عيادات، صيدليات، مشافي، مخابر، نصائح طبية وأجوبة على أسئلتك الصحية.'
@@ -22,7 +22,7 @@ export function applySeo({ title, description, image, path, type = 'website', js
   setMeta('og:title', docTitle)
   setMeta('og:description', description_)
   setMeta('og:type', type)
-  setMeta('og:site_name', APP_NAME)
+  setMeta('og:site_name', APP_FULL_NAME)
   if (image) setMeta('og:image', image.startsWith('http') ? image : `${SITE_URL}${image}`)
   setMeta('twitter:card', 'summary')
   setMeta('twitter:title', docTitle)
@@ -44,7 +44,7 @@ export function applySeo({ title, description, image, path, type = 'website', js
     scripts.push({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: APP_NAME,
+      name: APP_FULL_NAME,
       url: SITE_URL,
     })
   }

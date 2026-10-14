@@ -16,6 +16,18 @@ export async function fetchAds(placement = 'home'): Promise<Advertisement[]> {
   return (data ?? []) as Advertisement[]
 }
 
+export async function fetchAdById(id: string): Promise<Advertisement | null> {
+  const now = new Date().toISOString()
+  const { data } = await supabase
+    .from('advertisements')
+    .select('*')
+    .eq('id', id)
+    .eq('is_active', true)
+    .or(`expires_at.is.null,expires_at.gte.${now}`)
+    .maybeSingle()
+  return (data ?? null) as Advertisement | null
+}
+
 export async function fetchAllAds(): Promise<Advertisement[]> {
   const { data, error } = await supabase
     .from('advertisements')

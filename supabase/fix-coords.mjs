@@ -55,7 +55,7 @@ const POINTS = {
 let ok = 0
 for (const [table, rows] of Object.entries(POINTS)) {
   for (const p of rows) {
-    const { data, error } = await sb
+    const { error } = await sb
       .from(table)
       .update({ lat: p.lat, lng: p.lng, address: p.address })
       .eq('slug', p.slug)

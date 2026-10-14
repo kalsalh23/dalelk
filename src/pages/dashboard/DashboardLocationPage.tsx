@@ -82,11 +82,11 @@ export function DashboardLocationPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" type="button" onClick={useMyLocation}><Navigation className="size-4" /> تحديد موقعي الحالي</Button>
-            <a href={previewLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold hover:bg-slate-50">
+            <a href={previewLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold hover:bg-subtle">
               <ExternalLink className="size-4" /> معاينة على خرائط Google
             </a>
           </div>
-          <div className="rounded-2xl border border-border bg-slate-50 p-4 text-xs leading-6 text-muted">
+          <div className="rounded-2xl border border-border bg-subtle p-4 text-xs leading-6 text-muted">
             <p className="font-bold text-ink">كيف أحصل على الإحداثيات؟</p>
             <p className="mt-1">افتح <a href="https://maps.google.com" target="_blank" rel="noreferrer" className="font-bold text-primary hover:underline">خرائط Google</a>، انقر على موقعك، وانسخ الأرقام التي تظهر (lat, lng) والصقها هنا. أو استخدم زر "تحديد موقعي الحالي" إذا كنت في الموقع نفسه.</p>
           </div>

@@ -5,18 +5,18 @@ import { Menu, X, Search, HelpCircle, LayoutDashboard, ShieldCheck } from 'lucid
 import { Logo } from '@/components/ui/Logo'
 import { cn } from '@/lib/utils'
 import { readStoredSession } from '@/services/entityAccount'
+import { DEFAULT_DEVELOPER, FEATURE_CLINICS } from '@/constants'
 
 const NAV: { label: string; to: string; extra?: boolean }[] = [
   { label: 'الرئيسية', to: '/' },
   { label: 'الأطباء', to: '/doctors' },
   { label: 'العيادات', to: '/clinics' },
   { label: 'الصيدليات', to: '/pharmacies' },
-  { label: 'النصائح الطبية', to: '/articles' },
   { label: 'الصيدليات المناوبة', to: '/duty-pharmacies', extra: true },
   { label: 'المراكز الصحية', to: '/health-centers', extra: true },
-  { label: 'من نحن', to: '/about', extra: true },
-  { label: 'اسأل دليلك الطبي', to: '/ask' },
-]
+  { label: 'عن المنصة', to: '/about-platform', extra: true },
+  { label: 'اسأل دليلك', to: '/ask' },
+].filter((n) => FEATURE_CLINICS || n.to !== '/clinics')
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -67,7 +67,7 @@ export function Header() {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'rounded-xl px-3 py-2 text-sm font-semibold text-muted transition-colors hover:bg-slate-50 hover:text-primary',
+                  'rounded-xl px-3 py-2 text-sm font-semibold text-muted transition-colors hover:bg-subtle hover:text-primary',
                   item.extra && 'hidden xl:inline-flex',
                   isActive && 'bg-primary-light/70 text-primary-dark',
                 )
@@ -86,6 +86,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {false && (
           <Link
             to={hasEntitySession ? '/dashboard' : '/dashboard/login'}
             className={cn(
@@ -98,6 +99,15 @@ export function Header() {
             {hasEntitySession ? <LayoutDashboard className="size-4" /> : <ShieldCheck className="size-4" />}
             <span>{hasEntitySession ? 'لوحة التحكم' : 'دخول الجهة'}</span>
           </Link>
+          )}
+          <a
+            href="https://wa.me/963952639157"
+            target="_blank" rel="noopener noreferrer"
+            className="hidden md:inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-3.5 py-2 text-xs font-bold text-ink transition hover:border-primary/40 hover:text-primary"
+          >
+            <span className="font-black">مطوّر المنصة:</span>
+            <span className="text-muted" dir="ltr">0952639157</span>
+          </a>
           <button
             onClick={() => navigate('/search')}
             className="flex items-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-md shadow-primary/20 transition hover:bg-primary-dark cursor-pointer"
@@ -108,7 +118,7 @@ export function Header() {
           </button>
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="flex size-10 items-center justify-center rounded-xl text-ink transition hover:bg-slate-100 lg:hidden cursor-pointer"
+            className="flex size-10 items-center justify-center rounded-xl text-ink transition hover:bg-subtle-strong lg:hidden cursor-pointer"
             aria-label="القائمة"
           >
             {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
@@ -132,7 +142,7 @@ export function Header() {
                   onClick={() => setMenuOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      'rounded-xl px-4 py-3 text-sm font-semibold text-muted transition-colors hover:bg-slate-50 hover:text-primary',
+                      'rounded-xl px-4 py-3 text-sm font-semibold text-muted transition-colors hover:bg-subtle hover:text-primary',
                       isActive && 'bg-primary-light/70 text-primary-dark',
                     )
                   }
@@ -141,6 +151,21 @@ export function Header() {
                 </NavLink>
               ))}
               <div className="mt-2 border-t border-border pt-3">
+                <a
+                  href={`https://wa.me/${DEFAULT_DEVELOPER.international_phone.replace('+', '')}`}
+                  target="_blank" rel="noopener noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-between gap-2 rounded-xl bg-subtle px-4 py-3 text-xs font-bold text-ink transition hover:text-primary"
+                >
+                  <span>
+                    <span className="block text-[11px] font-semibold text-muted">{DEFAULT_DEVELOPER.title}</span>
+                    <span className="font-black">{DEFAULT_DEVELOPER.name}</span>
+                  </span>
+                  <span className="shrink-0 rounded-lg border border-border bg-surface px-2.5 py-1 text-muted" dir="ltr">
+                    {DEFAULT_DEVELOPER.phone}
+                  </span>
+                </a>
+                {false && (
                 <Link
                   to={hasEntitySession ? '/dashboard' : '/dashboard/login'}
                   onClick={() => setMenuOpen(false)}
@@ -154,6 +179,7 @@ export function Header() {
                   {hasEntitySession ? <LayoutDashboard className="size-4" /> : <ShieldCheck className="size-4" />}
                   {hasEntitySession ? 'لوحة التحكم' : 'دخول الجهة — لوحة التحكم'}
                 </Link>
+                )}
               </div>
             </nav>
           </motion.div>

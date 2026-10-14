@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, X, Phone, CreditCard, Crown, Sparkles, Lock, Copy } from 'lucide-react'
-import { fetchAdminStats, fetchSubscriptionRequests, fetchSettings, saveSettings, updateRequestStatus } from '@/services/admin'
+import { Check, X, Phone, CreditCard, Crown, Sparkles, Lock, Copy, MessageCircle, KeyRound, AlertTriangle, RefreshCcw } from 'lucide-react'
+import { fetchAdminStats, fetchSubscriptionRequests, fetchSettings, saveSettings, updateRequestStatus, ensureEntityAccount } from '@/services/admin'
 import type { UpdateRequestResult } from '@/services/admin'
 import { fetchStatsSummary } from '@/services/stats'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/Toast'
 import { formatDate, formatNumber } from '@/lib/utils'
 import { PLANS, SUBSCRIPTIONS_ENABLED } from '@/constants'
 import { cn } from '@/lib/utils'
+import type { EntityType } from '@/types'
 
 const planIcons: Record<string, typeof Sparkles> = { free: Lock, pro: Sparkles, gold: Crown }
 
@@ -71,7 +72,7 @@ export function AdminPlansPage() {
           return (
             <Card key={plan}>
               <CardBody>
-                <Icon className={cn('size-6', plan === 'gold' ? 'text-amber-500' : plan === 'pro' ? 'text-primary' : 'text-muted')} />
+                <Icon className={cn('size-6', plan === 'gold' ? 'text-gold-dark' : plan === 'pro' ? 'text-primary' : 'text-muted')} />
                 <p className="mt-2 font-black text-ink">{def.name}</p>
                 <p className="mt-1 text-sm font-black text-ink">{formatNumber(counts[plan])} جهة</p>
                 <ul className="mt-3 space-y-1 text-[11px] text-muted">
@@ -87,7 +88,7 @@ export function AdminPlansPage() {
             <p className="mt-2 font-black">ملخص عام</p>
             <p className="mt-2 text-sm">{formatNumber(active)} اشتراك نشط</p>
             <p className="text-sm">{formatNumber(expired)} منتهي</p>
-            <p className="mt-2 text-xs text-teal-100">يُشغّل الاستلام المالي مستقبلاً بعد انتشار المنصة.</p>
+            <p className="mt-2 text-xs text-white/80">يُشغّل الاستلام المالي مستقبلاً بعد انتشار المنصة.</p>
           </CardBody>
         </Card>
       </div>
@@ -98,11 +99,11 @@ export function AdminPlansPage() {
 }
 
 const statusStyle: Record<string, string> = {
-  new: 'bg-sky-50 text-sky-700',
-  contacting: 'bg-amber-50 text-amber-700',
-  awaiting_payment: 'bg-orange-50 text-orange-700',
+  new: 'bg-primary-light/60 text-primary-dark',
+  contacting: 'bg-gold-soft text-gold-dark',
+  awaiting_payment: 'bg-gold-soft text-gold-dark',
   approved: 'bg-emerald-50 text-success',
-  rejected: 'bg-red-50 text-error',
+  rejected: 'bg-wine-soft text-error',
 }
 const statusLabel: Record<string, string> = {
   new: 'جديد',
@@ -115,8 +116,8 @@ const statusLabel: Record<string, string> = {
 export function AdminRequestsPage() {
   const qc = useQueryClient()
   const toast = useToast()
-  const [selected, setSelected] = useState<{ id: string; status: string } | null>(null)
-  const [creds, setCreds] = useState<UpdateRequestResult & { status: string } | null>(null)
+  const [selected, setSelected] = useState<{ id: string; status: string; phone?: string; entityType?: string; entityId?: string } | null>(null)
+  const [creds, setCreds] = useState<(UpdateRequestResult & { status: string; phone?: string; entityType?: string; entityId?: string }) | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const { data: requests, isLoading } = useQuery({ queryKey: ['admin-requests'], queryFn: fetchSubscriptionRequests })
 
@@ -130,16 +131,35 @@ export function AdminRequestsPage() {
       void qc.invalidateQueries({ queryKey: ['admin-requests'] })
       toast.show('تم تحديث الحالة')
       setSelected(null)
-      if (status === 'approved') setCreds({ ...res, status })
+      if (status === 'approved') {
+        setCreds({ ...res, status, phone: selected?.phone, entityType: selected?.entityType, entityId: selected?.entityId })
+      }
     },
     onError: () => toast.show('تعذر التحديث', 'error'),
+  })
+
+  const credMut = useMutation({
+    mutationFn: async ({ entityType, entityId }: { entityType: string; entityId: string }) => {
+      const res = await ensureEntityAccount(entityType as EntityType, entityId)
+      if (res.accountError) throw new Error(res.accountError)
+      return res
+    },
+    onSuccess: (res) => {
+      toast.show('تم توليد بيانات دخول جديدة')
+      setCreds({ ...res, status: 'approved' })
+    },
+    onError: (e: Error) => toast.show(e.message || 'تعذر توليد البيانات', 'error'),
   })
 
   const accountLink = creds?.slug && creds.linkToken
     ? `${window.location.origin}/account/${creds.slug}?tk=${encodeURIComponent(creds.linkToken)}`
     : creds?.slug
-      ? `${window.location.origin}/account/${creds.slug}`
+      ? `${window.location.origin}/dashboard/login`
       : ''
+
+  const waPhone = creds?.phone ? `963${creds.phone.replace(/\D/g, '').replace(/^0/, '')}` : ''
+  const credMessage = `بيانات الدخول إلى لوحة تحكم جهتك في دليل طيبة الإمام الطبي:\n${accountLink ? `رابط الدخول: ${accountLink}\n` : ''}البريد: ${creds?.email ?? ''}\nكلمة السر: ${creds?.password ?? ''}`
+  const waLink = waPhone ? `https://wa.me/${waPhone}?text=${encodeURIComponent(credMessage)}` : ''
 
   const copy = async (text: string, key: string) => {
     try {
@@ -169,7 +189,7 @@ export function AdminRequestsPage() {
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-black text-ink">{r.entity_type}</p>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-muted" dir="ltr">{r.entity_id.slice(0, 8)}</span>
+                  <span className="rounded-full bg-subtle-strong px-2 py-0.5 text-[10px] font-bold text-muted" dir="ltr">{r.entity_id.slice(0, 8)}</span>
                   <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold', statusStyle[r.status])}>{statusLabel[r.status]}</span>
                 </div>
                 <p className="mt-1.5 flex items-center gap-2 text-sm text-muted">
@@ -185,10 +205,20 @@ export function AdminRequestsPage() {
                 </p>
                 {r.notes && <p className="mt-1 text-xs text-muted">ملاحظات: {r.notes}</p>}
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="secondary" onClick={() => setSelected({ id: r.id, status: 'contacting' })}>تم التواصل</Button>
-                <Button size="sm" onClick={() => setSelected({ id: r.id, status: 'approved' })}>موافقة</Button>
-                <Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, status: 'rejected' })}>رفض</Button>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="secondary" onClick={() => setSelected({ id: r.id, status: 'contacting', phone: r.phone ?? undefined, entityType: r.entity_type, entityId: r.entity_id })}>تم التواصل</Button>
+                <Button size="sm" onClick={() => setSelected({ id: r.id, status: 'approved', phone: r.phone ?? undefined, entityType: r.entity_type, entityId: r.entity_id })}>موافقة</Button>
+                <Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, status: 'rejected', phone: r.phone ?? undefined, entityType: r.entity_type, entityId: r.entity_id })}>رفض</Button>
+                {r.status === 'approved' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    loading={credMut.isPending && credMut.variables?.entityId === r.entity_id}
+                    onClick={() => credMut.mutate({ entityType: r.entity_type, entityId: r.entity_id })}
+                  >
+                    <KeyRound className="size-4" /> بيانات الدخول
+                  </Button>
+                )}
               </div>
             </Card>
           ))}
@@ -207,30 +237,62 @@ export function AdminRequestsPage() {
 
       <Dialog open={creds !== null} onClose={() => setCreds(null)} title="تم تفعيل الاشتراك — بيانات دخول الجهة" size="md">
         <div className="space-y-5">
-          <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-success">
-            ✓ تم تفعيل الاشتراك وتم إنشاء حساب خاص بـ{creds?.name ? ` "${creds.name}"` : ' الجهة'}.
-          </p>
-          <p className="text-xs leading-6 text-muted">
-            أرسل هذه البيانات للطبيب/الجهة عبر رقم الهاتف أو واتساب المذكور في الطلب ليتمكن من الدخول إلى لوحة تحكم صفحته.
-          </p>
-          <div className="space-y-3">
-            <CredRow
-              label="رابط لوحة التحكم"
-              value={accountLink}
-              copied={copied === 'link'}
-              onCopy={() => void copy(accountLink, 'link')}
-            />
-            <CredRow label="البريد الإلكتروني" value={creds?.email ?? ''} copied={copied === 'email'} onCopy={() => void copy(creds?.email ?? '', 'email')} />
-            <CredRow label="كلمة السر" value={creds?.password ?? ''} copied={copied === 'pass'} onCopy={() => void copy(creds?.password ?? '', 'pass')} />
-          </div>
-          <Button
-            className="w-full"
-            variant="secondary"
-            onClick={() => void copy(`${accountLink}\n${creds?.email ?? ''}\n${creds?.password ?? ''}`, 'all')}
-          >
-            {copied === 'all' ? <Check className="size-4" /> : <Copy className="size-4" />}
-            {copied === 'all' ? 'تم نسخ الكل' : 'نسخ الرابط والبريد وكلمة السر معاً'}
-          </Button>
+          {creds?.accountError ? (
+            <>
+              <p className="flex items-start gap-2 rounded-xl bg-wine-soft px-4 py-3 text-sm font-bold text-error">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                تعذر إنشاء حساب الجهة: {creds.accountError}
+              </p>
+              {creds.entityType && creds.entityId && (
+                <Button
+                  className="w-full"
+                  loading={credMut.isPending}
+                  onClick={() => credMut.mutate({ entityType: creds.entityType as string, entityId: creds.entityId as string })}
+                >
+                  <RefreshCcw className="size-4" /> إعادة المحاولة
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-success">
+                ✓ تم تفعيل الاشتراك لمدة شهر وتم إنشاء حساب خاص بـ{creds?.name ? ` "${creds.name}"` : ' الجهة'}.
+              </p>
+              <p className="text-xs leading-6 text-muted">
+                أرسل هذه البيانات للطبيب/الجهة عبر رقم الهاتف أو واتساب المذكور في الطلب — الرابط يفتح لوحته مباشرة بدون كلمة سر.
+              </p>
+              <div className="space-y-3">
+                <CredRow
+                  label="رابط الدخول المباشر للوحة الجهة"
+                  value={accountLink}
+                  copied={copied === 'link'}
+                  onCopy={() => void copy(accountLink, 'link')}
+                />
+                <CredRow label="البريد الإلكتروني" value={creds?.email ?? ''} copied={copied === 'email'} onCopy={() => void copy(creds?.email ?? '', 'email')} />
+                <CredRow label="كلمة السر" value={creds?.password ?? ''} copied={copied === 'pass'} onCopy={() => void copy(creds?.password ?? '', 'pass')} />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {waLink && (
+                  <Button variant="whatsapp" asChild>
+                    <a href={waLink} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="size-4" /> إرسال عبر واتساب
+                    </a>
+                  </Button>
+                )}
+                <Button
+                  variant="secondary"
+                  onClick={() => void copy(credMessage, 'all')}
+                >
+                  {copied === 'all' ? <Check className="size-4" /> : <Copy className="size-4" />}
+                  {copied === 'all' ? 'تم النسخ' : 'نسخ البيانات معاً'}
+                </Button>
+              </div>
+              <p className="flex items-start gap-1.5 text-[11px] leading-5 text-muted">
+                <KeyRound className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                ضاعت البيانات أو انتهت حاجتها؟ زر «بيانات الدخول» في بطاقة الطلب يولّد كلمة سر ورابطاً جديدين في أي وقت.
+              </p>
+            </>
+          )}
         </div>
       </Dialog>
     </div>
@@ -239,7 +301,7 @@ export function AdminRequestsPage() {
 
 function CredRow({ label, value, onCopy, copied }: { label: string; value: string; onCopy: () => void; copied: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-slate-50 px-4 py-3">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-subtle px-4 py-3">
       <div className="min-w-0">
         <p className="text-[11px] font-bold text-muted">{label}</p>
         <p className="mt-0.5 truncate text-sm font-bold text-ink" dir="ltr">{value}</p>
@@ -365,7 +427,7 @@ export function AdminSettingsPage() {
                 <p className="text-sm font-bold text-ink">{settings.subscriptions_enabled ? 'مفعّلة' : 'معطّلة'}</p>
                 <p className="text-xs text-muted">عند التفعيل يعرض القطاع الحرفي Free Pro Gold</p>
               </div>
-              <div onClick={() => setSettings((s) => ({ ...(s ?? {}), subscriptions_enabled: !settings.subscriptions_enabled }))} className={cn('relative h-7 w-12 rounded-full transition-colors', settings.subscriptions_enabled ? 'bg-primary' : 'bg-slate-300')}>
+              <div onClick={() => setSettings((s) => ({ ...(s ?? {}), subscriptions_enabled: !settings.subscriptions_enabled }))} className={cn('relative h-7 w-12 rounded-full transition-colors', settings.subscriptions_enabled ? 'bg-primary' : 'bg-faint')}>
                 <span className={cn('absolute top-1 size-5 rounded-full bg-white shadow transition-all', settings.subscriptions_enabled ? 'right-6' : 'right-1')} />
               </div>
             </label>

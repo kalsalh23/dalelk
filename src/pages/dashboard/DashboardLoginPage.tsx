@@ -68,11 +68,11 @@ export function DashboardLoginPage() {
             <Field label="كلمة السر">
               <Input dir="ltr" type="password" placeholder="كلمة السر" value={pass} onChange={(e) => { setPass(e.target.value); setBad(false) }} />
             </Field>
-            {bad && <p className="flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-error"><AlertTriangle className="size-4" /> بيانات الدخول غير صحيحة</p>}
+            {bad && <p className="flex items-center gap-2 rounded-xl bg-wine-soft px-3 py-2 text-xs font-bold text-error"><AlertTriangle className="size-4" /> بيانات الدخول غير صحيحة</p>}
             <Button type="submit" loading={loading} className="w-full"><KeyRound className="size-4" /> دخول</Button>
           </form>
-          <div className="mt-6 rounded-2xl bg-amber-50 p-4 text-xs leading-6 text-muted">
-            <p className="font-bold text-amber-700">كيف أحصل على بيانات الدخول؟</p>
+          <div className="mt-6 rounded-2xl bg-gold-soft p-4 text-xs leading-6 text-muted">
+            <p className="font-bold text-gold-dark">كيف أحصل على بيانات الدخول؟</p>
             <p className="mt-1">بعد تقديم طلب ترقية من صفحة <Link to="/plans" className="font-bold text-primary hover:underline">الباقات</Link> وموافقة الإدارة، سيصلك بريد وكلمة سر ورابط دخول مباشر خاص بك.</p>
           </div>
           <p className="mt-4 text-center text-xs text-muted"><Link to="/" className="hover:underline">العودة للرئيسية</Link> · <Link to="/account" className="hover:underline">لوحة الحساب القديمة</Link></p>

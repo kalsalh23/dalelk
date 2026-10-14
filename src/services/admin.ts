@@ -118,6 +118,70 @@ export interface UpdateRequestResult {
   slug?: string
   name?: string
   linkToken?: string
+  accountError?: string
+}
+
+/** ترجمة أخطاء قاعدة البيانات التقنية إلى رسائل مفهومة للمدير */
+function friendlyAccountError(msg: string): string {
+  const m = (msg || '').toLowerCase()
+  if (m.includes('duplicate key') || m.includes('unique')) {
+    return 'تعارض في البريد مع حساب آخر — أعد المحاولة وسيولّد بريد فريد جديد'
+  }
+  if (m.includes('jwt') || m.includes('permission') || m.includes('row-level security')) {
+    return 'انتهت جلسة المشرف — أعد تسجيل الدخول ثم حاول مجدداً'
+  }
+  return msg
+}
+
+export interface TrialResult {
+  ok?: boolean
+  error?: string
+  name?: string
+  slug?: string
+  email?: string
+  password?: string
+  magic_token?: string
+  expires_at?: string
+  plan?: string
+  times_activated?: number
+}
+
+/** تفعيل/إعادة تفعيل تجربة شهر مجاني لطبيب — كل تفعيل يمدد شهراً من الآن وينشئ بيانات دخول جديدة */
+export async function startDoctorTrial(doctorId: string, plan: 'pro' | 'gold'): Promise<TrialResult | null> {
+  const { data, error } = await supabase.rpc('start_doctor_trial', { p_doctor_id: doctorId, p_plan: plan })
+  if (error) return { ok: false, error: friendlyAccountError(error.message) }
+  return (data ?? null) as TrialResult | null
+}
+
+/** إنشاء/تجديد حساب جهة (كلمة سر ورابط سحري جديدان) — يُستخدم عند الموافقة وعند إعادة إرسال البيانات */
+export async function ensureEntityAccount(entityType: EntityType, entityId: string): Promise<UpdateRequestResult> {
+  const table = ENTITY_TABLES[entityType]
+  if (!table) return { ok: false, accountError: 'نوع جهة غير صالح' }
+  const { data: ent } = await supabase.from(table).select('slug, name').eq('id', entityId).maybeSingle()
+  // البريد يجب أن يكون فريداً عالمياً: نستخدم السلاغ اللاتيني إن وجد، وندائماً نلحق جزءاً من المعرف
+  // (السلاغ العربي يفرغ عند التعقيم، وبغير المعرف تتكرر القيمة ويفشل قيد البريد الفريد)
+  const rawSlug = String(ent?.slug ?? '')
+  const latinSlug = rawSlug.replace(/[^a-z0-9.-]/gi, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '')
+  const idPart = entityId.replace(/-/g, '').slice(0, 8)
+  const email = `admin-${latinSlug || 'entity'}-${idPart}@gmail.com`
+  const password = genEntityPassword()
+  const { data: acct, error: acctErr } = await supabase.rpc('entity_create_account', {
+    p_entity_type: entityType,
+    p_entity_id: entityId,
+    p_email: email,
+    p_password: password,
+  })
+  const a = acct as Record<string, unknown> | null
+  if (acctErr) return { ok: true, slug: rawSlug, name: (ent?.name as string) ?? '', accountError: friendlyAccountError(acctErr.message) }
+  if (!a || a.error) return { ok: true, slug: rawSlug, name: (ent?.name as string) ?? '', accountError: friendlyAccountError(String(a?.error ?? 'تعذر إنشاء الحساب')) }
+  return {
+    ok: true,
+    email: (a.email as string) ?? email,
+    password,
+    slug: rawSlug,
+    name: (a.name as string) ?? (ent?.name as string) ?? '',
+    linkToken: (a.magic_token as string) ?? undefined,
+  }
 }
 
 export async function updateRequestStatus(
@@ -140,7 +204,7 @@ export async function updateRequestStatus(
   const { error } = await supabase.from('subscription_requests').update(updates).eq('id', id)
   if (error) return { ok: false }
 
-  // تطبيق الخطة المطلوبة فعلياً على جهة (الطبيب/العيادة/…) عند الموافقة
+  // تطبيق الخطة المطلوبة فعلياً على جهة (الطبيب/العيادة/…) عند الموافقة — لمدة شهر واحد
   if (status === 'approved') {
     const table = ENTITY_TABLES[req.entity_type as EntityType]
     if (table) {
@@ -148,31 +212,15 @@ export async function updateRequestStatus(
         .from(table)
         .update({
           plan: req.requested_plan,
-          plan_expires_at: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+          plan_expires_at: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
         })
         .eq('id', req.entity_id)
       if (entErr) return { ok: false }
 
-      // إنشاء حساب الجهة تلقائياً: البريد admin-<slug>@gmail.com وكلمة سر عشوائية + رابط سحري
-      const { data: ent } = await supabase.from(table).select('slug, name').eq('id', req.entity_id).maybeSingle()
-      const slug = (ent?.slug ?? String(req.entity_id)).replace(/[^a-z0-9.-]/gi, '-').replace(/^-+|-+$/g, '')
-      const email = `admin-${slug}@gmail.com`
-      const password = genEntityPassword()
-      const { data: acct, error: acctErr } = await supabase.rpc('entity_create_account', {
-        p_entity_type: req.entity_type as EntityType,
-        p_entity_id: req.entity_id,
-        p_email: email,
-        p_password: password,
-      })
-      if (acctErr) return { ok: true }
-      return {
-        ok: true,
-        email: (acct?.email as string) ?? email,
-        password,
-        slug,
-        name: (ent?.name as string) ?? '',
-        linkToken: (acct?.magic_token as string) ?? undefined,
-      }
+      // إنشاء حساب الجهة تلقائياً: البريد وكلمة السر والرابط السحري تُسلَّم للإدارة لتمريرها للجهة
+      const res = await ensureEntityAccount(req.entity_type as EntityType, req.entity_id)
+      if (res.accountError) return { ...res, accountError: res.accountError }
+      return res
     }
   }
   return { ok: true }
@@ -189,6 +237,33 @@ export async function createSubscriptionRequest(v: {
   const { error } = await supabase.from('subscription_requests').insert(v)
   return !error
 }
+
+export interface RequestStatusResult {
+  found: boolean
+  status?: string
+  requested_plan?: string
+  created_at?: string
+  entity_type?: EntityType
+  entity_name?: string | null
+}
+
+/** متابعة حالة طلب الترقية برقم الهاتف (دالة آمنة في قاعدة البيانات) */
+export async function checkRequestStatus(phone: string): Promise<RequestStatusResult | null> {
+  const { data, error } = await supabase.rpc('request_status_by_phone', { p_phone: phone.trim() })
+  if (error) return null
+  return (data ?? null) as RequestStatusResult | null
+}
+
+export const REQUEST_STATUS_LABELS: Record<string, string> = {
+  new: 'قيد المراجعة',
+  contacting: 'تم التواصل معك',
+  awaiting_payment: 'بانتظار الدفع',
+  approved: 'تمت الموافقة',
+  rejected: 'مرفوض',
+}
+
+/** الطلبات التي ما تزال قيد المعالجة (لمنع التكرار) */
+export const PENDING_REQUEST_STATUSES = ['new', 'contacting', 'awaiting_payment']
 
 export async function fetchSettings(): Promise<Record<string, unknown>> {
   const { data, error } = await supabase.from('app_settings').select('*').eq('key', 'site')

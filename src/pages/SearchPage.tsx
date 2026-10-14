@@ -16,7 +16,6 @@ const TYPE_META: Record<string, { label: string; route: (slug: string, id: strin
   pharmacy: { label: 'صيدليات', titleKey: 'name', route: (s, id) => `/pharmacies/${s || id}` },
   lab: { label: 'مخابر', titleKey: 'name', route: (s, id) => `/labs/${s || id}` },
   radiology: { label: 'مراكز الأشعة', titleKey: 'name', route: (s, id) => `/radiology/${s || id}` },
-  article: { label: 'مقالات', titleKey: 'title', descKey: 'excerpt', route: (s) => `/articles/${s}` },
   question: { label: 'أسئلة وأجوبة', titleKey: 'question', descKey: 'answer', route: (s, id) => `/ask?s=${encodeURIComponent(String(s || id))}` },
 }
 
@@ -53,7 +52,7 @@ export function SearchPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <Seo title={q ? `نتائج البحث عن «${q}»` : 'البحث'} path={`/search${searchUrl}`} />
-      <h1 className="text-2xl font-black text-ink">البحث في دليلك الطبي</h1>
+      <h1 className="text-2xl font-black text-ink">البحث في دليل طيبة الإمام الطبي</h1>
 
       <form action="/search" method="get" className="relative mt-5">
         <Search className="absolute right-4 top-1/2 size-5 -translate-y-1/2 text-muted" />
@@ -77,11 +76,11 @@ export function SearchPage() {
           <p className="py-10 text-center text-sm text-muted">اكتب كلمة بحث للبدء.</p>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-14 text-center">
-            <SearchX className="size-12 text-slate-300" />
+            <SearchX className="size-12 text-faint" />
             <p className="font-bold text-ink">لا توجد نتائج لـ «{q}»</p>
             <p className="text-sm text-muted">جرّب كلمات بحث أخرى أو تصفح الأقسام الرئيسية.</p>
             <div className="mt-2 flex flex-wrap justify-center gap-2">
-              {[['الأطباء', '/doctors'], ['العيادات', '/clinics'], ['الصيدليات', '/pharmacies'], ['النصائح', '/articles'], ['اسأل', '/ask']].map(([l, to]) => (
+              {[['الأطباء', '/doctors'], ['العيادات', '/clinics'], ['الصيدليات', '/pharmacies'], ['اسأل', '/ask']].map(([l, to]) => (
                 <Link key={to} to={to} className="rounded-full border border-border bg-surface px-4 py-2 text-xs font-bold text-primary hover:bg-primary-light/40">{l}</Link>
               ))}
             </div>

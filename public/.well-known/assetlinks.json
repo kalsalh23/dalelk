@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.daliltaybeh.app",
+      "sha256_cert_fingerprints": [
+        "3D:3B:58:4A:F9:7A:65:58:21:DD:92:90:A9:E0:F7:2A:06:9C:2B:18:3A:AD:98:40:BF:D8:D5:A1:E1:9C:C1:A8"
+      ]
+    }
+  }
+]

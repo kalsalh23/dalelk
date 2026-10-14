@@ -1,24 +1,17 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ChevronRight, ChevronLeft, Star, MapPin, Phone, Crown } from 'lucide-react'
+import { Star, MapPin, Phone, Crown } from 'lucide-react'
 import { useFeaturedDoctors } from '@/hooks/useEntities'
 import { SectionTitle } from '@/components/ui/Breadcrumbs'
 import { EmptyState, Skeletons } from '@/components/ui/States'
 import { getPublicUrl } from '@/lib/supabase'
-import { cn } from '@/lib/utils'
 import { MAP_COLORS } from '@/constants'
 import { EntityIcon } from '@/components/ui/EntityIcon'
-
-const PER_PAGE = 2
+import { AutoCarousel } from '@/components/shared/AutoCarousel'
 
 export function FeaturedDoctors() {
   const { data, isLoading } = useFeaturedDoctors(8)
   const doctors = (data ?? []) as unknown as Array<Record<string, unknown>>
-  const [page, setPage] = useState(0)
-  const pages = Math.max(1, Math.ceil(doctors.length / PER_PAGE))
-  const clamped = Math.min(page, pages - 1)
-  const visible = doctors.slice(clamped * PER_PAGE, clamped * PER_PAGE + PER_PAGE)
 
   return (
     <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6">
@@ -35,76 +28,19 @@ export function FeaturedDoctors() {
           description="سيظهر هنا الأطباء الذين تختارهم إدارة المنصة عبر لوحة التحكم."
         />
       ) : (
-        <div className="relative">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {visible.map((doc, i) => (
-              <motion.div
-                key={String(doc.id)}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: i * 0.08 }}
-              >
-                <FeaturedDoctorCard doc={doc} index={clamped * PER_PAGE + i} />
-              </motion.div>
-            ))}
-          </div>
-
-          {doctors.length > PER_PAGE && (
-            <>
-              <button
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={clamped === 0}
-                aria-label="السابق"
-                className={cn(
-                  'absolute -right-2 top-1/2 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/20 bg-white text-primary shadow-lg transition hover:bg-primary hover:text-white md:flex',
-                  clamped === 0 && 'pointer-events-none opacity-0',
-                )}
-              >
-                <ChevronRight className="size-5" />
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
-                disabled={clamped >= pages - 1}
-                aria-label="التالي"
-                className={cn(
-                  'absolute -left-2 top-1/2 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/20 bg-white text-primary shadow-lg transition hover:bg-primary hover:text-white md:flex',
-                  clamped >= pages - 1 && 'pointer-events-none opacity-0',
-                )}
-              >
-                <ChevronLeft className="size-5" />
-              </button>
-
-              <div className="mt-5 flex items-center justify-center gap-3">
-                <button
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={clamped === 0}
-                  aria-label="السابق"
-                  className="flex size-9 items-center justify-center rounded-full border border-border bg-surface text-ink transition hover:bg-primary hover:text-white md:hidden disabled:opacity-30"
-                >
-                  <ChevronRight className="size-4.5" />
-                </button>
-                <div className="flex items-center gap-1.5">
-                  {Array.from({ length: pages }).map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPage(i)}
-                      aria-label={`صفحة ${i + 1}`}
-                      className={cn('h-2 rounded-full transition-all', i === clamped ? 'w-6 bg-primary' : 'w-2 bg-slate-200 hover:bg-slate-300')}
-                    />
-                  ))}
-                </div>
-                <button
-                  onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
-                  disabled={clamped >= pages - 1}
-                  aria-label="التالي"
-                  className="flex size-9 items-center justify-center rounded-full border border-border bg-surface text-ink transition hover:bg-primary hover:text-white md:hidden disabled:opacity-30"
-                >
-                  <ChevronLeft className="size-4.5" />
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        <AutoCarousel count={doctors.length} ariaLabel="الأطباء المميزون">
+          {doctors.map((doc, i) => (
+            <motion.div
+              key={String(doc.id)}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: i * 0.06 }}
+              className="h-full"
+            >
+              <FeaturedDoctorCard doc={doc} index={i} />
+            </motion.div>
+          ))}
+        </AutoCarousel>
       )}
 
       <div className="mt-6 text-center">
@@ -131,9 +67,9 @@ function FeaturedDoctorCard({ doc, index }: { doc: Record<string, unknown>; inde
   return (
     <div
       onClick={() => navigate(link)}
-      className="group relative cursor-pointer overflow-hidden rounded-[22px] border border-primary/25 bg-gradient-to-l from-primary-light/40 via-surface to-surface shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl"
+      className="group relative h-full cursor-pointer overflow-hidden rounded-[22px] border border-primary/25 bg-gradient-to-l from-primary-light/40 via-surface to-surface shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl"
     >
-      <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-l from-primary via-teal-400 to-amber-400" />
+      <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-l from-primary via-gold to-gold-dark" />
       <div className="absolute -left-10 -top-10 size-32 rounded-full bg-primary/5 blur-2xl transition-all group-hover:bg-primary/10" />
       <div className="flex gap-4 p-5 sm:p-6">
         <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-primary-light/50 sm:size-28">
@@ -144,7 +80,7 @@ function FeaturedDoctorCard({ doc, index }: { doc: Record<string, unknown>; inde
               <EntityIcon type="doctor" className="size-12" />
             </div>
           )}
-          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-black text-white shadow">
+          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 rounded-full bg-gold-dark px-2 py-0.5 text-[10px] font-black text-white shadow">
             <Star className="size-3 fill-white" />
             مميّز
           </span>
@@ -152,7 +88,7 @@ function FeaturedDoctorCard({ doc, index }: { doc: Record<string, unknown>; inde
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <Crown className="size-4 shrink-0 text-amber-500" />
+            <Crown className="size-4 shrink-0 text-gold-dark" />
             <p className="truncate text-lg font-black text-ink transition-colors group-hover:text-primary">{name}</p>
           </div>
           <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted">
@@ -180,7 +116,7 @@ function FeaturedDoctorCard({ doc, index }: { doc: Record<string, unknown>; inde
               </a>
             ) : null}
             <span className="flex items-center gap-1 text-xs font-bold text-primary">
-              <Star className="size-3.5 fill-amber-400 text-amber-500" />
+              <Star className="size-3.5 fill-gold text-gold-dark" />
               طبيب مميّز
             </span>
           </div>

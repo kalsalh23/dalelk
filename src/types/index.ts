@@ -88,10 +88,12 @@ export interface DutyPharmacy {
   id: string
   pharmacy_id: string | null
   city_id: string | null
-  start_date: string
-  end_date: string
-  duty_hours: string | null
-  notes: string | null
+   start_date: string
+   end_date: string
+   duty_hours: string | null
+   open_time: string | null
+   close_time: string | null
+   notes: string | null
   is_active: boolean
   created_at: string
   updated_at: string

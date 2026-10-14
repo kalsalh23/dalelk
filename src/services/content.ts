@@ -71,12 +71,35 @@ export async function fetchFeaturedDoctors(limit = 8): Promise<Doctor[]> {
   return (data ?? []) as Doctor[]
 }
 
+/** الصيدليات المميّزة (اختيارها من لوحة التحكم) */
+export async function fetchFeaturedPharmacies(limit = 8): Promise<Pharmacy[]> {
+  const { data, error } = await supabase
+    .from('pharmacies')
+    .select('*')
+    .eq('is_active', true)
+    .eq('is_featured', true)
+    .order('sort_order', { ascending: true })
+    .limit(limit)
+  if (error) return []
+  return (data ?? []) as Pharmacy[]
+}
+
 export async function fetchEntity<T>(type: EntityType, slugOrId: string): Promise<T | null> {
   const table = ENTITY_TABLES[type]
   // المصطلح قد يكون slug نصياً أو id UUID — جرّب slug أولاً ثم id
-  let { data, error } = await supabase.from(table).select('*').eq('slug', slugOrId).maybeSingle()
+  // تحصين ضد تشوه الترميز عبر تطبيقات المراسلة: تطبيع يونيكود + فك ترميز مزدوج
+  let term = (slugOrId ?? '').trim()
+  try { term = term.normalize('NFC') } catch { /* تجاهل */ }
+  let { data, error } = await supabase.from(table).select('*').eq('slug', term).maybeSingle()
   if (error) return null
   if (data) return data as T
+  try {
+    const alt = decodeURIComponent(term).normalize('NFC')
+    if (alt !== term) {
+      const { data: altData } = await supabase.from(table).select('*').eq('slug', alt).maybeSingle()
+      if (altData) return altData as T
+    }
+  } catch { /* تجاهل */ }
   const { data: byId, error: idError } = await supabase.from(table).select('*').eq('id', slugOrId).maybeSingle()
   if (idError) return null
   return (byId as T) ?? null

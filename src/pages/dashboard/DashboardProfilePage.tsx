@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Save, Phone, MapPin, Video, Stethoscope, Sparkles, Share2, Globe } from 'lucide-react'
+import { Save, Phone, MapPin, Video, Stethoscope, Sparkles, Share2, Globe, Sun } from 'lucide-react'
 import { useDashboardSession } from '@/layouts/DashboardLayout'
-import { readStoredSession, updateEntityOwn } from '@/services/entityAccount'
+import { readStoredSession, updateEntityOwn, setVacationUntil } from '@/services/entityAccount'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Field, Input, Textarea, Select } from '@/components/ui/Field'
@@ -13,6 +13,8 @@ export function DashboardProfilePage() {
   const toast = useToast()
   const [form, setForm] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [vacationDate, setVacationDate] = useState('')
+  const [vacationBusy, setVacationBusy] = useState(false)
 
   useEffect(() => {
     if (!session) return
@@ -37,6 +39,7 @@ export function DashboardProfilePage() {
       experience_years: String((e as Record<string, unknown>).experience_years ?? ''),
       emergency_phone: String((e as Record<string, unknown>).emergency_phone ?? ''),
     })
+    setVacationDate(String(e.vacation_until ?? ''))
   }, [session])
 
   if (!session) return null
@@ -44,6 +47,9 @@ export function DashboardProfilePage() {
   const isHospital = session.entity_type === 'hospital'
   const isLab = session.entity_type === 'lab'
   const isRadiology = session.entity_type === 'radiology'
+
+  const vacationValue = String((session.entity as Record<string, unknown> | null)?.vacation_until ?? '')
+  const onVacation = Boolean(vacationValue && new Date(vacationValue + 'T23:59:59') >= new Date())
 
   const save = async () => {
     const stored = readStoredSession()
@@ -82,6 +88,24 @@ export function DashboardProfilePage() {
     } else toast.show('تعذر الحفظ — حاول مجدداً', 'error')
   }
 
+  const cnVacationIcon = (on: boolean) =>
+    on ? 'flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gold text-primary-dark' : 'flex size-12 shrink-0 items-center justify-center rounded-2xl bg-subtle text-muted'
+
+  const saveVacation = async (until: string | null) => {
+    const stored = readStoredSession()
+    if (!stored) return
+    setVacationBusy(true)
+    const res = await setVacationUntil(stored.token, until)
+    setVacationBusy(false)
+    if (res?.ok) {
+      setVacationDate(until ?? '')
+      setSession((prev) => prev ? { ...prev, entity: { ...(prev.entity ?? {}), vacation_until: until } as Record<string, unknown> } : prev)
+      toast.show(until ? 'تم تفعيل وضع الإجازة — ستظهر رسالتها على صفحتك' : 'تم إلغاء وضع الإجازة')
+    } else {
+      toast.show(res?.error ?? 'تعذر التحديث', 'error')
+    }
+  }
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <Seo title="الملف الشخصي" description="تعديل بيانات الجهة" />
@@ -89,6 +113,41 @@ export function DashboardProfilePage() {
         <h1 className="text-xl font-black text-ink">الملف الشخصي</h1>
         <p className="mt-1 text-sm text-muted">عدّل معلوماتك الأساسية وستظهر فوراً على صفحتك العامة.</p>
       </div>
+
+      {isDoctor && (
+        <Card className={onVacation ? 'border-gold bg-gold-soft/50' : undefined}>
+          <CardBody className="flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center">
+            <span className={cnVacationIcon(onVacation)}>
+              <Sun className="size-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-black text-ink">وضع الإجازة</p>
+              <p className="mt-0.5 text-xs leading-6 text-muted">
+                {onVacation
+                  ? `إجازة فعّالة حتى ${vacationValue} — ستظهر رسالة على صفحتك ويتوقف استقبال طلبات المواعيد مؤقتاً.`
+                  : 'تذهب لإجازة؟ حدّد تاريخ العودة وستظهر رسالة على صفحتك مع تعليق طلبات المواعيد مؤقتاً.'}
+              </p>
+            </div>
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              <input
+                type="date"
+                min={new Date().toISOString().slice(0, 10)}
+                value={vacationDate}
+                onChange={(e) => setVacationDate(e.target.value)}
+                className="h-10 rounded-xl border border-border bg-surface px-3 text-sm text-ink outline-none focus:border-primary"
+              />
+              <Button
+                size="sm"
+                loading={vacationBusy}
+                disabled={!onVacation && !vacationDate}
+                onClick={() => void saveVacation(onVacation ? null : vacationDate || null)}
+              >
+                {onVacation ? 'إلغاء الإجازة' : 'تفعيل الإجازة'}
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle>البيانات الأساسية</CardTitle></CardHeader>

@@ -1,8 +1,18 @@
 import type { EntityType, Plan } from '@/types'
 
-export const APP_NAME = 'دليلك الطبي'
+export const APP_NAME = 'دليل طيبة الإمام الطبي'
+/** الاسم الخارجي الكامل للمنصة (عنوان التبويب، المشاركة، نتائج البحث) */
+export const APP_FULL_NAME = 'دليل طيبة الإمام الطبي'
+/** إظهار زر «دخول الجهة» في الترويسة — أخفِه حالياً (يُعاد لاحقاً بتعيين true) */
+export const SHOW_ENTITY_LOGIN = false
+/** رقم دعم المنصة والإدارة (واتساب) */
+export const SUPPORT_WHATSAPP = '84382676210'
+
 export const APP_SLOGAN = 'كل ما تحتاجه من خدمات صحية في مدينة طيبة الإمام... في مكان واحد.'
 export const DEFAULT_CITY = 'طيبة الإمام'
+
+/** مفتاح عرض قسم العيادات في الموقع — عطّله مؤقتاً (اجعله true لاستخدامه لاحقاً) */
+export const FEATURE_CLINICS = false
 
 export interface ServiceDef {
   key: string
@@ -111,6 +121,7 @@ export const SPECIALTIES = [
   'العصبية',
   'الغدد والسكري',
   'العلاج الفيزيائي',
+  'التمريض',
 ]
 
 export const PLANS: {
@@ -199,25 +210,25 @@ export const ENTITY_LABELS: Record<EntityType, string> = {
 }
 
 export const MAP_COLORS: Record<EntityType, string> = {
-  doctor: '#0F766E',
-  clinic: '#0D9488',
-  hospital: '#0284C7',
-  health_center: '#F59E0B',
-  pharmacy: '#16A34A',
-  lab: '#D97706',
-  radiology: '#E11D48',
+  doctor: '#428177',
+  clinic: '#054239',
+  hospital: '#6b1f2a',
+  health_center: '#b9a779',
+  pharmacy: '#988561',
+  lab: '#4a151e',
+  radiology: '#260f14',
 }
 
 export const DEFAULT_CITY_COORDS = { lat: 35.2662637, lng: 36.7118709 }
 
 export const ABOUT_TEXT =
-  'دليلك الطبي هو دليل رقمي شامل للخدمات الطبية في مدينة طيبة الإمام، يوفر للمواطن قائمة موثّقة بالأطباء والعيادات والمشافي والصيدليات والمراكز الصحية، مع مواقعهم على الخريطة وساعات الدوام وأرقام التواصل، بالإضافة إلى نصائح طبية موثوقة وقاعدة أسئلة وأجوبة صحية.'
+  'دليل طيبة الإمام الطبي منصة رقمية شاملة للخدمات الطبية في مدينة طيبة الإمام، يوفر للمواطن قائمة موثّقة بالأطباء والعيادات والمشافي والصيدليات والمراكز الصحية، مع مواقعهم على الخريطة وساعات الدوام وأرقام التواصل، بالإضافة إلى نصائح طبية موثوقة وقاعدة أسئلة وأجوبة صحية.'
 
 export const DEFAULT_DEVELOPER = {
   name: 'م. قصي مهند الصالح',
   title: 'مطوّر المنصة',
   phone: '0952639157',
   international_phone: '+963952639157',
-  instagram: 'https://www.instagram.com/kosai_al_saleh?igsh=cWM0dzEzaThqN2sz',
-  facebook: 'https://www.facebook.com/share/17m6YZ1NKS/',
+  instagram: 'https://www.instagram.com/kosai_al_saleh?stkn=cWM0dzEzaThqN2sz',
+  facebook: 'https://www.facebook.com/share/18J7tZ9rXD/',
 }

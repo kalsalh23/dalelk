@@ -1,7 +1,7 @@
 import { Hero } from '@/features/home/Hero'
 import { ServicesGrid } from '@/features/home/ServicesGrid'
 import { FeaturedDoctors } from '@/features/home/FeaturedDoctors'
-import { AdsSection } from '@/features/home/AdsSection'
+import { FeaturedPharmacies } from '@/features/home/FeaturedPharmacies'
 import { DutyPharmacies } from '@/features/home/DutyPharmacies'
 import { NearbyMap } from '@/features/home/NearbyMap'
 import { AskCta } from '@/features/home/AskCta'
@@ -12,10 +12,10 @@ export function HomePage() {
     <>
       <Seo />
       <Hero />
-      <FeaturedDoctors />
-      <ServicesGrid />
-      <AdsSection />
       <DutyPharmacies />
+      <FeaturedDoctors />
+      <FeaturedPharmacies />
+      <ServicesGrid />
       <NearbyMap />
       <AskCta />
     </>

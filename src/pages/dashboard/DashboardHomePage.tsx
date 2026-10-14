@@ -1,10 +1,15 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Crown, Eye, CalendarClock, AlertTriangle, Sparkles, ArrowUpRight, Image as ImageIcon, Clock, MapPin, Phone, Star } from 'lucide-react'
+import { Crown, Eye, CalendarClock, AlertTriangle, Sparkles, ArrowUpRight, Image as ImageIcon, Clock, MapPin, Phone, Star, RefreshCw } from 'lucide-react'
 import { useDashboardSession } from '@/layouts/DashboardLayout'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PlanBadge } from '@/components/ui/Badge'
-import { formatDate, mapsLink } from '@/lib/utils'
+import { Dialog } from '@/components/ui/Dialog'
+import { Input, Select, Textarea, Field } from '@/components/ui/Field'
+import { useToast } from '@/components/ui/Toast'
+import { createSubscriptionRequest } from '@/services/admin'
+import { formatDate, mapsLink, effectivePlan } from '@/lib/utils'
 import { getPublicUrl } from '@/lib/supabase'
 import { Seo } from '@/components/seo/Seo'
 
@@ -16,14 +21,41 @@ function daysLeft(exp: string | null): number | null {
 
 export function DashboardHomePage() {
   const { session } = useDashboardSession()
+  const toast = useToast()
+  const [renewOpen, setRenewOpen] = useState(false)
+  const [renewPlan, setRenewPlan] = useState('gold')
+  const [renewPhone, setRenewPhone] = useState('')
+  const [renewNotes, setRenewNotes] = useState('')
+  const [sending, setSending] = useState(false)
   if (!session) return null
   const e = (session.entity ?? {}) as Record<string, unknown>
-  const plan = String(e.plan ?? 'free')
+  const rawPlan = String(e.plan ?? 'free')
+  const plan = effectivePlan(e as { plan?: string | null; plan_expires_at?: string | null })
+  const expired = plan === 'free' && (rawPlan === 'pro' || rawPlan === 'gold')
   const expires = (e.plan_expires_at as string | null) ?? null
   const days = daysLeft(expires)
   const views = Number(e.view_count ?? 0)
   const routeLink = session.entity_type === 'health_center' ? 'health-centers' : session.entity_type === 'radiology' ? 'radiology' : `${session.entity_type}s`
   const img = getPublicUrl((e.image as string) ?? null) ?? (e.image as string) ?? null
+
+  const submitRenewal = async () => {
+    setSending(true)
+    const ok = await createSubscriptionRequest({
+      entity_id: session.entity_id,
+      entity_type: session.entity_type,
+      current_plan: plan as 'free' | 'pro' | 'gold',
+      requested_plan: renewPlan as 'pro' | 'gold',
+      phone: renewPhone.trim() || undefined,
+      notes: renewNotes.trim() || undefined,
+    })
+    setSending(false)
+    if (ok) {
+      toast.show('تم إرسال طلب التجديد — ستُفعّل الباقة لمدة شهر بعد الموافقة.')
+      setRenewOpen(false)
+    } else {
+      toast.show('تعذر إرسال الطلب، حاول مرة أخرى.', 'error')
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -34,39 +66,39 @@ export function DashboardHomePage() {
       </div>
 
       {/* expiry / plan banner */}
-      {plan === 'free' || days === null ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-border bg-slate-50 p-4">
+      {expired ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-error/20 bg-wine-soft p-4">
+          <AlertTriangle className="mt-0.5 size-5 text-error" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-error">انتهى اشتراك الباقة <PlanBadge plan={rawPlan} /></p>
+            <p className="mt-1 text-xs text-muted">كانت باقتك نشطة وانتهت صلاحيتها — أرسل طلب تجديد من هنا وستُفعّل لمدة شهر بعد الموافقة.</p>
+          </div>
+          <Button variant="danger" size="sm" onClick={() => setRenewOpen(true)}><RefreshCw className="size-4" /> طلب تجديد</Button>
+        </div>
+      ) : plan === 'free' || days === null ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-border bg-subtle p-4">
           <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" />
           <div className="flex-1">
             <p className="text-sm font-bold text-ink">أنت على الباقة المجانية <PlanBadge plan={plan} /></p>
-            <p className="mt-1 text-xs leading-6 text-muted">اشترك لتفعيل شارة الباقة وإبراز صفحتك في النتائج والخريطة.</p>
+            <p className="mt-1 text-xs leading-6 text-muted">اشترك لتفعيل شارة الباقة وإبراز صفحتك في النتائج والخريطة — الاشتراك يُفعّل لمدة شهر.</p>
           </div>
           <Button asChild size="sm"><Link to="/plans">عرض الباقات <ArrowUpRight className="size-4" /></Link></Button>
         </div>
-      ) : days < 0 ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-error/20 bg-red-50 p-4">
-          <AlertTriangle className="mt-0.5 size-5 text-error" />
+      ) : days !== null && days <= 10 ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-gold/40 bg-gold-soft p-4">
+          <AlertTriangle className="size-5 text-gold-dark" />
           <div className="flex-1">
-            <p className="text-sm font-bold text-error">انتهى اشتراكك</p>
-            <p className="text-xs text-muted">جدّد اشتراكك للحفاظ على مزايا الباقة.</p>
+            <p className="text-sm font-bold text-gold-dark">اشتراكك سينتهي خلال {days} يوم</p>
+            <p className="text-xs text-muted">ينتهي بتاريخ {formatDate(expires)} — يمكنك طلب التجديد مسبقاً.</p>
           </div>
-          <Button variant="danger" size="sm" asChild><Link to="/plans">طلب تجديد</Link></Button>
-        </div>
-      ) : days <= 30 ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <AlertTriangle className="size-5 text-amber-600" />
-          <div className="flex-1">
-            <p className="text-sm font-bold text-amber-700">اشتراكك سينتهي خلال {days} يوم</p>
-            <p className="text-xs text-muted">ينتهي بتاريخ {formatDate(expires)}.</p>
-          </div>
-          <Button size="sm" variant="outline" asChild><Link to="/plans">طلب تجديد</Link></Button>
+          <Button size="sm" variant="outline" onClick={() => setRenewOpen(true)}><RefreshCw className="size-4" /> طلب تجديد</Button>
         </div>
       ) : (
         <div className="flex items-start gap-3 rounded-2xl border border-border bg-white p-4">
           <CalendarClock className="size-5 text-primary" />
           <div>
             <p className="text-sm font-bold text-ink">اشتراكك نشط <PlanBadge plan={plan} /></p>
-            <p className="text-xs text-muted">ينتهي {formatDate(expires)} — تبقّى {days} يوم</p>
+            <p className="text-xs text-muted">ينتهي {formatDate(expires)}{days !== null ? ` — تبقّى ${days} يوم` : ''}</p>
           </div>
         </div>
       )}
@@ -74,8 +106,8 @@ export function DashboardHomePage() {
       {/* stats row */}
       <div className="grid gap-4 sm:grid-cols-3">
         <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-primary-light text-primary"><Eye className="size-5" /></div><div><p className="text-xs text-muted">المشاهدات</p><p className="text-xl font-black text-ink">{views.toLocaleString('ar-SY')}</p></div></CardBody></Card>
-        <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600"><Crown className="size-5" /></div><div><p className="text-xs text-muted">الباقة</p><p className="text-sm font-bold text-ink flex items-center gap-2"><PlanBadge plan={plan} /> {plan === 'gold' ? 'ذهبية' : plan === 'pro' ? 'احترافية' : 'مجانية'}</p></div></CardBody></Card>
-        <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><Star className="size-5" /></div><div><p className="text-xs text-muted">التقييم</p><p className="text-lg font-black text-ink">{String((e.rating as string) ?? '—')}</p></div></CardBody></Card>
+        <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-gold-soft text-gold-dark"><Crown className="size-5" /></div><div><p className="text-xs text-muted">الباقة</p><p className="text-sm font-bold text-ink flex items-center gap-2"><PlanBadge plan={plan} /> {plan === 'gold' ? 'ذهبية' : plan === 'pro' ? 'احترافية' : 'مجانية'}</p></div></CardBody></Card>
+        <Card><CardBody className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-primary-light text-primary-dark"><Star className="size-5" /></div><div><p className="text-xs text-muted">التقييم</p><p className="text-lg font-black text-ink">{String((e.rating as string) ?? '—')}</p></div></CardBody></Card>
       </div>
 
       {/* quick overview */}
@@ -84,15 +116,15 @@ export function DashboardHomePage() {
           <CardHeader><CardTitle>نظرة سريعة على ملفك</CardTitle></CardHeader>
           <CardBody className="space-y-4">
             <div className="flex gap-4">
-              <div className="size-24 shrink-0 overflow-hidden rounded-2xl border border-border bg-slate-100">
+              <div className="size-24 shrink-0 overflow-hidden rounded-2xl border border-border bg-subtle-strong">
                 {img ? <img src={img} alt="" className="size-full object-cover" /> : <div className="flex size-full items-center justify-center text-muted"><ImageIcon className="size-8" /></div>}
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="font-black text-ink">{String(e.name ?? '—')}</h3>
                 <p className="text-xs text-muted line-clamp-2">{String((e.bio as string) ?? (e.description as string) ?? 'لا توجد نبذة بعد — أضفها من تبويب الملف الشخصي')}</p>
                 <p className="mt-1 flex flex-wrap gap-2 text-xs">
-                  {(e.phone as string | null) ? <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-muted"><Phone className="size-3" /> {String(e.phone)}</span> : null}
-                  {(e.address as string | null) ? <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-muted"><MapPin className="size-3" /> {String(e.address)}</span> : null}
+                  {(e.phone as string | null) ? <span className="inline-flex items-center gap-1 rounded-full bg-subtle-strong px-2.5 py-1 text-muted"><Phone className="size-3" /> {String(e.phone)}</span> : null}
+                  {(e.address as string | null) ? <span className="inline-flex items-center gap-1 rounded-full bg-subtle-strong px-2.5 py-1 text-muted"><MapPin className="size-3" /> {String(e.address)}</span> : null}
                 </p>
               </div>
             </div>
@@ -111,9 +143,9 @@ export function DashboardHomePage() {
           <Card>
             <CardHeader><CardTitle>إجراءات سريعة</CardTitle></CardHeader>
             <CardBody className="grid gap-2">
-              <Link to="/dashboard/profile" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-slate-50"><Phone className="size-4 text-primary" /> تحديث الهاتف والعنوان</Link>
-              <Link to="/dashboard/hours" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-slate-50"><Clock className="size-4 text-primary" /> تعديل أوقات الدوام</Link>
-              <Link to="/dashboard/location" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-slate-50"><MapPin className="size-4 text-primary" /> تحديد الموقع على الخريطة</Link>
+              <Link to="/dashboard/profile" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-subtle"><Phone className="size-4 text-primary" /> تحديث الهاتف والعنوان</Link>
+              <Link to="/dashboard/hours" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-subtle"><Clock className="size-4 text-primary" /> تعديل أوقات الدوام</Link>
+              <Link to="/dashboard/location" className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-bold hover:bg-subtle"><MapPin className="size-4 text-primary" /> تحديد الموقع على الخريطة</Link>
               <a href={mapsLink(e.lat as number | null, e.lng as number | null, e.address as string | null)} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-dark"><MapPin className="size-4" /> عرض موقعي على خرائط Google</a>
             </CardBody>
           </Card>
@@ -125,6 +157,31 @@ export function DashboardHomePage() {
           </Card>
         </div>
       </div>
+
+      {/* renewal request dialog */}
+      <Dialog open={renewOpen} onClose={() => setRenewOpen(false)} title="طلب تجديد الباقة">
+        <div className="space-y-4">
+          <p className="rounded-xl bg-subtle px-4 py-3 text-xs leading-6 text-muted">
+            يُفعّل الاشتراك لمدة <strong className="text-ink">شهر واحد</strong> من تاريخ الموافقة على الطلب، وعند انتهائه يمكنك التقديم على تجديد جديد من هذه اللوحة نفسها.
+          </p>
+          <Field label="الباقة المطلوبة">
+            <Select value={renewPlan} onChange={(ev) => setRenewPlan(ev.target.value)}>
+              <option value="pro">الباقة الاحترافية</option>
+              <option value="gold">الباقة الذهبية</option>
+            </Select>
+          </Field>
+          <Field label="رقم الهاتف للتواصل">
+            <Input value={renewPhone} onChange={(ev) => setRenewPhone(ev.target.value)} dir="ltr" placeholder="09xx xxx xxx" />
+          </Field>
+          <Field label="ملاحظات (اختياري)">
+            <Textarea rows={3} value={renewNotes} onChange={(ev) => setRenewNotes(ev.target.value)} placeholder="أي تفاصيل تريد إبلاغ الإدارة بها…" />
+          </Field>
+          <div className="flex gap-3">
+            <Button onClick={() => void submitRenewal()} loading={sending} className="flex-1">إرسال الطلب</Button>
+            <Button variant="outline" onClick={() => setRenewOpen(false)}>إلغاء</Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   )
 }

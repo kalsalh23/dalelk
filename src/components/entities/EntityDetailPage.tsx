@@ -1,19 +1,28 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
   Phone, MessageCircle, MapPin, Clock, BadgeCheck,
-  Monitor, Siren, Star, Sparkles, Crown,
+  Monitor, Siren, Star, CalendarClock, ArrowLeft, User, Share2, ChevronDown, BellRing,
 } from 'lucide-react'
 import { useEntity } from '@/hooks/useEntities'
 import { ENTITY_TABLES } from '@/services/content'
+import { dayLabel } from '@/services/appointments'
+import { subscribePush } from '@/services/push'
+import {
+  trackBooking, fetchBookingStatus, allTrackedBookings,
+  type TrackedBooking, type BookingStatus,
+} from '@/services/bookingStatus'
 import { FullPageLoader, ErrorState } from '@/components/ui/States'
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody } from '@/components/ui/Card'
 import { VerifiedBadge, PlanBadge } from '@/components/ui/Badge'
 import { InteractiveMap } from '@/components/shared/Map'
+import { Dialog } from '@/components/ui/Dialog'
+import { Field, Input } from '@/components/ui/Field'
+import { useToast } from '@/components/ui/Toast'
 import { getPublicUrl } from '@/lib/supabase'
-import { waLink, mapsLink, cn } from '@/lib/utils'
+import { waLink, mapsLink, cn, effectivePlan } from '@/lib/utils'
 import { ENTITY_LABELS } from '@/constants'
 import type { EntityType, WorkHours } from '@/types'
 import { EntityIcon } from '@/components/ui/EntityIcon'
@@ -27,6 +36,67 @@ const DAY_NAMES: Record<string, string> = {
   wed: 'الأربعاء', thu: 'الخميس', fri: 'الجمعة',
 }
 
+// شريط الأيام: 14 يوماً قادمة (اليوم أولاً — RTL يجعله في أقصى اليمين)
+const JS_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+function buildDayStrip(): Array<{ iso: string; dayNum: string; dayName: string; isToday: boolean; key: string }> {
+  const out: Array<{ iso: string; dayNum: string; dayName: string; isToday: boolean; key: string }> = []
+  const base = new Date()
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i)
+    out.push({
+      iso: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+      dayNum: String(d.getDate()).padStart(2, '0'),
+      dayName: d.toLocaleDateString('ar', { weekday: 'long' }),
+      isToday: i === 0,
+      key: JS_DAY_KEYS[d.getDay()],
+    })
+  }
+  return out
+}
+
+function monthLabelOf(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('ar', { month: 'long', year: 'numeric' })
+}
+
+/** توليد الأوقات المتاحة كل 15 دقيقة من نص دوام اليوم — يفهم الصيغ العربية (من 5 الى 9 مساءا، 9 صباحا حتى 12 _ من 4 مساءا حتى 7...) */
+const AM_WORDS = new Set(['صباحا', 'صباح'])
+const PM_WORDS = new Set(['مساءا', 'مساء', 'ظهرا', 'ليلا', 'عصرا'])
+function to24(n: number, period: 'am' | 'pm' | null): number {
+  if (period === 'pm') return n < 12 ? n + 12 : 24
+  if (period === 'am') return n === 12 ? 12 : n
+  return n
+}
+function slotsForHours(text: string): string[] {
+  const raw = (text ?? '').trim()
+  if (!raw || raw.includes('مغلق') || raw.includes('إجازة')) return []
+  let s = raw.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+  s = s.replace(/لل/g, 'الى').replace(/حتى|حى/g, 'الى')
+  s = s.replace(/[-–—]\s*من/g, '_من').replace(/\sو\s/g, '_').replace(/\sمن\s/g, ' _ ')
+  const chunks = s.split(/_+/).map((c) => c.trim()).filter(Boolean)
+
+  const set = new Set<string>()
+  for (const chunk of chunks) {
+    const tokens = [...chunk.matchAll(/(\d{1,2})(?::(\d{2}))?\s*(صباحا|صباح|مساءا|مساء|ظهرا|ليلا|عصرا)?/g)]
+      .map((m) => ({ h: +m[1], min: m[2] ? +m[2] : 0, p: m[3] || null }))
+      .filter((tk) => tk.h <= 23 && tk.min <= 59)
+    if (tokens.length < 2) continue
+    const [a, b] = tokens
+    const segPeriod = [a.p, b.p].find((p) => p && PM_WORDS.has(p)) ? 'pm' : [a.p, b.p].find((p) => p && AM_WORDS.has(p)) ? 'am' : null
+    // في مقطع مسائي بلا وصف على البداية: إن كانت البداية >= النهاية رقمياً فهي صباحية (من 11 الى 2 ظهرا = 11:00)
+    const sa = a.p ? (PM_WORDS.has(a.p) ? 'pm' : 'am') : (segPeriod === 'pm' && a.h >= b.h ? 'am' : segPeriod)
+    const sb = b.p ? (PM_WORDS.has(b.p) ? 'pm' : 'am') : segPeriod
+    let start = to24(a.h, sa) * 60 + a.min
+    let end = to24(b.h, sb) * 60 + b.min
+    if (end < start) end += 12 * 60
+    if (segPeriod === null && start <= 7 * 60 && end > start) { start += 12 * 60; end += 12 * 60 }
+    if (end <= start || start < 0 || end > 24 * 60 || end - start > 20 * 60) continue
+    for (let x = start; x < end; x += 15) {
+      set.add(`${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`)
+    }
+  }
+  return [...set].sort()
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>
@@ -38,6 +108,29 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {children}
       </CardBody>
     </Card>
+  )
+}
+
+/** شريط الحالة المباشرة لطلب الموعد — يعرض ما وصله من نظام العيادة لحظياً */
+function BookingStatusLine({ booking }: { booking: TrackedBooking | null }) {
+  const s: BookingStatus = booking?.status ?? 'pending'
+  const tone =
+    s === 'confirmed' ? 'border-success/40 bg-emerald-50 text-emerald-800'
+      : s === 'rejected' || s === 'cancelled' ? 'border-wine/40 bg-wine-soft text-error'
+        : s === 'done' ? 'border-border bg-subtle text-muted'
+          : 'border-gold/40 bg-gold-soft text-gold-dark'
+  const label =
+    s === 'confirmed' ? 'تم تأكيد موعدك في العيادة ✓'
+      : s === 'rejected' ? 'لم يُقبل الطلب — اختر وقتاً آخر'
+        : s === 'cancelled' ? 'أُلغي الموعد — تواصل مع العيادة'
+          : s === 'done' ? 'تمت الزيارة'
+            : s === 'new' ? 'الطلب قيد المراجعة في العيادة'
+              : 'بانتظار رد العيادة…'
+  return (
+    <div className={cn('mx-auto mt-3 flex max-w-sm items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold', tone)}>
+      <span className={cn('size-2 shrink-0 rounded-full', s === 'confirmed' ? 'bg-success' : s === 'rejected' || s === 'cancelled' ? 'bg-error' : 'bg-gold-dark')} />
+      {label}
+    </div>
   )
 }
 
@@ -82,6 +175,130 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
   const { data, isLoading, isError, refetch } = useEntity<Record<string, unknown>>(type, slug)
   const [imgError, setImgError] = useState(false)
   const [ready, setReady] = useState(data)
+  const toast = useToast()
+  const [apptOpen, setApptOpen] = useState(false)
+  const [apptDay, setApptDay] = useState('')
+  const [apptTime, setApptTime] = useState('')
+  const [apptDateISO, setApptDateISO] = useState('')
+  const [takenTimes, setTakenTimes] = useState<string[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [bookedInfo, setBookedInfo] = useState<{
+    doctor: string; dateLabel: string; time: string; instant: boolean; requestId: string | null
+  } | null>(null)
+  const [bookingStatus, setBookingStatus] = useState<TrackedBooking | null>(null)
+  const [apptName, setApptName] = useState('')
+  const [apptPhone, setApptPhone] = useState('')
+  const [apptSending, setApptSending] = useState(false)
+  const [apptDone, setApptDone] = useState(false)
+  const [apptNotify, setApptNotify] = useState(true)
+  const [apptStep, setApptStep] = useState<1 | 2>(1)
+
+  const submitAppointment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!ready) return
+    if (!apptDay) { toast.show('اختر اليوم المناسب', 'error'); return }
+    if (!apptName.trim() || !apptPhone.trim()) { toast.show('أدخل الاسم ورقم الهاتف', 'error'); return }
+    if (!apptTime) { toast.show('اختر الوقت المناسب', 'error'); return }
+    setApptSending(true)
+    try {
+      const res = await fetch('/api/book-appointment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctor_id: String(ready.id),
+          date: apptDateISO,
+          time: apptTime,
+          name: apptName.trim(),
+          phone: apptPhone.trim(),
+        }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (res.status === 409 || d.error === 'taken') {
+        toast.show(d.message || 'عذراً، هذا الوقت حُجز للتو — اختر وقتاً آخر', 'error')
+        setApptTime('')
+        setApptStep(1)
+        if (apptDateISO) setTakenTimes((prev) => (prev.includes(apptTime) ? prev : [...prev, apptTime]))
+        return
+      }
+      if (!res.ok || !d.ok) {
+        toast.show(d.message || 'تعذر إتمام الحجز، حاول مجدداً', 'error')
+        return
+      }
+      // نجاح: فوري (مؤكد في نظام العيادة) أو احتياطي (طلب للمراجعة)
+      setBookedInfo({
+        doctor: d.doctor_name || String(ready.name ?? ''),
+        dateLabel: d.date_label || apptDateShort,
+        time: apptTime,
+        instant: d.mode === 'instant',
+        requestId: d.request_id ? String(d.request_id) : null,
+      })
+      setApptDone(true)
+      void track('appointment_request', { entityType: type, entityId: String(ready.id) })
+      // تتبّع الحالة: استقصاء مجاني + إشعار داخل المتصفح عند القبول/الرفض
+      if (d.request_id) {
+        const id = String(d.request_id)
+        trackBooking({
+          id,
+          doctor: d.doctor_name || String(ready.name ?? ''),
+          dateLabel: d.date_label || apptDateShort,
+          time: apptTime,
+        })
+        setBookingStatus(allTrackedBookings().find((x) => x.id === id) ?? { id, status: 'pending' })
+        // «أشعرني» مختار: اطلب الإذن وسجّل اشتراك الدفع ليصله الإشعار حتى والموقع مغلق
+        if (apptNotify) {
+          void Notification.requestPermission().then((perm) => {
+            if (perm === 'granted') void subscribePush({ appointmentId: id })
+          })
+        } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          // اشتراك صامت لمن فعّلها سابقاً (ليصله أي تحديث مستقبلي دون إزعاج)
+          void subscribePush({ appointmentId: id })
+        }
+      }
+    } catch {
+      toast.show('تعذر إتمام الحجز، حاول مجدداً', 'error')
+    } finally {
+      setApptSending(false)
+    }
+  }
+
+  // الأوقات المحجوزة فعلياً لهذا اليوم (مواعيد مؤكدة بنظام العيادة + طلبات معلقة)
+  useEffect(() => {
+    if (!apptDateISO || !ready) return
+    let cancelled = false
+    setLoadingSlots(true)
+    fetch(`/api/taken-slots?doctor_id=${ready.id}&date=${apptDateISO}`)
+      .then((r) => (r.ok ? r.json() : { taken: [] }))
+      .then((d) => { if (!cancelled) setTakenTimes(Array.isArray(d.taken) ? d.taken : []) })
+      .catch(() => { if (!cancelled) setTakenTimes([]) })
+      .finally(() => { if (!cancelled) setLoadingSlots(false) })
+    return () => { cancelled = true }
+  }, [apptDateISO, ready?.id])
+
+  useEffect(() => {
+    if (apptTime && takenTimes.includes(apptTime)) setApptTime('')
+  }, [takenTimes, apptTime])
+
+  // تحديث حالة الحجز لحظياً: استماع لحدث الخدمة + استقصاء عند الحاجة
+  useEffect(() => {
+    if (!bookedInfo?.requestId) return
+    const id = bookedInfo.requestId
+    const sync = () => {
+      const b = allTrackedBookings().find((x) => x.id === id)
+      if (b) setBookingStatus(b)
+    }
+    const onStatus = (e: Event) => {
+      const detail = (e as CustomEvent<{ id: string; status: BookingStatus }>).detail
+      if (detail?.id === id) sync()
+    }
+    sync()
+    void fetchBookingStatus(id).then(sync)
+    window.addEventListener('dalil-booking-status', onStatus)
+    const t = setInterval(() => void fetchBookingStatus(id).then(sync), 15000)
+    return () => {
+      window.removeEventListener('dalil-booking-status', onStatus)
+      clearInterval(t)
+    }
+  }, [bookedInfo?.requestId])
 
   useEffect(() => {
     if (data) {
@@ -109,10 +326,52 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
   const services = (ready.services as string[] | null) ?? null
   const hours = (ready.work_hours as WorkHours) ?? null
   const certified = Boolean(ready.is_verified)
-  const plan = (ready.plan as string) ?? 'free'
+  const plan = effectivePlan(ready as { plan?: string | null; plan_expires_at?: string | null })
   const rating = ready.rating ? Number(ready.rating) : null
 
+  // شريط الحجز: الأيام + حالة الفتح + الأوقات المتاحة لليوم المختار
+  const stripDays = buildDayStrip()
+  const dayOpen = (key: string) => !hours || !Object.keys(hours).length || Boolean((hours[key] ?? '').trim())
+  const daySlots = apptDay ? slotsForHours(String(hours?.[apptDay] ?? '')) : []
+  const apptDateShort = apptDateISO
+    ? new Date(apptDateISO + 'T00:00:00').toLocaleDateString('ar', { day: 'numeric', month: 'long' })
+    : ''
+
   const routeLink = `${type === 'health_center' ? 'health-centers' : type === 'radiology' ? 'radiology' : `${type}s`}`
+  const shareUrl = absoluteUrl(`/${routeLink}/${encodeURIComponent(String(ready.slug ?? slug ?? ''))}`)
+
+  // وضع الإجازة: يوقف طلبات المواعيد مؤقتاً ويعرض رسالة على الصفحة
+  const vacationUntil = (ready.vacation_until as string | null) ?? null
+  const onVacation = Boolean(
+    type === 'doctor' && vacationUntil && new Date(vacationUntil + 'T23:59:59') >= new Date(),
+  )
+  const vacationLabel = vacationUntil
+    ? new Date(vacationUntil + 'T00:00:00').toLocaleDateString('ar', { weekday: 'long', day: 'numeric', month: 'long' })
+    : ''
+
+  // مشاركة صفحة الجهة: لوحة المشاركة الأصلية على الجوال (واتساب وغيره)، أو نسخ الرابط كبديل
+  const shareEntity = async () => {
+    const shareData: ShareData = {
+      title: name,
+      text: `تعرّف على ${name} (${specialty ?? ENTITY_LABELS[type]}) — عبر دليل طيبة الإمام الطبي`,
+      url: shareUrl,
+    }
+    void track('share', { entityType: type, entityId: String(ready.id) })
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+        return
+      } catch (err) {
+        if ((err as DOMException)?.name === 'AbortError') return // أغلق نافذة المشاركة بنفسه
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      toast.show('تم نسخ رابط الصفحة — يمكنك إرساله لأي شخص')
+    } catch {
+      toast.show('تعذر نسخ الرابط', 'error')
+    }
+  }
 
   const schema: object[] = [
     {
@@ -138,7 +397,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
         title={name}
         description={description ?? name}
         image={image}
-        path={`/${routeLink}/${slug}`}
+        path={`/${routeLink}/${encodeURIComponent(slug ?? "")}`}
         type="profile"
         jsonLd={schema}
       />
@@ -152,44 +411,19 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
         />
       </div>
 
-      {/* بانر ترقية الباقات للجهات المجانية */}
-      {plan === 'free' && (
-        <div className="mb-6 flex flex-col gap-3 rounded-[18px] border border-primary/20 bg-gradient-to-l from-primary-light/50 to-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
-              <Crown className="size-5" />
-            </span>
-            <div>
-              <p className="text-sm font-black text-ink">هل تملك هذه الجهة؟</p>
-              <p className="mt-0.5 text-xs leading-6 text-muted">
-                صفحتك حالياً على الباقة المجانية. ارتقِ إلى الباقة الاحترافية أو الذهبية لإبرازها في الدليل وتمييزها بشارة مميزة.
-              </p>
-            </div>
-          </div>
-          <Link to="/plans" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-dark">
-            <Sparkles className="size-4" />
-            عرض الباقات والترقية
-          </Link>
-        </div>
-      )}
-
       {/* بطاقة رئيسية */}
       <div className="mb-6 overflow-hidden rounded-[18px] border border-border bg-surface shadow-[var(--shadow-card)]">
-        <div className="h-40 w-full bg-gradient-to-l from-primary to-primary-dark sm:h-52">
-          {image && !imgError && (
-            <img src={image} alt={name} onError={() => setImgError(true)} className="h-full w-full object-cover opacity-90" />
-          )}
-        </div>
+        <div className="h-28 w-full bg-gradient-to-l from-primary to-primary-dark sm:h-36" />
         <div className="px-5 pb-5 pt-0 sm:px-8">
           <div className="-mt-14 flex flex-col gap-4 sm:flex-row sm:items-end">
             <div
               className={cn(
-                'flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border-4 border-surface bg-primary-light text-primary-dark shadow-lg sm:size-32',
+                'flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-surface bg-primary-light text-primary-dark shadow-lg sm:size-32',
                 imgError || !image ? 'relative' : '',
               )}
             >
               {image && !imgError ? (
-                <img src={image} alt={name} className="h-full w-full object-cover" />
+                <img src={image} alt={name} onError={() => setImgError(true)} className="h-full w-full object-cover" />
               ) : (
                 <EntityIcon type={type} className="size-12" />
               )}
@@ -199,14 +433,23 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                 <h1 className="text-2xl font-black text-ink sm:text-3xl">{name}</h1>
                 {certified && <VerifiedBadge />}
                 {plan !== 'free' && <PlanBadge plan={plan} />}
+                {/* أيقونة مشاركة صغيرة في الجهة المقابلة للاسم */}
+                <button
+                  onClick={() => void shareEntity()}
+                  title="مشاركة هذه الجهة"
+                  aria-label="مشاركة"
+                  className="ms-auto flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-muted transition hover:border-primary hover:bg-primary-light hover:text-primary"
+                >
+                  <Share2 className="size-4.5" />
+                </button>
               </div>
               <p className="mt-1 flex items-center gap-2 text-sm font-semibold text-primary-dark">
                 <span className="rounded-full bg-primary-light px-3 py-1 text-xs font-bold">
                   {specialty ?? ENTITY_LABELS[type]}
                 </span>
                 {rating ? (
-                  <span className="flex items-center gap-1 text-sm font-bold text-amber-600">
-                    <Star className="size-4 fill-amber-500 text-amber-500" />
+                  <span className="flex items-center gap-1 text-sm font-bold text-gold-dark">
+                    <Star className="size-4 fill-gold text-gold-dark" />
                     {rating.toFixed(1)}
                   </span>
                 ) : null}
@@ -220,12 +463,24 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
             </div>
           </div>
 
-          {(phone || whatsapp) && (
+          {onVacation && (
+            <div className="mt-6 flex items-center gap-3 rounded-2xl border border-gold/50 bg-gold-soft/70 px-4 py-3.5">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gold text-primary-dark">
+                <CalendarClock className="size-5" />
+              </span>
+              <div>
+                <p className="text-sm font-black text-gold-dark">الطبيب في إجازة حتى {vacationLabel}</p>
+                <p className="text-xs text-muted">طلبات المواعيد متوقفة مؤقتاً — يمكنك التواصل هاتفياً أو عبر واتساب للاستفسار.</p>
+              </div>
+            </div>
+          )}
+
+          {(phone || whatsapp || type === 'doctor') && (
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               {phone && (
                 <Button size="lg" onClick={() => void track('phone_click', { entityType: type, entityId: String(ready.id) })} asChild>
                   <a href={`tel:${phone}`} className="!w-full sm:!flex-1">
-                    <Phone className="size-5" />
+                    <Phone className="size-5 shrink-0" />
                     اتصال
                   </a>
                 </Button>
@@ -233,19 +488,27 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
               {whatsapp && (
                 <Button size="lg" variant="whatsapp" onClick={() => void track('whatsapp_click', { entityType: type, entityId: String(ready.id) })} asChild>
                   <a href={waLink(whatsapp, `مرحباً، أود الاستفسار من ${name}`)} target="_blank" rel="noopener noreferrer" className="!w-full sm:!flex-1">
-                    <MessageCircle className="size-5" />
+                    <MessageCircle className="size-5 shrink-0" />
                     واتساب
                   </a>
                 </Button>
               )}
-              {(lat && lng) || address ? (
-                <Button size="lg" variant="secondary" onClick={() => void track('map_click', { entityType: type, entityId: String(ready.id) })} asChild>
-                  <a href={mapsLink(lat, lng, address)} target="_blank" rel="noopener noreferrer" className="!w-full sm:!flex-1">
-                    <MapPin className="size-5" />
-                    الموقع
-                  </a>
+              {type === 'doctor' && (
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  disabled={plan === 'free' || onVacation}
+                  title={onVacation ? 'الطبيب في إجازة حالياً — طلبات المواعيد متوقفة مؤقتاً' : plan === 'free' ? 'طلبات المواعيد متاحة للأطباء المشتركين في باقة مدفوعة — اشترك من صفحة الباقات لتفعيلها' : undefined}
+                  onClick={() => { if (plan !== 'free' && !onVacation) { const d0 = buildDayStrip().find((d) => !hours || !Object.keys(hours).length || Boolean((hours[d.key] ?? '').trim())) ?? buildDayStrip()[0]; setApptOpen(true); setApptDone(false); setApptStep(1); setApptDay(d0.key); setApptDateISO(d0.iso); setApptTime('') } }}
+                  className={cn(
+                    '!w-full sm:!flex-1 bg-none bg-gradient-to-l from-gold to-gold-dark text-primary-dark font-black shadow-lg shadow-gold/40 hover:brightness-105 hover:text-primary-dark border border-gold-dark/30',
+                    plan === 'free' && 'cursor-not-allowed',
+                  )}
+                >
+                  <CalendarClock className="size-5 shrink-0" />
+                  طلب موعد
                 </Button>
-              ) : null}
+              )}
             </div>
           )}
         </div>
@@ -282,7 +545,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
             <Section title={type === 'lab' ? 'الخدمات والتحاليل' : type === 'radiology' ? 'الخدمات والأجهزة' : 'الخدمات'}>
               <div className="flex flex-wrap gap-2">
                 {services.map((s) => (
-                  <span key={s} className="rounded-xl bg-slate-50 border border-border px-3 py-1.5 text-xs font-semibold text-ink">
+                  <span key={s} className="rounded-xl bg-subtle border border-border px-3 py-1.5 text-xs font-semibold text-ink">
                     {s}
                   </span>
                 ))}
@@ -339,28 +602,28 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
         <div className="space-y-6">
           <Section title="معلومات التواصل">
             <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+              <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
                 <span className="text-muted">الهاتف</span>
                 <a href={`tel:${phone}`} className="font-bold text-primary" dir="ltr">{phone ?? '—'}</a>
               </div>
               {ready.emergency_phone ? (
-                <div className="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-wine-soft px-4 py-3">
                   <span className="flex items-center gap-1.5 font-bold text-error"><Siren className="size-4" />الطوارئ</span>
                   <a href={`tel:${ready.emergency_phone}`} className="font-bold text-error" dir="ltr">{String(ready.emergency_phone)}</a>
                 </div>
               ) : null}
               {whatsapp ? (
-                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
                   <span className="text-muted">واتساب</span>
                   <a href={waLink(whatsapp)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary" dir="ltr">{whatsapp}</a>
                 </div>
               ) : null}
-              <div className="flex items-start justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3">
+              <div className="flex items-start justify-between gap-3 rounded-xl bg-subtle px-4 py-3">
                 <span className="text-muted">العنوان</span>
                 <span className="text-left font-semibold text-ink">{address ?? '—'}</span>
               </div>
               {(ready.opening_hours as string | null) && (
-                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
                   <span className="flex items-center gap-1.5 text-muted"><Clock className="size-4" />الدوام</span>
                   <span className="font-semibold text-ink">{String(ready.opening_hours)}</span>
                 </div>
@@ -407,6 +670,245 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
           </Section>
         </div>
       </div>
+
+      {/* حوار طلب موعد — للأطباء فقط */}
+      {type === 'doctor' && (
+        <Dialog open={apptOpen} onClose={() => setApptOpen(false)} title={`طلب موعد — ${name}`}>
+          {apptDone ? (
+            <div className="py-6 text-center">
+              <span className={`mx-auto flex size-14 items-center justify-center rounded-full ${bookedInfo?.instant ? 'bg-emerald-50 text-success' : 'bg-primary-light text-primary-dark'}`}>
+                <CalendarClock className="size-7" />
+              </span>
+              <h3 className="mt-4 text-lg font-black text-ink">
+                {bookedInfo?.instant ? 'تم الحجز بنجاح ✓' : 'تم إرسال طلب موعدك'}
+              </h3>
+              {bookedInfo?.instant ? (
+                <>
+                  <div className="mx-auto mt-3 max-w-sm rounded-2xl border border-emerald-200 bg-emerald-50/60 px-5 py-4 text-start">
+                    <p className="flex items-center justify-between text-sm">
+                      <span className="text-muted">الطبيب</span>
+                      <span className="font-bold text-ink">{bookedInfo.doctor}</span>
+                    </p>
+                    <p className="mt-2 flex items-center justify-between text-sm">
+                      <span className="text-muted">اليوم والتاريخ</span>
+                      <span className="font-bold text-ink">{bookedInfo.dateLabel}</span>
+                    </p>
+                    <p className="mt-2 flex items-center justify-between text-sm">
+                      <span className="text-muted">الساعة</span>
+                      <span className="font-bold text-ink" dir="ltr">{bookedInfo.time}</span>
+                    </p>
+                  </div>
+                  <p className="mx-auto mt-3 max-w-sm text-sm leading-7 text-muted">
+                    موعدك مؤكد في نظام العيادة — احتفظ بهذا الوقت. لتعديله أو إلغائه تواصل مع العيادة هاتفياً
+                    <span className="font-bold text-ink" dir="ltr"> {apptPhone ? '' : ''}</span>.
+                  </p>
+                </>
+              ) : (
+                <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-muted">
+                  وصل طلبك إلى {name} وسيتم التواصل معك على رقمك
+                  <span className="font-bold text-ink" dir="ltr"> {apptPhone}</span> لتأكيد الموعد.
+                </p>
+              )}
+              {/* الحالة المباشرة لطلب الموعد — تحديث فوري من نظام العيادة */}
+              {bookedInfo?.requestId && !bookedInfo.instant && <BookingStatusLine booking={bookingStatus} />}
+              {/* تفعيل إشعارات هذا الموعد ليصلك التنبيه حتى والموقع مغلق */}
+              <div className="mx-auto mt-4 max-w-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const id = bookedInfo?.requestId
+                    if (!id) return
+                    void Notification.requestPermission().then((perm) => {
+                      if (perm === 'granted') {
+                        void subscribePush({ appointmentId: id }).then(() =>
+                          toast.show('مفعّل — سيصلك إشعار فوري عند قبول أو رفض طلبك', 'success'),
+                        )
+                      }
+                    })
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary-light/40 px-4 py-2.5 text-sm font-bold text-primary-dark transition hover:bg-primary-light"
+                >
+                  <BellRing className="size-4" />
+                  فعّل إشعار هذا الموعد
+                </button>
+              </div>
+              <Button variant="outline" className="mt-5" onClick={() => { setApptOpen(false); setApptDone(false); setApptStep(1); setApptDay(''); setApptTime(''); setApptDateISO(''); setApptName(''); setApptPhone(''); setApptDateISO(''); setBookedInfo(null) }}>
+                إغلاق
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={submitAppointment} className="space-y-4">
+              {/* مؤشر الخطوات */}
+              <div className="flex items-center justify-center gap-2" aria-hidden="true">
+                {[1, 2].map((n) => (
+                  <span
+                    key={n}
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black transition',
+                      apptStep === n ? 'bg-primary text-white' : 'bg-subtle text-muted',
+                    )}
+                  >
+                    {n === 1 ? <CalendarClock className="size-3.5" /> : <User className="size-3.5" />}
+                    {n === 1 ? 'الموعد' : 'بياناتك'}
+                  </span>
+                ))}
+                <span className={cn('h-0.5 w-6 rounded-full transition', apptStep === 2 ? 'bg-primary' : 'bg-subtle-strong')} />
+              </div>
+
+              {apptStep === 1 ? (
+                <>
+                  <p className="rounded-xl bg-subtle px-4 py-3 text-xs leading-6 text-muted">
+                    هذه خدمة <strong className="text-ink">طلب موعد</strong> — يصل طلبك إلى الطبيب ليؤكده، وستتم تسوية الوقت النهائي معكم هاتفياً أو عبر واتساب.
+                  </p>
+
+                  {/* الشهر */}
+                  <div className="flex items-center gap-1">
+                    <p className="text-lg font-black text-ink">{monthLabelOf(apptDateISO || stripDays[0].iso)}</p>
+                    <ChevronDown className="size-4 text-muted" />
+                  </div>
+
+                  {/* شريط الأيام */}
+                  <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {stripDays.map((d) => {
+                      const open = dayOpen(d.key)
+                      const selected = apptDateISO === d.iso
+                      return (
+                        <button
+                          key={d.iso}
+                          type="button"
+                          disabled={!open}
+                          onClick={() => { setApptDateISO(d.iso); setApptDay(d.key); setApptTime('') }}
+                          className={cn(
+                            'flex h-28 w-[68px] shrink-0 flex-col items-center justify-center gap-2.5 rounded-[30px] border transition',
+                            selected
+                              ? 'border-primary bg-primary text-white shadow-lg shadow-primary/25'
+                              : open
+                                ? 'cursor-pointer border-transparent bg-subtle text-ink hover:bg-subtle-strong/60'
+                                : 'cursor-not-allowed border-transparent bg-subtle/40 text-muted/50',
+                          )}
+                        >
+                          <span className="text-[13px] font-bold">{d.isToday ? 'اليوم' : d.dayName}</span>
+                          <span className={cn('flex size-9 items-center justify-center rounded-full text-base font-black', selected && 'bg-white text-primary-dark')}>
+                            {d.dayNum}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* الأوقات المتاحة */}
+                  <div className="rounded-2xl bg-subtle/70 p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-sm font-black text-ink">الأوقات المتاحة</p>
+                      {daySlots.length > 0 && <p className="text-sm font-bold text-muted">{daySlots.length} الأوقات المتاحة</p>}
+                    </div>
+                    {daySlots.length > 0 ? (
+                      loadingSlots ? (
+                        <div className="flex items-center justify-center py-6 text-xs font-bold text-muted">
+                          <span className="me-2 size-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                          جارٍ التحقق من الأوقات المتاحة…
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2">
+                          {daySlots.map((s) => {
+                            const taken = takenTimes.includes(s)
+                            const selected = apptTime === s
+                            return (
+                              <button
+                                key={s}
+                                type="button"
+                                disabled={taken}
+                                onClick={() => setApptTime(s)}
+                                className={cn(
+                                  'rounded-xl border py-2 text-sm font-black transition',
+                                  taken
+                                    ? 'cursor-not-allowed border-rose-200 bg-rose-50 text-rose-400'
+                                    : selected
+                                      ? 'border-primary bg-primary text-white ring-2 ring-primary/25'
+                                      : 'cursor-pointer border-transparent bg-surface text-ink hover:border-primary/40',
+                                )}
+                                dir="ltr"
+                              >
+                                <span className="block">{s}</span>
+                                <span className={cn('block text-[9px] font-bold leading-3', taken ? 'text-rose-400' : selected ? 'text-white/80' : 'text-slate-300')}>
+                                  {taken ? 'محجوز' : 'متاح'}
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )
+                    ) : (
+                      <Field label="الوقت المفضل (تقريبي)" hint="أوقات دوام الطبيب غير محددة بدقة لهذا اليوم — اكتب الوقت المناسب لك">
+                        <Input value={apptTime} onChange={(e) => setApptTime(e.target.value)} placeholder="مثال: 10:00 صباحاً" />
+                      </Field>
+                    )}
+                    {daySlots.length === 0 && hours && Object.keys(hours).length > 0 && (
+                      <p className="mt-2 text-[11px] text-muted">أيام دوام الطبيب فقط — الأيام الرمادية مغلقة.</p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="button"
+                    className="w-full"
+                    disabled={!apptDay || loadingSlots || (daySlots.length > 0 && !apptTime)}
+                    onClick={() => setApptStep(2)}
+                  >
+                    التالي
+                    <ArrowLeft className="size-4" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {/* ملخص المختارات من الخطوة السابقة */}
+                  <button
+                    type="button"
+                    onClick={() => setApptStep(1)}
+                    className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-primary/20 bg-primary-light/30 px-4 py-3 text-right transition hover:border-primary/50"
+                  >
+                    <span className="flex items-center gap-2 text-sm font-bold text-primary-dark">
+                      <CalendarClock className="size-4" />
+                      {dayLabel(apptDay)}{apptTime ? ` — الساعة ${apptTime}` : ''}{apptDateShort ? ` (${apptDateShort})` : ''}{apptDateShort ? ` (${apptDateShort})` : ''}
+                    </span>
+                    <span className="text-[11px] font-bold text-primary hover:underline">تعديل</span>
+                  </button>
+
+                  <div className="grid gap-4">
+                    <Field label="الاسم" required>
+                      <Input value={apptName} onChange={(e) => setApptName(e.target.value)} placeholder="اسمك الكريم" />
+                    </Field>
+                    <Field label="رقم الهاتف" required>
+                      <Input type="tel" value={apptPhone} onChange={(e) => setApptPhone(e.target.value)} placeholder="09xx xxx xxx" dir="ltr" />
+                    </Field>
+                  </div>
+
+                  <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-primary/20 bg-primary-light/30 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 size-4 accent-[#428177]"
+                      checked={apptNotify}
+                      onChange={(e) => setApptNotify(e.target.checked)}
+                    />
+                    <span className="text-xs leading-6 text-muted">
+                      <strong className="text-ink">أبلغني عند تحديث حالة الطلب</strong> — إشعار متصفح يصلك فور تأكيد الطبيب للموعد (حتى وأنت خارج الموقع).
+                    </span>
+                  </label>
+
+                  <div className="flex gap-3">
+                    <Button type="submit" loading={apptSending} className="flex-1">
+                      <CalendarClock className="size-4" />
+                      حجز موعد
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setApptStep(1)}>
+                      السابق
+                    </Button>
+                  </div>
+                </>
+              )}
+            </form>
+          )}
+        </Dialog>
+      )}
     </div>
   )
 }

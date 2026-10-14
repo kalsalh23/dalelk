@@ -3,7 +3,7 @@ import { Loader2, SearchX } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded-xl bg-slate-200/70', className)} />
+  return <div className={cn('animate-pulse rounded-xl bg-subtle-strong/70', className)} />
 }
 
 export function Skeletons({ rows = 6, box }: { rows?: number; box?: string }) {
@@ -63,7 +63,7 @@ export function EmptyState({
 
 export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-[18px] border border-red-100 bg-red-50/60 px-6 py-12 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-[18px] border border-wine/20 bg-wine-soft/60 px-6 py-12 text-center">
       <h3 className="text-lg font-bold text-error">حدث خطأ ما</h3>
       <p className="text-sm text-muted">{message ?? 'تعذر تحميل البيانات. حاول مرة أخرى.'}</p>
       {onRetry && (
