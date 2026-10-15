@@ -6,6 +6,7 @@ import { ToastProvider } from '@/components/ui/Toast'
 import { APP_SLOGAN } from '@/constants'
 import { applySeo } from '@/lib/seo'
 import { healPushSubscription } from '@/services/push'
+import { Analytics } from '@vercel/analytics/react'
 
 // بدون title: يستخدم الاسم الخارجي الكامل «دليل طيبة الإمام الطبي» كعنوان افتراضي
 applySeo({ description: APP_SLOGAN })
@@ -18,6 +19,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <RouterProvider router={router} />
+        <Analytics />
       </ToastProvider>
     </QueryClientProvider>
   )
