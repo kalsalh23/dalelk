@@ -977,4 +977,3 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
     </div>
   )
 }
-
