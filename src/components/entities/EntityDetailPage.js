@@ -2,6 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Phone, MessageCircle, MapPin, Clock, BadgeCheck, Monitor, Siren, Star, CalendarClock, ArrowLeft, User, Share2, ChevronDown, BellRing, CalendarX, } from 'lucide-react';
+import { FacebookIcon, InstagramIcon } from '@/components/ui/BrandIcons';
 import { useEntity } from '@/hooks/useEntities';
 import { ENTITY_TABLES } from '@/services/content';
 import { dayLabel } from '@/services/appointments';
