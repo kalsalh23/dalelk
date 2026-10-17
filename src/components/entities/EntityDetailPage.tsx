@@ -633,24 +633,17 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
         <div className="space-y-6">
           <Section title="معلومات التواصل">
             <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
-                <span className="text-muted">الهاتف</span>
-                <a href={`tel:${phone}`} className="font-bold text-primary" dir="ltr">{phone ?? '—'}</a>
+                                          <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
+                <span className="flex items-center gap-2 text-muted">
+                  <InstagramIcon className="size-4.5 text-primary" />
+                  انستغرام
+                </span>
+                {ready.instagram ? (
+                  <a href={String(ready.instagram)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary truncate max-w-[60%]" dir="ltr">{String(ready.instagram)}</a>
+                ) : (
+                  <span className="font-bold text-primary truncate max-w-[60%]" dir="ltr">?????? ??? ?????</span>
+                )}
               </div>
-              {ready.emergency_phone ? (
-                <div className="flex items-center justify-between rounded-xl bg-wine-soft px-4 py-3">
-                  <span className="flex items-center gap-1.5 font-bold text-error"><Siren className="size-4" />الطوارئ</span>
-                  <a href={`tel:${ready.emergency_phone}`} className="font-bold text-error" dir="ltr">{String(ready.emergency_phone)}</a>
-                </div>
-              ) : null}
-              {whatsapp ? (
-                <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
-                  <span className="text-muted">واتساب</span>
-                  <a href={waLink(whatsapp)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary" dir="ltr">{whatsapp}</a>
-                </div>
-              ) : null}
-              <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">`n                <span className="flex items-center gap-2 text-muted">`n                  <FacebookIcon className="size-4.5 text-primary" />`n                  فيسبوك`n                </span>`n                {ready.facebook ? (`n                  <a href={String(ready.facebook)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary truncate max-w-[60%]" dir="ltr">{String(ready.facebook)}</a>`n                ) : (`n                  <span className="font-bold text-primary truncate max-w-[60%]" dir="ltr">?????? ??? ?????</span>`n                )}`n              </div>
-              <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">`n                <span className="flex items-center gap-2 text-muted">`n                  <InstagramIcon className="size-4.5 text-primary" />`n                  انستغرام`n                </span>`n                {ready.instagram ? (`n                  <a href={String(ready.instagram)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary truncate max-w-[60%]" dir="ltr">{String(ready.instagram)}</a>`n                ) : (`n                  <span className="font-bold text-primary truncate max-w-[60%]" dir="ltr">?????? ??? ?????</span>`n                )}`n              </div>
               <div className="flex items-start justify-between gap-3 rounded-xl bg-subtle px-4 py-3">
                 <span className="text-muted">العنوان</span>
                 <span className="text-left font-semibold text-ink">{address ?? '—'}</span>
@@ -984,3 +977,4 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
     </div>
   )
 }
+
