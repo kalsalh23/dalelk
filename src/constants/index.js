@@ -1,0 +1,201 @@
+export const APP_NAME = 'دليل طيبة الإمام الطبي';
+/** الاسم الخارجي الكامل للمنصة (عنوان التبويب، المشاركة، نتائج البحث) */
+export const APP_FULL_NAME = 'دليل طيبة الإمام الطبي';
+/** إظهار زر «دخول الجهة» في الترويسة — أخفِه حالياً (يُعاد لاحقاً بتعيين true) */
+export const SHOW_ENTITY_LOGIN = false;
+/** رقم دعم المنصة والإدارة (واتساب) */
+export const SUPPORT_WHATSAPP = '84382676210';
+export const APP_SLOGAN = 'كل ما تحتاجه من خدمات صحية في مدينة طيبة الإمام... في مكان واحد.';
+export const DEFAULT_CITY = 'طيبة الإمام';
+/** مفتاح عرض قسم العيادات في الموقع — عطّله مؤقتاً (اجعله true لاستخدامه لاحقاً) */
+export const FEATURE_CLINICS = false;
+export const SERVICES = [
+    {
+        key: 'doctor',
+        name: 'الأطباء',
+        description: 'أطباء الاختصاص العام والاختصاصات الدقيقة في المدينة.',
+        route: '/doctors',
+        icon: 'stethoscope',
+        color: 'emerald',
+    },
+    {
+        key: 'clinic',
+        name: 'العيادات',
+        description: 'عيادات خاصة للاختصاصات المتنوعة.',
+        route: '/clinics',
+        icon: 'building',
+        color: 'teal',
+    },
+    {
+        key: 'hospital',
+        name: 'المشافي',
+        description: 'مشافي ومراكز علاجية في طيبة الإمام.',
+        route: '/hospitals',
+        icon: 'hospital',
+        color: 'sky',
+    },
+    {
+        key: 'pharmacy',
+        name: 'الصيدليات',
+        description: 'صيدليات موثوقة لجميع الاحتياجات الدوائية.',
+        route: '/pharmacies',
+        icon: 'pill',
+        color: 'green',
+    },
+    {
+        key: 'duty',
+        name: 'الصيدليات المناوبة',
+        description: 'الصيدليات المناوبة خارج ساعات الدوام.',
+        route: '/duty-pharmacies',
+        icon: 'moon',
+        color: 'indigo',
+    },
+    {
+        key: 'lab',
+        name: 'المخابر',
+        description: 'مخابر التحاليل الطبية والأحياء الدقيقة.',
+        route: '/labs',
+        icon: 'flask',
+        color: 'amber',
+    },
+    {
+        key: 'radiology',
+        name: 'مراكز الأشعة',
+        description: 'مراكز التصوير الشعاعي والرنين المغناطيسي.',
+        route: '/radiology',
+        icon: 'scan',
+        color: 'rose',
+    },
+    {
+        key: 'health_center',
+        name: 'المراكز الصحية',
+        description: 'مراكز رعاية صحية أولية للمواطنين.',
+        route: '/health-centers',
+        icon: 'heart-pulse',
+        color: 'orange',
+    },
+];
+export const ARTICLE_CATEGORIES = [
+    'الأطفال',
+    'المرأة',
+    'التغذية',
+    'القلب',
+    'السكري',
+    'الضغط',
+    'الصحة النفسية',
+    'الرياضة',
+    'الوقاية',
+    'الأدوية',
+    'الإسعافات الأولية',
+];
+export const SPECIALTIES = [
+    'طب عام',
+    'طب الأطفال',
+    'النسائية والتوليد',
+    'القلبية',
+    'الأذن والأنف والحنجرة',
+    'العينية',
+    'الأمراض الجلدية',
+    'العظمية',
+    'الباطنية',
+    'الأمراض النفسية',
+    'المسالك البولية',
+    'الأسنان',
+    'الجراحة العامة',
+    'العصبية',
+    'الغدد والسكري',
+    'العلاج الفيزيائي',
+    'التمريض',
+];
+export const PLANS = [
+    {
+        key: 'free',
+        name: 'الخطة المجانية',
+        icon: 'free',
+        description: 'الإدراج الأساسي في الدليل',
+        features: ['صورة واحدة', 'رقم الهاتف', 'الموقع على الخريطة', 'الظهور الطبيعي في البحث'],
+    },
+    {
+        key: 'pro',
+        name: 'الخطة الاحترافية',
+        icon: 'sparkles',
+        description: 'ملف احترافي كامل',
+        features: [
+            'حتى 20 صورة',
+            'فيديو تعريفي',
+            'معرض الخدمات',
+            'جميع وسائل التواصل وواتساب',
+            'شارة موثّق',
+            'ظهور أفضل في البحث',
+            'إحصائيات الصفحة',
+        ],
+    },
+    {
+        key: 'gold',
+        name: 'الخطة الذهبية',
+        icon: 'crown',
+        description: 'كل مزايا الاحترافية مع تميّز كامل',
+        features: [
+            'كل مزايا الاحترافية',
+            'بانر بارز',
+            'صفحة مميزة',
+            'عرض الفريق الطبي',
+            'أولوية في البحث',
+            'الظهور في الصفحة الرئيسية',
+            'تمييز البطاقة',
+        ],
+    },
+];
+export const PLAN_NAMES = {
+    free: 'مجاني',
+    pro: 'احترافي',
+    gold: 'ذهبي',
+};
+// تُقرأ القيمة الفعلية من إعدادات المنصة (app_settings) — هذا هو الافتراضي إن غابت الإعدادات
+export const SUBSCRIPTIONS_ENABLED = true;
+export const DAYS_AR = {
+    sat: 'السبت',
+    sun: 'الأحد',
+    mon: 'الاثنين',
+    tue: 'الثلاثاء',
+    wed: 'الأربعاء',
+    thu: 'الخميس',
+    fri: 'الجمعة',
+};
+export const DEFAULT_WORK_HOURS = {
+    sat: '9:00 - 17:00',
+    sun: '9:00 - 17:00',
+    mon: '9:00 - 17:00',
+    tue: '9:00 - 17:00',
+    wed: '9:00 - 17:00',
+    thu: '9:00 - 17:00',
+    fri: 'مغلق',
+};
+export const ENTITY_LABELS = {
+    doctor: 'طبيب',
+    clinic: 'عيادة',
+    hospital: 'مشفى',
+    health_center: 'مركز صحي',
+    pharmacy: 'صيدلية',
+    lab: 'مخبر',
+    radiology: 'مركز أشعة',
+};
+export const MAP_COLORS = {
+    doctor: '#428177',
+    clinic: '#054239',
+    hospital: '#6b1f2a',
+    health_center: '#b9a779',
+    pharmacy: '#988561',
+    lab: '#4a151e',
+    radiology: '#260f14',
+};
+export const DEFAULT_CITY_COORDS = { lat: 35.2662637, lng: 36.7118709 };
+export const ABOUT_TEXT = 'دليل طيبة الإمام الطبي منصة رقمية شاملة للخدمات الطبية في مدينة طيبة الإمام، يوفر للمواطن قائمة موثّقة بالأطباء والعيادات والمشافي والصيدليات والمراكز الصحية، مع مواقعهم على الخريطة وساعات الدوام وأرقام التواصل، بالإضافة إلى نصائح طبية موثوقة وقاعدة أسئلة وأجوبة صحية.';
+export const DEFAULT_DEVELOPER = {
+    name: 'م. قصي مهند الصالح',
+    title: 'مطوّر المنصة',
+    phone: '0952639157',
+    international_phone: '+963952639157',
+    instagram: 'https://www.instagram.com/kosai_al_saleh?stkn=cWM0dzEzaThqN2sz',
+    facebook: 'https://www.facebook.com/share/18J7tZ9rXD/',
+};

@@ -1,0 +1,4 @@
+config jdkPath: 
+target: C:\Users\DELL\.bubblewrap\jdk\jdk-17.0.11+9
+moved: True
+config updated

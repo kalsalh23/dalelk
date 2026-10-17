@@ -1,0 +1,1 @@
+{"message":"Failed to run sql query: ERROR:  42601: syntax error at or near \"as\"\nLINE 1: select name, id, name as obj, created_at, metadata- as size, metadata- as mime from storage.objects where bucket_id='medical' order by created_at desc limit 12\n                                                            ^\n"}

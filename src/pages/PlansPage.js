@@ -1,0 +1,32 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { Check, Crown, Sparkles, Lock, ArrowUpRight } from 'lucide-react';
+import { fetchSiteSettings } from '@/services/site';
+import { Card, CardBody } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Skeletons } from '@/components/ui/States';
+import { PLANS } from '@/constants';
+import { Seo } from '@/components/seo/Seo';
+import { cn } from '@/lib/utils';
+const planIcon = { free: Lock, pro: Sparkles, gold: Crown };
+const planColor = {
+    free: 'bg-subtle-strong text-muted',
+    pro: 'bg-primary-light text-primary-dark',
+    gold: 'bg-gold-soft text-gold-dark',
+};
+export function PlansPage() {
+    const navigate = useNavigate();
+    const { data: settings, isLoading: settingsLoading } = useQuery({
+        queryKey: ['site-settings'],
+        queryFn: fetchSiteSettings,
+    });
+    const enabled = Boolean(settings?.subscriptions_enabled);
+    const highlight = useMemo(() => 'gold', []);
+    return (_jsxs("div", { className: "mx-auto max-w-7xl px-4 py-12 sm:px-6", children: [_jsx(Seo, { title: "\u0627\u0644\u0627\u0634\u062A\u0631\u0627\u0643\u0627\u062A \u0648\u0627\u0644\u062A\u0631\u0642\u064A\u0629", description: "\u0628\u0627\u0642\u0627\u062A \u0627\u0644\u0627\u0634\u062A\u0631\u0627\u0643 \u0644\u062A\u0631\u0642\u064A\u0629 \u0638\u0647\u0648\u0631 \u0635\u0641\u062D\u062A\u0643 \u0641\u064A \u062F\u0644\u064A\u0644 \u0637\u064A\u0628\u0629 \u0627\u0644\u0625\u0645\u0627\u0645 \u0627\u0644\u0637\u0628\u064A." }), _jsxs("div", { className: "text-center", children: [_jsx("h1", { className: "text-3xl font-black text-ink", children: "\u0628\u0627\u0642\u0627\u062A \u0627\u0644\u0627\u0634\u062A\u0631\u0627\u0643" }), _jsx("p", { className: "mx-auto mt-2 max-w-xl text-sm leading-7 text-muted", children: "\u0627\u0631\u062A\u0642\u0650 \u0628\u0638\u0647\u0648\u0631 \u0635\u0641\u062D\u062A\u0643 \u0641\u064A \u0627\u0644\u062F\u0644\u064A\u0644 \u2014 \u064A\u064F\u0641\u0639\u0651\u0644 \u0627\u0644\u0627\u0634\u062A\u0631\u0627\u0643 \u0644\u0645\u062F\u0629 \u0634\u0647\u0631 \u0643\u0627\u0645\u0644 \u0645\u0646 \u062A\u0627\u0631\u064A\u062E \u0627\u0644\u0645\u0648\u0627\u0641\u0642\u0629." }), enabled && (_jsxs(Button, { size: "lg", className: "mt-5", onClick: () => navigate('/upgrade?plan=gold'), children: [_jsx(Sparkles, { className: "size-4.5" }), "\u0627\u0637\u0644\u0628 \u0627\u0644\u062A\u0631\u0642\u064A\u0629 \u0627\u0644\u0622\u0646"] })), _jsxs("p", { className: "mt-3 text-xs text-muted", children: ["\u0644\u062F\u064A\u0643 \u0627\u0634\u062A\u0631\u0627\u0643 \u0641\u0639\u0651\u0627\u0644\u061F ", _jsx(Link, { to: "/account", className: "font-bold text-primary hover:underline", children: "\u062A\u0633\u062C\u064A\u0644 \u062F\u062E\u0648\u0644 \u0627\u0644\u062C\u0647\u0629 \u2192" })] })] }), settingsLoading ? (_jsx("div", { className: "mt-8", children: _jsx(Skeletons, { rows: 3, box: "!p-6" }) })) : !enabled ? (_jsx(Card, { className: "mt-8", children: _jsxs(CardBody, { className: "py-14 text-center", children: [_jsx(Lock, { className: "mx-auto size-10 text-muted" }), _jsx("h2", { className: "mt-4 text-xl font-black text-ink", children: "\u0627\u0644\u0627\u0634\u062A\u0631\u0627\u0643\u0627\u062A \u063A\u064A\u0631 \u0645\u0641\u0639\u0651\u0644\u0629 \u062D\u0627\u0644\u064A\u0627\u064B" }), _jsx("p", { className: "mx-auto mt-2 max-w-md text-sm text-muted", children: "\u062D\u0627\u0644\u064A\u0627\u064B \u062C\u0645\u064A\u0639 \u0627\u0644\u062C\u0647\u0627\u062A \u0645\u062F\u0631\u062C\u0629 \u0639\u0644\u0649 \u0627\u0644\u0628\u0627\u0642\u0629 \u0627\u0644\u0645\u062C\u0627\u0646\u064A\u0629. \u0639\u0646\u062F\u0645\u0627 \u062A\u064F\u0641\u0639\u064E\u0651\u0644 \u0627\u0644\u0627\u0634\u062A\u0631\u0627\u0643\u0627\u062A \u0633\u064A\u0638\u0647\u0631 \u0647\u0630\u0627 \u0627\u0644\u0642\u0633\u0645 \u0645\u0639 \u062E\u064A\u0627\u0631\u0627\u062A \u0627\u0644\u062A\u0631\u0642\u064A\u0629." }), _jsx(Link, { to: "/", className: "mt-6 inline-block text-sm font-bold text-primary hover:underline", children: "\u0627\u0644\u0639\u0648\u062F\u0629 \u0644\u0644\u0631\u0626\u064A\u0633\u064A\u0629" })] }) })) : (_jsxs(_Fragment, { children: [_jsx("div", { className: "mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3", children: PLANS.map((p) => {
+                            const Icon = planIcon[p.key];
+                            return (_jsxs("button", { type: "button", onClick: () => { if (p.key !== 'free')
+                                    navigate(`/upgrade?plan=${p.key}`); }, className: cn('cursor-pointer rounded-[20px] border-2 p-6 text-right transition-all', highlight === p.key ? 'border-gold bg-gold-soft/30 shadow-lg' : 'border-border bg-surface hover:border-primary/40', p.key === 'gold' && 'lg:-translate-y-2'), children: [_jsx("div", { className: cn('mb-4 inline-flex size-12 items-center justify-center rounded-2xl', planColor[p.key]), children: _jsx(Icon, { className: "size-6" }) }), _jsx("h3", { className: "text-lg font-black text-ink", children: p.name }), _jsx("p", { className: "mt-1 text-sm text-muted", children: p.description }), _jsx("ul", { className: "mt-4 space-y-2", children: p.features.map((f) => (_jsxs("li", { className: "flex items-start gap-2 text-xs text-muted", children: [_jsx(Check, { className: "mt-0.5 size-3.5 shrink-0 text-success" }), f] }, f))) }), _jsx("span", { className: cn('mt-5 block rounded-xl py-2.5 text-center text-sm font-black', p.key === 'free' ? 'bg-subtle text-muted' : 'bg-primary text-white'), children: p.key === 'free' ? 'الباقة الأساسية لكل الجهات' : _jsxs(_Fragment, { children: ["\u0627\u0637\u0644\u0628 \u0627\u0644\u062A\u0631\u0642\u064A\u0629 ", _jsx(ArrowUpRight, { className: "ms-1 inline size-4" })] }) })] }, p.key));
+                        }) }), _jsx("p", { className: "mt-6 text-center text-xs leading-6 text-muted", children: "\u0644\u0645 \u062A\u062C\u062F \u062C\u0647\u062A\u0643 \u0641\u064A \u0627\u0644\u062F\u0644\u064A\u0644\u061F \u062A\u0648\u0627\u0635\u0644 \u0645\u0639 \u0627\u0644\u0625\u062F\u0627\u0631\u0629 \u0644\u0625\u0636\u0627\u0641\u062A\u0647\u0627 \u0623\u0648\u0644\u0627\u064B\u060C \u062B\u0645 \u0642\u062F\u0651\u0645 \u0637\u0644\u0628 \u0627\u0644\u062A\u0631\u0642\u064A\u0629." })] }))] }));
+}

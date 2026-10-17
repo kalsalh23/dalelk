@@ -1,6 +1,7 @@
 // الحجز الفوري: المواطن يحجز وقتاً متاحاً فيصبح موعداً مؤكداً في نظام العيادة فوراً
-// تحقق مزدوج من التوفر (طلبات معلقة + مواعيد العيادة) ثم إنشاء ذري بمؤشر الفريدة
+// حجز نشط واحد لكل مواطن (يشمل ما سجّله الطبيب من العيادة) + تحقق مزدوج من التوفر ثم إنشاء ذري بمؤشر الفريدة
 import { SUPABASE_URL, SUPABASE_ANON, json } from './_push.js'
+import { fetchActiveBooking } from './_one-booking.js'
 
 const BRIDGE_SECRET = 'brg_a8f4e2c1d6b93k75m0p2q8r4t6v1x3z5'
 const DASH_CONFIRM = 'https://dashbord-doctor.vercel.app/api/bridge-confirm-appointment'
@@ -43,7 +44,13 @@ export default async (req, res) => {
   const mapRows = mMap ? await mMap.json().catch(() => []) : []
   const clinicId = Array.isArray(mapRows) && mapRows[0]?.clinic_id
 
-  // 2) تحقق التوفر: طلبات معلقة + مواعيد العيادة
+  // 2) حجز نشط واحد فقط لكل مواطن — يشمل ما سجّله الطبيب مباشرة من العيادة
+  const active = await fetchActiveBooking(phone)
+  if (active) {
+    return json(res, 409, { error: 'has_booking', message: active.message, booking: active.booking })
+  }
+
+  // 3) تحقق التوفر: طلبات معلقة + مواعيد العيادة
   const taken = new Set()
   try {
     const p = await fetch(`${SUPABASE_URL}/rest/v1/rpc/taken_pending_times`, {
@@ -68,7 +75,7 @@ export default async (req, res) => {
   const dateLabel = dObj.toLocaleDateString('ar', { weekday: 'long', day: 'numeric', month: 'long' })
   const timeWithDate = `${time} — ${dObj.toLocaleDateString('ar', { day: 'numeric', month: 'long' })}`
 
-  // 3) سجل الحجز في المنصة أولاً (معرف الربط بين النظامين) — عبر RPC آمن
+  // 4) سجل الحجز في المنصة أولاً (معرف الربط بين النظامين) — عبر RPC آمن
   let requestId = null
   try {
     const rec = await fetch(`${SUPABASE_URL}/rest/v1/rpc/book_record`, {
@@ -84,7 +91,7 @@ export default async (req, res) => {
     requestId = typeof rid === 'string' ? rid : null
   } catch { /* يُعاد المحاولة أدناه عند الحاجة */ }
 
-  // 4) طبيب غير مربوط (احتياط): يبقى طلب مراجعة على المنصة
+  // 5) طبيب غير مربوط (احتياط): يبقى طلب مراجعة على المنصة
   if (!clinicId) {
     return json(res, 200, {
       ok: true, mode: 'request', request_id: requestId,
@@ -92,7 +99,7 @@ export default async (req, res) => {
     })
   }
 
-  // 5) الحجز الفوري في نظام العيادة (إنشاء ذري بمؤشر الفريدة)
+  // 6) الحجز الفوري في نظام العيادة (إنشاء ذري بمؤشر الفريدة)
   const cRes = await fetch(DASH_CONFIRM, {
     method: 'POST',
     headers: { 'x-bridge-secret': BRIDGE_SECRET, 'Content-Type': 'application/json' },

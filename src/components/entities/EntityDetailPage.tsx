@@ -4,6 +4,7 @@ import {
   Phone, MessageCircle, MapPin, Clock, BadgeCheck,
   Monitor, Siren, Star, CalendarClock, ArrowLeft, User, Share2, ChevronDown, BellRing, CalendarX,
 } from 'lucide-react'
+import { FacebookIcon, InstagramIcon } from '@/components/ui/BrandIcons'
 import { useEntity } from '@/hooks/useEntities'
 import { ENTITY_TABLES } from '@/services/content'
 import { dayLabel } from '@/services/appointments'
@@ -649,13 +650,19 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
               ) : null}
               {(ready.facebook as string | null) ? (
                 <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
-                  <span className="text-muted">فيسبوك</span>
+                  <span className="flex items-center gap-2 text-muted">
+                    <FacebookIcon className="size-4.5 text-primary" />
+                    فيسبوك
+                  </span>
                   <a href={String(ready.facebook)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary truncate max-w-[60%]" dir="ltr">{String(ready.facebook)}</a>
                 </div>
               ) : null}
               {(ready.instagram as string | null) ? (
                 <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
-                  <span className="text-muted">انستغرام</span>
+                  <span className="flex items-center gap-2 text-muted">
+                    <InstagramIcon className="size-4.5 text-primary" />
+                    انستغرام
+                  </span>
                   <a href={String(ready.instagram)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary truncate max-w-[60%]" dir="ltr">{String(ready.instagram)}</a>
                 </div>
               ) : null}
