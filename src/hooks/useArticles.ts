@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchArticles, fetchArticleBySlug, fetchRelatedArticles, fetchArticleCategories } from '@/services/articles'
+import type { Article, Category } from '@/types'
 
 export const articleKeys = {
   all: ['articles'] as const,
@@ -10,14 +11,14 @@ export const articleKeys = {
 
 export function useArticles(params: { categoryId?: string | null; search?: string; limit?: number; offset?: number } = {}) {
   const key = JSON.stringify(params)
-  return useQuery({
+  return useQuery<{ data: Article[]; count: number }, Error>({
     queryKey: articleKeys.list(key),
     queryFn: () => fetchArticles(params),
   })
 }
 
 export function useArticle(slug: string | undefined) {
-  return useQuery({
+  return useQuery<Article | null, Error>({
     queryKey: articleKeys.detail(slug ?? ''),
     queryFn: () => fetchArticleBySlug(slug!),
     enabled: !!slug,
@@ -25,14 +26,14 @@ export function useArticle(slug: string | undefined) {
 }
 
 export function useRelatedArticles(categoryId: string | null, excludeId: string) {
-  return useQuery({
+  return useQuery<Article[], Error>({
     queryKey: [...articleKeys.all, 'related', categoryId, excludeId],
     queryFn: () => fetchRelatedArticles(categoryId, excludeId),
   })
 }
 
 export function useArticleCategories() {
-  return useQuery({
+  return useQuery<Category[], Error>({
     queryKey: articleKeys.categories,
     queryFn: fetchArticleCategories,
   })

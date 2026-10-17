@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { MedicalQuestion, MedicalKeyword } from '@/types'
+import type { MedicalQuestion, MedicalKeyword, Article, Category } from '@/types'
 
 export async function fetchAllQuestions(activeOnly = true): Promise<MedicalQuestion[]> {
   let q = supabase.from('medical_questions').select('*, medical_keywords(keyword)')
@@ -45,4 +45,102 @@ export async function saveUnansweredQuestion(question: string): Promise<boolean>
     .from('unanswered_questions')
     .insert({ question })
   return !error
+}
+
+// Article services
+export async function fetchArticles(params: {
+  categoryId?: string | null
+  search?: string
+  limit?: number
+  offset?: number
+}): Promise<{ data: Article[]; count: number }> {
+  let query = supabase.from('articles').select('*', { count: 'exact' }).eq('is_published', true)
+
+  if (params.categoryId) {
+    query = query.eq('category_id', params.categoryId)
+  }
+
+  if (params.search) {
+    const searchTerm = `%${params.search}%`
+    query = query.or(`title.ilike${searchTerm},content.ilike${searchTerm},excerpt.ilike${searchTerm}`)
+  }
+
+  // Pagination: we expect both limit and offset to be provided
+  if (params.limit !== undefined && params.offset !== undefined) {
+    query = query.range(params.offset, params.offset + params.limit - 1)
+  } else {
+    // Fallback: if only limit is provided, start from offset 0
+    if (params.limit !== undefined) {
+      query = query.range(0, params.limit - 1)
+    }
+    // If only offset is provided, we cannot determine the limit, so we limit to 1000 rows as a safety net
+    else if (params.offset !== undefined) {
+      query = query.range(params.offset, params.offset + 999)
+    }
+    // If neither is provided, we return all rows (but we have a count query so it's okay)
+  }
+
+  const { data, error, count } = await query.order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching articles:', error)
+    return { data: [], count: 0 }
+  }
+
+  return { data: data ?? [], count: count ?? 0 }
+}
+
+export async function fetchArticleBySlug(slug: string): Promise<Article | null> {
+  const { data, error } = await supabase
+    .from('articles')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // No rows found
+      return null
+    }
+    console.error('Error fetching article by slug:', error)
+    return null
+  }
+
+  return data
+}
+
+export async function fetchRelatedArticles(categoryId: string | null, excludeId: string): Promise<Article[]> {
+  let query = supabase.from('articles').select('*').eq('is_published', true)
+
+  if (categoryId !== null) {
+    query = query.eq('category_id', categoryId)
+  }
+
+  query = query.neq('id', excludeId)
+
+  const { data, error } = await query.limit(3).order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching related articles:', error)
+    return []
+  }
+
+  return data ?? []
+}
+
+export async function fetchArticleCategories(): Promise<Category[]> {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('type', 'article')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching article categories:', error)
+    return []
+  }
+
+  return data ?? []
 }
