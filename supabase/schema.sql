@@ -198,6 +198,8 @@ create table if not exists public.pharmacies (
   plan_expires_at timestamptz,
   seo_title text,
   seo_description text,
+  facebook text,
+  instagram text,
   view_count bigint default 0,
   sort_order int default 0,
   created_at timestamptz default now(),
