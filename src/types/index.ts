@@ -42,6 +42,8 @@ export interface EntityBase {
   sort_order: number
   created_at: string
   updated_at: string
+  facebook?: string | null
+  instagram?: string | null
 }
 
 export interface Doctor extends EntityBase {

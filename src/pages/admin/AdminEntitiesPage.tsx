@@ -356,6 +356,8 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
       description: String(form.description ?? '').trim() || null,
       phone: String(form.phone ?? '').trim() || null,
       whatsapp: String(form.whatsapp ?? '').trim() || null,
+      facebook: String(form.facebook ?? '').trim() || null,
+      instagram: String(form.instagram ?? '').trim() || null,
       address: String(form.address ?? '').trim() || null,
       lat: form.lat ? Number(form.lat) : null,
       lng: form.lng ? Number(form.lng) : null,
@@ -498,6 +500,12 @@ function EntityForm({ table, meta, dataType, values, onClose, onDone }: {
           </Field>
           <Field label="واتساب">
             <Input value={String(form.whatsapp ?? '')} onChange={(e) => set('whatsapp', e.target.value)} placeholder="09xx xxx xxx" dir="ltr" />
+          </Field>
+          <Field label="فيسبوك (رابط)">
+            <Input value={String(form.facebook ?? '')} onChange={(e) => set('facebook', e.target.value)} placeholder="https://facebook.com/..." dir="ltr" />
+          </Field>
+          <Field label="انستغرام (رابط)">
+            <Input value={String(form.instagram ?? '')} onChange={(e) => set('instagram', e.target.value)} placeholder="https://instagram.com/..." dir="ltr" />
           </Field>
           {dataType === 'hospital' && (
             <Field label="رقم الطوارئ">

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   Phone, MessageCircle, MapPin, Clock, BadgeCheck,
-  Monitor, Siren, Star, CalendarClock, ArrowLeft, User, Share2, ChevronDown, BellRing,
+  Monitor, Siren, Star, CalendarClock, ArrowLeft, User, Share2, ChevronDown, BellRing, CalendarX,
 } from 'lucide-react'
 import { useEntity } from '@/hooks/useEntities'
 import { ENTITY_TABLES } from '@/services/content'
@@ -192,6 +192,8 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
   const [apptDone, setApptDone] = useState(false)
   const [apptNotify, setApptNotify] = useState(true)
   const [apptStep, setApptStep] = useState<1 | 2>(1)
+  const [prevBooking, setPrevBooking] = useState<{ doctor: string; dateLabel: string; time: string } | null>(null)
+  const [checkingPhone, setCheckingPhone] = useState(false)
 
   const submitAppointment = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -213,6 +215,11 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
         }),
       })
       const d = await res.json().catch(() => ({}))
+      // حجز نشط واحد فقط لكل مواطن — يشمل ما سجّله الطبيب مباشرة من العيادة
+      if (d.error === 'has_booking') {
+        showPrevBooking(d.booking as { doctor?: string | null; date?: string | null; time?: string | null } | undefined)
+        return
+      }
       if (res.status === 409 || d.error === 'taken') {
         toast.show(d.message || 'عذراً، هذا الوقت حُجز للتو — اختر وقتاً آخر', 'error')
         setApptTime('')
@@ -258,6 +265,28 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
       toast.show('تعذر إتمام الحجز، حاول مجدداً', 'error')
     } finally {
       setApptSending(false)
+    }
+  }
+
+  // عرض رسالة «لديك حجز سابق» من بيانات الحجز النشط (من الفحص المسبق أو من الخادم عند الإرسال)
+  const showPrevBooking = (b?: { doctor?: string | null; date?: string | null; time?: string | null }) => {
+    setPrevBooking({
+      doctor: b?.doctor || String(ready?.name ?? ''),
+      dateLabel: b?.date ? new Date(String(b.date) + 'T00:00:00').toLocaleDateString('ar', { day: 'numeric', month: 'long' }) : '',
+      time: b?.time || '',
+    })
+  }
+
+  // تحقق فوري من «حجز نشط واحد لكل مواطن» لحظة إدخال رقم الهاتف (يشمل ما سجّله الطبيب من العيادة)
+  const checkPrevBooking = async (phoneValue: string) => {
+    if (phoneValue.replace(/\D/g, '').length < 9) return
+    setCheckingPhone(true)
+    try {
+      const r = await fetch(`/api/check-booking?phone=${encodeURIComponent(phoneValue.trim())}`)
+      const d = await r.json().catch(() => null)
+      if (d?.has) showPrevBooking(d.booking)
+    } catch { /* التحقق النهائي يحدث عند الإرسال */ } finally {
+      setCheckingPhone(false)
     }
   }
 
@@ -499,7 +528,7 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                   variant="secondary"
                   disabled={plan === 'free' || onVacation}
                   title={onVacation ? 'الطبيب في إجازة حالياً — طلبات المواعيد متوقفة مؤقتاً' : plan === 'free' ? 'طلبات المواعيد متاحة للأطباء المشتركين في باقة مدفوعة — اشترك من صفحة الباقات لتفعيلها' : undefined}
-                  onClick={() => { if (plan !== 'free' && !onVacation) { const d0 = buildDayStrip().find((d) => !hours || !Object.keys(hours).length || Boolean((hours[d.key] ?? '').trim())) ?? buildDayStrip()[0]; setApptOpen(true); setApptDone(false); setApptStep(1); setApptDay(d0.key); setApptDateISO(d0.iso); setApptTime('') } }}
+                  onClick={() => { if (plan !== 'free' && !onVacation) { const d0 = buildDayStrip().find((d) => !hours || !Object.keys(hours).length || Boolean((hours[d.key] ?? '').trim())) ?? buildDayStrip()[0]; setApptOpen(true); setApptDone(false); setApptStep(1); setApptDay(d0.key); setApptDateISO(d0.iso); setApptTime(''); setPrevBooking(null) } }}
                   className={cn(
                     '!w-full sm:!flex-1 bg-none bg-gradient-to-l from-gold to-gold-dark text-primary-dark font-black shadow-lg shadow-gold/40 hover:brightness-105 hover:text-primary-dark border border-gold-dark/30',
                     plan === 'free' && 'cursor-not-allowed',
@@ -618,6 +647,18 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                   <a href={waLink(whatsapp)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary" dir="ltr">{whatsapp}</a>
                 </div>
               ) : null}
+              {(ready.facebook as string | null) ? (
+                <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
+                  <span className="text-muted">فيسبوك</span>
+                  <a href={String(ready.facebook)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary truncate max-w-[60%]" dir="ltr">{String(ready.facebook)}</a>
+                </div>
+              ) : null}
+              {(ready.instagram as string | null) ? (
+                <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
+                  <span className="text-muted">انستغرام</span>
+                  <a href={String(ready.instagram)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary truncate max-w-[60%]" dir="ltr">{String(ready.instagram)}</a>
+                </div>
+              ) : null}
               <div className="flex items-start justify-between gap-3 rounded-xl bg-subtle px-4 py-3">
                 <span className="text-muted">العنوان</span>
                 <span className="text-left font-semibold text-ink">{address ?? '—'}</span>
@@ -674,7 +715,38 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
       {/* حوار طلب موعد — للأطباء فقط */}
       {type === 'doctor' && (
         <Dialog open={apptOpen} onClose={() => setApptOpen(false)} title={`طلب موعد — ${name}`}>
-          {apptDone ? (
+          {prevBooking ? (
+            <div className="py-6 text-center">
+              <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-rose-50 text-error">
+                <CalendarX className="size-7" />
+              </span>
+              <h3 className="mt-4 text-lg font-black text-ink">نعتذر منك. لديك حجز مسبق في الدليل</h3>
+              <div className="mx-auto mt-4 max-w-sm rounded-2xl border border-border bg-subtle px-5 py-4 text-start">
+                <p className="flex items-center justify-between text-sm">
+                  <span className="text-muted">الطبيب</span>
+                  <span className="font-bold text-ink">{prevBooking.doctor}</span>
+                </p>
+                {prevBooking.dateLabel && (
+                  <p className="mt-2 flex items-center justify-between text-sm">
+                    <span className="text-muted">اليوم والتاريخ</span>
+                    <span className="font-bold text-ink">{prevBooking.dateLabel}</span>
+                  </p>
+                )}
+                {prevBooking.time && (
+                  <p className="mt-2 flex items-center justify-between text-sm">
+                    <span className="text-muted">الساعة</span>
+                    <span className="font-bold text-ink" dir="ltr">{prevBooking.time}</span>
+                  </p>
+                )}
+              </div>
+              <p className="mx-auto mt-4 max-w-sm text-sm leading-7 text-muted">
+                لا يمكن حجز أكثر من موعد واحد. لتعديل موعدك أو إلغائه تواصل مع العيادة هاتفياً.
+              </p>
+              <Button variant="outline" className="mt-5" onClick={() => { setPrevBooking(null); setApptOpen(false) }}>
+                إغلاق
+              </Button>
+            </div>
+          ) : apptDone ? (
             <div className="py-6 text-center">
               <span className={`mx-auto flex size-14 items-center justify-center rounded-full ${bookedInfo?.instant ? 'bg-emerald-50 text-success' : 'bg-primary-light text-primary-dark'}`}>
                 <CalendarClock className="size-7" />
@@ -877,8 +949,16 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
                     <Field label="الاسم" required>
                       <Input value={apptName} onChange={(e) => setApptName(e.target.value)} placeholder="اسمك الكريم" />
                     </Field>
-                    <Field label="رقم الهاتف" required>
-                      <Input type="tel" value={apptPhone} onChange={(e) => setApptPhone(e.target.value)} placeholder="09xx xxx xxx" dir="ltr" />
+                    <Field label="رقم الهاتف" required hint={checkingPhone ? 'جارٍ التحقق من حجوزاتك السابقة…' : undefined}>
+                      <Input
+                        type="tel"
+                        value={apptPhone}
+                        onChange={(e) => setApptPhone(e.target.value)}
+                        onBlur={(e) => void checkPrevBooking(e.target.value)}
+                        placeholder="09xx xxx xxx"
+                        dir="ltr"
+                        disabled={checkingPhone}
+                      />
                     </Field>
                   </div>
 
