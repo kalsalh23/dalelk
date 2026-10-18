@@ -818,7 +818,7 @@ export function EntityDetailPageComponent({ type, title }: { type: EntityType; t
                   ÙØ¹Ù‘Ù„ Ø¥Ø´Ø¹Ø§Ø± Ù‡Ø°Ø§ Ø§Ù„Ù…ÙˆØ¹Ø¯
                 </button>
               </div>
-              <Button variant="outline" className="mt-5" onClick={() => { setApptOpen(false); setApptDone(false); setApptStep(1); setApptDay(''); setApptTime(''); setApptDateISO(''); setApptName(''); setApptPhone(''); setApptDateISO(''); setBookedInfo(null) }}>
+              <Button variant="outline" className="mt-5" onClick={() => { setApptOpen(false); setApptDone(false); setApptStep(1); setApptDay(''); setApptTime(''); setApptDateISO(''); setApptName(''); setApptPhone(''); setBookedInfo(null) }}>
                 Ø¥ØºÙ„Ø§Ù‚
               </Button>
             </div>
