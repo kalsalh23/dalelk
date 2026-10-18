@@ -462,13 +462,43 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
             <div className="flex-1 pb-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-black text-ink sm:text-3xl">{name}</h1>
-                {certified && <VerifiedBadge />}
-                {plan !== 'free' && <PlanBadge plan={plan} />}
-                {/* أيقونة مشاركة صغيرة في الجهة المقابلة للاسم */}
+                <div className="flex items-center gap-2">
+                  {certified && <VerifiedBadge />}
+                  {plan !== 'free' && <PlanBadge plan={plan} />}
+                  {(ready.facebook || ready.instagram) && (
+                    <div className="flex items-center gap-1.5">
+                      {ready.facebook && (
+                        <a
+                          href={String(ready.facebook)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="ÙÙŠØ³Ø¨ÙˆÙƒ"
+                          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-muted transition hover:border-primary hover:bg-primary-light hover:text-primary"
+                          dir="ltr"
+                        >
+                          <FacebookIcon className="size-4" />
+                        </a>
+                      )}
+                      {ready.instagram && (
+                        <a
+                          href={String(ready.instagram)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Ø§Ù†Ø³ØªØºØ±Ø§Ù…"
+                          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-muted transition hover:border-primary hover:bg-primary-light hover:text-primary"
+                          dir="ltr"
+                        >
+                          <InstagramIcon className="size-4" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Ø£ÙŠÙ‚ÙˆÙ†Ø© Ù…Ø´Ø§Ø±ÙƒØ© ØµØºÙŠØ±Ø© ÙÙŠ Ø§Ù„Ø¬Ù‡Ø© Ø§Ù„Ù…Ù‚Ø§Ø¨Ù„Ø© Ù„Ù„Ø§Ø³Ù… */}
                 <button
                   onClick={() => void shareEntity()}
-                  title="مشاركة هذه الجهة"
-                  aria-label="مشاركة"
+                  title="Ù…Ø´Ø§Ø±ÙƒØ© Ù‡Ø°Ù‡ Ø§Ù„Ø¬Ù‡Ø©"
+                  aria-label="Ù…Ø´Ø§Ø±ÙƒØ©"
                   className="ms-auto flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-muted transition hover:border-primary hover:bg-primary-light hover:text-primary"
                 >
                   <Share2 className="size-4.5" />
@@ -976,4 +1006,4 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
       )}
     </div>
   )
-}
+}})}
