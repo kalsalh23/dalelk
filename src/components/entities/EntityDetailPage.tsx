@@ -170,7 +170,7 @@ function WorkHoursTable({ hours }: { hours: WorkHours }) {
   )
 }
 
-export function EntityDetailPage({ type, title }: { type: EntityType; title: string }) {
+export function EntityDetailPageComponent({ type, title }: { type: EntityType; title: string }) {
   const { slug } = useParams<{ slug: string }>()
   const { data, isError, refetch } = useEntity<Record<string, unknown>>(type, slug)
   const [imgError, setImgError] = useState(false)
@@ -1006,3 +1006,4 @@ export function EntityDetailPage({ type, title }: { type: EntityType; title: str
     </div>
   )
 }})}
+export function EntityDetailPage(props: { type: EntityType; title: string }) { return <EntityDetailPageComponent {...props} />; }
