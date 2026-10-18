@@ -1,0 +1,9 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/proxy-maven/(.*)", "destination": "/api/proxy-maven?path=$1" },
+    { "source": "/((?!assets/|api/|sw\\.js$|manifest\\.webmanifest|favicon\\.svg|icons/|\\.well-known/).*)", "destination": "/index.html" }
+  ]
+}

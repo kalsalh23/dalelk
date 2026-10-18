@@ -1,0 +1,41 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { BarChart3, Eye, Phone, MessageCircle, MapPin, Share2, CalendarClock, RefreshCcw, Sparkles } from 'lucide-react';
+import { useDashboardSession } from '@/layouts/DashboardLayout';
+import { readStoredSession, fetchEntityStats } from '@/services/entityAccount';
+import { Card, CardBody } from '@/components/ui/Card';
+import { Skeletons } from '@/components/ui/States';
+import { Button } from '@/components/ui/Button';
+import { Seo } from '@/components/seo/Seo';
+import { formatDate } from '@/lib/utils';
+function StatCard({ icon: Icon, label, value, accent }) {
+    return (_jsx(Card, { children: _jsxs(CardBody, { className: "flex items-center gap-4 p-5", children: [_jsx("span", { className: `flex size-12 shrink-0 items-center justify-center rounded-2xl ${accent ?? 'bg-primary-light text-primary-dark'}`, children: _jsx(Icon, { className: "size-6" }) }), _jsxs("div", { className: "min-w-0", children: [_jsx("p", { className: "truncate text-xs font-bold text-muted", children: label }), _jsx("p", { className: "text-2xl font-black text-ink", children: value })] })] }) }));
+}
+/** إحصائيات صفحة الجهة: زيارات، نقرات التواصل، المشاركات، والمواعيد */
+export function DashboardStatsPage() {
+    const { session } = useDashboardSession();
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const load = async () => {
+        const token = readStoredSession()?.token;
+        if (!token)
+            return;
+        setLoading(true);
+        setData(await fetchEntityStats(token));
+        setLoading(false);
+    };
+    useEffect(() => {
+        if (session)
+            void load();
+        else
+            setLoading(false);
+    }, [session]);
+    if (!session) {
+        return (_jsx(Card, { children: _jsxs(CardBody, { className: "p-10 text-center", children: [_jsx("h1", { className: "text-lg font-black text-ink", children: "\u0633\u062C\u0651\u0644 \u062F\u062E\u0648\u0644\u0643 \u0623\u0648\u0644\u0627\u064B" }), _jsx(Link, { to: "/dashboard/login", className: "mt-4 inline-block rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-dark", children: "\u0635\u0641\u062D\u0629 \u0627\u0644\u062F\u062E\u0648\u0644" })] }) }));
+    }
+    const isDoctor = data?.entity_type === 'doctor';
+    const trend = data?.trend ?? [];
+    const maxTrend = Math.max(1, ...trend.map((t) => t.count));
+    return (_jsxs("div", { className: "space-y-6", children: [_jsx(Seo, { title: "\u0625\u062D\u0635\u0627\u0626\u064A\u0627\u062A\u064A", description: "\u0625\u062D\u0635\u0627\u0626\u064A\u0627\u062A \u0635\u0641\u062D\u062A\u064A \u0641\u064A \u062F\u0644\u064A\u0644 \u0637\u064A\u0628\u0629 \u0627\u0644\u0625\u0645\u0627\u0645 \u0627\u0644\u0637\u0628\u064A" }), _jsxs("div", { className: "flex flex-wrap items-center justify-between gap-3", children: [_jsxs("div", { children: [_jsxs("h1", { className: "flex items-center gap-2 text-2xl font-black text-ink", children: [_jsx(BarChart3, { className: "size-6 text-primary" }), "\u0625\u062D\u0635\u0627\u0626\u064A\u0627\u062A\u064A"] }), _jsx("p", { className: "mt-1 text-sm text-muted", children: "\u062A\u0641\u0627\u0639\u0644 \u0627\u0644\u0632\u0648\u0627\u0631 \u0645\u0639 \u0635\u0641\u062D\u062A\u0643 \u0627\u0644\u0639\u0627\u0645\u0629 \u2014 \u062A\u062D\u062F\u064E\u0651\u062B \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B \u0645\u0639 \u0643\u0644 \u0632\u064A\u0627\u0631\u0629." })] }), _jsxs(Button, { variant: "outline", size: "sm", onClick: () => void load(), loading: loading, children: [_jsx(RefreshCcw, { className: "size-4" }), " \u062A\u062D\u062F\u064A\u062B"] })] }), loading ? (_jsx(Skeletons, { rows: 4 })) : !data || data.error ? (_jsx(Card, { children: _jsx(CardBody, { className: "p-6 text-sm text-error", children: data?.error ?? 'تعذر جلب الإحصائيات' }) })) : (_jsxs(_Fragment, { children: [_jsxs("div", { className: "grid gap-4 sm:grid-cols-2 lg:grid-cols-3", children: [_jsx(StatCard, { icon: Eye, label: "\u0632\u064A\u0627\u0631\u0627\u062A \u0635\u0641\u062D\u062A\u0643 (\u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A)", value: data.view_count ?? 0 }), _jsx(StatCard, { icon: Phone, label: "\u0646\u0642\u0631\u0627\u062A \u0627\u0644\u0627\u062A\u0635\u0627\u0644", value: data.phone_clicks ?? 0, accent: "bg-emerald-50 text-success" }), _jsx(StatCard, { icon: MessageCircle, label: "\u0646\u0642\u0631\u0627\u062A \u0648\u0627\u062A\u0633\u0627\u0628", value: data.whatsapp_clicks ?? 0, accent: "bg-green-50 text-green-700" }), _jsx(StatCard, { icon: MapPin, label: "\u0641\u062A\u062D \u0627\u0644\u0645\u0648\u0642\u0639 \u0639\u0644\u0649 \u0627\u0644\u062E\u0631\u064A\u0637\u0629", value: data.map_clicks ?? 0, accent: "bg-gold-soft text-gold-dark" }), _jsx(StatCard, { icon: Share2, label: "\u0645\u0634\u0627\u0631\u0643\u0627\u062A \u0635\u0641\u062D\u062A\u0643", value: data.shares ?? 0, accent: "bg-sky-50 text-sky-700" }), isDoctor ? (_jsx(StatCard, { icon: CalendarClock, label: "\u0637\u0644\u0628\u0627\u062A \u0627\u0644\u0645\u0648\u0627\u0639\u064A\u062F (\u0627\u0644\u062C\u062F\u064A\u062F\u0629 \u0628\u0623\u0648\u0644\u0648\u064A\u0629)", value: data.appointments_total ?? 0, accent: "bg-wine-soft text-error" })) : null] }), isDoctor && (data.appointments_new ?? 0) > 0 && (_jsx(Link, { to: "/dashboard/appointments", children: _jsx(Card, { className: "border-gold/40 bg-gold-soft/60 transition hover:border-gold", children: _jsxs(CardBody, { className: "flex items-center gap-3 p-4", children: [_jsx(Sparkles, { className: "size-5 shrink-0 text-gold-dark" }), _jsxs("p", { className: "flex-1 text-sm font-bold text-gold-dark", children: ["\u0644\u062F\u064A\u0643 ", data.appointments_new, " \u0637\u0644\u0628 \u0645\u0648\u0639\u062F \u062C\u062F\u064A\u062F \u0628\u0627\u0646\u062A\u0638\u0627\u0631 \u0645\u0631\u0627\u062C\u0639\u062A\u0643"] }), _jsx("span", { className: "text-xs font-black text-primary", children: "\u0645\u0631\u0627\u062C\u0639\u0629 \u0627\u0644\u0637\u0644\u0628\u0627\u062A \u2190" })] }) }) })), _jsx(Card, { children: _jsxs(CardBody, { className: "p-5 sm:p-6", children: [_jsxs("h2", { className: "mb-1 flex items-center gap-2 text-base font-black text-ink", children: [_jsx(Eye, { className: "size-4.5 text-primary" }), "\u0645\u0634\u0627\u0647\u062F\u0627\u062A \u0645\u0644\u0641\u0643 \u062E\u0644\u0627\u0644 14 \u064A\u0648\u0645\u0627\u064B"] }), _jsx("p", { className: "mb-5 text-xs text-muted", children: "\u0639\u062F\u062F \u0627\u0644\u0632\u0648\u0627\u0631 \u0627\u0644\u0641\u0631\u064A\u062F\u064A\u0646 \u064A\u0648\u0645\u064A\u0627\u064B (\u0645\u0646\u0639 \u0627\u0644\u062A\u0643\u0631\u0627\u0631 \u062F\u0627\u062E\u0644 \u0646\u0641\u0633 \u0627\u0644\u062C\u0644\u0633\u0629)." }), !trend.length ? (_jsx("p", { className: "rounded-xl bg-subtle p-4 text-center text-sm text-muted", children: "\u0644\u0627 \u062A\u0648\u062C\u062F \u0645\u0634\u0627\u0647\u062F\u0627\u062A \u0645\u0633\u062C\u0644\u0629 \u062E\u0644\u0627\u0644 \u0627\u0644\u0623\u0633\u0628\u0648\u0639\u064A\u0646 \u0627\u0644\u0623\u062E\u064A\u0631\u064A\u0646 \u2014 \u0634\u0627\u0631\u0643 \u0631\u0627\u0628\u0637 \u0635\u0641\u062D\u062A\u0643 \u0644\u0632\u064A\u0627\u062F\u0629 \u0627\u0644\u0632\u064A\u0627\u0631\u0627\u062A." })) : (_jsx("div", { className: "flex h-40 items-end gap-1.5", dir: "ltr", children: trend.map((t) => (_jsxs("div", { className: "group flex flex-1 flex-col items-center gap-1", children: [_jsx("span", { className: "text-[10px] font-black text-primary opacity-0 transition group-hover:opacity-100", children: t.count }), _jsx("div", { className: "w-full rounded-t-lg bg-primary/70 transition-all group-hover:bg-primary", style: { height: `${Math.max(6, (t.count / maxTrend) * 110)}px` }, title: `${t.day}: ${t.count}` }), _jsx("span", { className: "text-[8px] font-bold text-muted", dir: "ltr", children: t.day.slice(5) })] }, t.day))) })), _jsxs("p", { className: "mt-4 text-[11px] text-muted", children: ["\u0622\u062E\u0631 \u062A\u062D\u062F\u064A\u062B: ", formatDate(new Date().toISOString())] })] }) })] }))] }));
+}

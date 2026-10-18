@@ -1,0 +1,100 @@
+/* الهوية البصرية — دليلك الطبي (طيبة الإمام) */
+@import 'tailwindcss';
+
+@theme {
+  /* العائلة الزمردية (الأساسية) */
+  --color-primary: #428177;        /* hsl(171 32% 38%) */
+  --color-primary-dark: #054239;   /* hsl(171 86% 14%) */
+  --color-primary-light: #e0eeea;  /* درجة فاتحة من العائلة نفسها */
+
+  /* الكريمي والذهبي */
+  --color-background: #edebe0;     /* hsl(49 26% 90%) */
+  --color-surface: #ffffff;
+  --color-gold: #b9a779;           /* hsl(43 32% 60%) */
+  --color-gold-dark: #988561;      /* hsl(40 22% 49%) */
+  --color-gold-soft: #f3efe2;      /* خلفية ذهبية فاتحة */
+
+  /* العائلة النبيذية (تنبيهات ولمسات) */
+  --color-wine: #6b1f2a;           /* hsl(351 55% 27%) */
+  --color-wine-dark: #4a151e;      /* hsl(350 56% 19%) */
+  --color-wine-soft: #f2e7e8;      /* خلفية نبيذية فاتحة */
+
+  /* الحيادات */
+  --color-border: #dedbc9;
+  --color-ink: #161616;            /* hsl(0 0% 9%) */
+  --color-muted: #3d3a3b;          /* hsl(340 3% 24%) */
+  --color-subtle: #f6f4ec;         /* خلفيات ثانوية (كانت slate-50) */
+  --color-subtle-strong: #eae7db;  /* (كانت slate-100/200) */
+  --color-faint: #cfc9b8;          /* (كانت slate-300/400) */
+
+  --color-success: #16a34a;
+  --color-warning: #b9a779;
+  --color-error: #6b1f2a;
+
+  --font-sans:
+    'IBM Plex Sans Arabic', 'Inter', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+
+  --radius-card: 18px;
+  --shadow-card: 0 1px 3px rgba(22, 22, 22, 0.06), 0 8px 24px -12px rgba(22, 22, 22, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-ink font-sans antialiased;
+  margin: 0;
+}
+
+/* Leaflet needs LTR even inside an RTL page */
+.leaflet-container {
+  direction: ltr;
+  font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.leaflet-control-zoom a {
+  color: #161616;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cfc9b8;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a292;
+}
+
+/* Utility for line clamp beyond default */
+@utility line-clamp-1 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+@utility line-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+@utility line-clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
