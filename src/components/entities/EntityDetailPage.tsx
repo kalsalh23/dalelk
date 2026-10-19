@@ -2,7 +2,7 @@
 import { useParams } from 'react-router-dom'
 import {
   Phone, MessageCircle, MapPin, Clock, BadgeCheck,
-  Monitor, Star, CalendarClock, ArrowLeft, User, Share2, ChevronDown, BellRing, CalendarX,
+  Monitor, Star, CalendarClock, ArrowLeft, User, Share2, ChevronDown, BellRing, CalendarX, Siren,
 } from 'lucide-react'
 import { FacebookIcon, InstagramIcon } from '@/components/ui/BrandIcons'
 import { useEntity } from '@/hooks/useEntities'
@@ -457,6 +457,7 @@ export function EntityDetailPageComponent({ type, title }: { type: EntityType; t
                 <EntityIcon type={type} className="size-12" />
               )}
             </div>
+
             <div className="flex-1 pb-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-black text-ink sm:text-3xl">{name}</h1>
@@ -659,26 +660,47 @@ export function EntityDetailPageComponent({ type, title }: { type: EntityType; t
         </div>
 
         <div className="space-y-6">
-          <Section title="Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªÙˆØ§ØµÙ„">
+          <Section title="معلومات التواصل">
             <div className="space-y-3 text-sm">
-                                          <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
-                <span className="flex items-center gap-2 text-muted">
-                  <InstagramIcon className="size-4.5 text-primary" />
-                  Ø§Ù†Ø³ØªØºØ±Ø§Ù…
-                </span>
-                {ready.instagram ? (
-                  <a href={String(ready.instagram)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary truncate max-w-[60%]" dir="ltr">{String(ready.instagram)}</a>
-                ) : (
-                  <span className="font-bold text-primary truncate max-w-[60%]" dir="ltr">?????? ??? ?????</span>
-                )}
-              </div>
-              <div className="flex items-start justify-between gap-3 rounded-xl bg-subtle px-4 py-3">
-                <span className="text-muted">Ø§Ù„Ø¹Ù†ÙˆØ§Ù†</span>
-                <span className="text-left font-semibold text-ink">{address ?? 'â€”'}</span>
-              </div>
+              {phone && (
+                <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
+                  <span className="text-muted">الهاتف</span>
+                  <a href={`tel:${phone}`} className="font-bold text-primary" dir="ltr">
+                    {phone}
+                  </a>
+                </div>
+              )}
+              {ready.emergency_phone ? (
+                <div className="flex items-center justify-between rounded-xl bg-wine-soft px-4 py-3">
+                  <span className="flex items-center gap-1.5 font-bold text-error">
+                    <Siren className="size-4" />
+                    الطوارئ
+                  </span>
+                  <a href={`tel:${ready.emergency_phone}`} className="font-bold text-error" dir="ltr">
+                    {String(ready.emergency_phone)}
+                  </a>
+                </div>
+              ) : null}
+              {whatsapp ? (
+                <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
+                  <span className="text-muted">واتساب</span>
+                  <a href={waLink(whatsapp)} target="_blank" rel="noopener noreferrer" className="font-bold text-primary" dir="ltr">
+                    {whatsapp}
+                  </a>
+                </div>
+              ) : null}
+              {address && (
+                <div className="flex items-start justify-between gap-3 rounded-xl bg-subtle px-4 py-3">
+                  <span className="text-muted">العنوان</span>
+                  <span className="text-left font-semibold text-ink">{address}</span>
+                </div>
+              )}
               {(ready.opening_hours as string | null) && (
                 <div className="flex items-center justify-between rounded-xl bg-subtle px-4 py-3">
-                  <span className="flex items-center gap-1.5 text-muted"><Clock className="size-4" />Ø§Ù„Ø¯ÙˆØ§Ù…</span>
+                  <span className="flex items-center gap-1.5 text-muted">
+                    <Clock className="size-4" />
+                    الدوام
+                  </span>
                   <span className="font-semibold text-ink">{String(ready.opening_hours)}</span>
                 </div>
               )}
