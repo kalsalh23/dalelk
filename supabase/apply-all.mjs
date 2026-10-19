@@ -15,6 +15,7 @@ if (!token || !projectRef) {
 
 const files = [
   'migration_appointments.sql',
+  'migration_booking_rpcs.sql',
   'migration_bridge.sql',
   'migration_one_booking.sql',
   'migration_doctor_extras.sql',
