@@ -4,8 +4,8 @@ import { SUPABASE_URL, SUPABASE_ANON, json } from './_push.js'
 import { fetchActiveBooking } from './_one-booking.js'
 
 const BRIDGE_SECRET = 'brg_a8f4e2c1d6b93k75m0p2q8r4t6v1x3z5'
-const DASH_CONFIRM = 'https://dashbord-doctor.vercel.app/api/bridge-clinic-booking'
-const DASH_TAKEN = 'https://dashbord-doctor.vercel.app/api/bridge-taken-slots'
+const DASH_CONFIRM = 'https://dalil-altaybeh.vercel.app/api/bridge-clinic-booking'
+const DASH_TAKEN = 'https://dalil-altaybeh.vercel.app/api/bridge-taken-slots'
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
