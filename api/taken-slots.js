@@ -2,7 +2,7 @@
 import { SUPABASE_URL, SUPABASE_ANON, json } from './_push.js'
 
 const BRIDGE_SECRET = 'brg_a8f4e2c1d6b93k75m0p2q8r4t6v1x3z5'
-const DASH_BRIDGE = 'https://dashbord-doctor.vercel.app/api/bridge-taken-slots'
+const DASH_BRIDGE = 'https://dalil-altaybeh.vercel.app/api/bridge-taken-slots'
 
 function extractTime(text) {
   const m = (text || '').match(/(\d{1,2}:\d{2})/)
