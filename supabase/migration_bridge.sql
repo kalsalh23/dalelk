@@ -49,7 +49,7 @@ begin
   where platform_doctor_id = NEW.doctor_id and enabled limit 1;
   if found then
     perform net.http_post(
-      url := 'https://dashbord-doctor.vercel.app/api/bridge-appointment',
+      url := 'https://dalil-altaybeh.vercel.app/api/bridge-clinic-booking',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
         'x-bridge-secret', 'brg_a8f4e2c1d6b93k75m0p2q8r4t6v1x3z5'
