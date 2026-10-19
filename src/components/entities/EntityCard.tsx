@@ -78,26 +78,26 @@ export function EntityCard({ type, item, index = 0, highlight }: EntityCardProps
                 <EntityIcon type={type} className="size-9" />
               </div>
             )}
+            {type === 'doctor' && (whatsapp || phone) && (
+              <a
+                href={whatsapp ? waLink(whatsapp, `مرحباً، أود الاستفسار من ${name}`) : `tel:${phone}`}
+                target={whatsapp ? '_blank' : undefined}
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title="تواصل مع الطبيب"
+                className="absolute bottom-1.5 left-1.5 z-10 flex size-7 items-center justify-center rounded-full bg-white/95 text-green-600 shadow-md ring-1 ring-black/5 transition hover:bg-green-50"
+              >
+                {whatsapp ? <MessageCircle className="size-4" /> : <Phone className="size-4" />}
+              </a>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <p className="truncate text-lg font-bold text-ink transition-colors group-hover:text-primary">
                 {name}
               </p>
-              {type === 'doctor' && (whatsapp || facebook || instagram) && (
+              {type === 'doctor' && (facebook || instagram) && (
                 <div className="flex items-center gap-1">
-                  {whatsapp && (
-                    <a
-                      href={waLink(whatsapp, `مرحباً، أود الاستفسار من ${name}`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex size-6 items-center justify-center rounded-full bg-green-50 text-green-600 transition hover:bg-green-100 sm:size-7"
-                      title="واتساب"
-                    >
-                      <MessageCircle className="size-3.5 sm:size-4" />
-                    </a>
-                  )}
                   {facebook && (
                     <a
                       href={String(facebook)}
