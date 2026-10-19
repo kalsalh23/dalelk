@@ -44,7 +44,7 @@ begin
     );
   end loop;
 
-  -- توجيه الطلب لنظام إدارة العيادة (dashbord-doctor) إن كان الطبيب مربوطاً
+  -- توجيه الطلب لنظام إدارة العيادة (dalil-altaybeh) إن كان الطبيب مربوطاً
   select * into m from public.bridge_doctor_map
   where platform_doctor_id = NEW.doctor_id and enabled limit 1;
   if found then
@@ -55,14 +55,14 @@ begin
         'x-bridge-secret', 'brg_a8f4e2c1d6b93k75m0p2q8r4t6v1x3z5'
       ),
       body := jsonb_build_object(
-        'platform_ref', NEW.id,
+        'doctor_id', NEW.doctor_id,
+        'doctor_name', NEW.doctor_name,
         'patient_name', NEW.patient_name,
         'patient_phone', NEW.patient_phone,
-        'requested_date', NEW.requested_date,
-        'day_label', v_day,
+        'preferred_day', NEW.preferred_day,
         'preferred_time', btrim(coalesce(NEW.preferred_time, '')),
-        'note', NEW.note,
-        'source', 'dalil-altaybeh'
+        'requested_date', NEW.requested_date,
+        'note', NEW.note
       )
     );
   end if;
