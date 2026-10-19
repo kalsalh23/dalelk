@@ -11,7 +11,7 @@
  *    حتى بعد إغلاق الصفحة أو على أي صفحة في الموقع.
  * ============================================================ */
 
-const CLINIC_STATUS_URL = 'https://dashbord-doctor.vercel.app/api/bridge-request-status'
+const CLINIC_STATUS_URL = 'https://dalil-altaybeh.vercel.app/api/bridge-request-status'
 const BRIDGE_SECRET = 'brg_a8f4e2c1d6b93k75m0p2q8r4t6v1x3z5'
 const POLL_MS = 15000
 const STORE_KEY = 'dalil_pending_bookings'
