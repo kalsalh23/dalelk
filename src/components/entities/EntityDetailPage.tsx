@@ -16,6 +16,7 @@ import {
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody } from '@/components/ui/Card'
+import { ErrorState } from '@/components/ui/States'
 import { VerifiedBadge, PlanBadge } from '@/components/ui/Badge'
 import { InteractiveMap } from '@/components/shared/Map'
 import { Dialog } from '@/components/ui/Dialog'
@@ -338,8 +339,6 @@ export function EntityDetailPageComponent({ type, title }: { type: EntityType; t
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
-  useEffect(() => {
-    if (ready) {
   if (isError || !ready) return <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6"><ErrorState message="ØªØ¹Ø°Ø± Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¹Ù†ØµØ±." onRetry={() => void refetch()} /></div>
 
   const name = String(ready.name ?? '')
@@ -464,9 +463,9 @@ export function EntityDetailPageComponent({ type, title }: { type: EntityType; t
                 <div className="flex items-center gap-2">
                   {certified && <VerifiedBadge />}
                   {plan !== 'free' && <PlanBadge plan={plan} />}
-                  {(ready.facebook || ready.instagram) && (
+                  {(Boolean(ready.facebook) || Boolean(ready.instagram)) && (
                     <div className="flex items-center gap-1.5">
-                      {ready.facebook && (
+                      {Boolean(ready.facebook) && (
                         <a
                           href={String(ready.facebook)}
                           target="_blank"
@@ -478,7 +477,7 @@ export function EntityDetailPageComponent({ type, title }: { type: EntityType; t
                           <FacebookIcon className="size-4" />
                         </a>
                       )}
-                      {ready.instagram && (
+                      {Boolean(ready.instagram) && (
                         <a
                           href={String(ready.instagram)}
                           target="_blank"
@@ -1005,5 +1004,6 @@ export function EntityDetailPageComponent({ type, title }: { type: EntityType; t
       )}
     </div>
   )
-}})}
+}
+
 export function EntityDetailPage(props: { type: EntityType; title: string }) { return <EntityDetailPageComponent {...props} />; }
