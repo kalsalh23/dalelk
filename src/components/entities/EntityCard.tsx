@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MapPin, Phone, Star, ArrowLeft, MessageCircle } from 'lucide-react'
+import { MapPin, Phone, Star, ArrowLeft } from 'lucide-react'
 import { FacebookIcon, InstagramIcon } from '@/components/ui/BrandIcons'
 import { Card } from '@/components/ui/Card'
 import { VerifiedBadge } from '@/components/ui/Badge'
 import { getPublicUrl } from '@/lib/supabase'
-import { mapsLink, waLink } from '@/lib/utils'
+import { mapsLink } from '@/lib/utils'
 import { MAP_COLORS, ENTITY_LABELS } from '@/constants'
 import type { EntityType } from '@/types'
 import { EntityIcon } from '@/components/ui/EntityIcon'
@@ -40,7 +40,6 @@ export function EntityCard({ type, item, index = 0, highlight }: EntityCardProps
   const address = (item.address as string) ?? null
   const phone = (item.phone as string) ?? null
   const rating = item.rating ? Number(item.rating) : null
-  const whatsapp = (item.whatsapp as string) ?? null
   const facebook = (item.facebook as string) ?? null
   const instagram = (item.instagram as string) ?? null
 
@@ -77,18 +76,6 @@ export function EntityCard({ type, item, index = 0, highlight }: EntityCardProps
               <div className="flex h-full w-full items-center justify-center" style={{ color }}>
                 <EntityIcon type={type} className="size-9" />
               </div>
-            )}
-            {type === 'doctor' && (whatsapp || phone) && (
-              <a
-                href={whatsapp ? waLink(whatsapp, `مرحباً، أود الاستفسار من ${name}`) : `tel:${phone}`}
-                target={whatsapp ? '_blank' : undefined}
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                title="تواصل مع الطبيب"
-                className="absolute bottom-1.5 left-1.5 z-10 flex size-7 items-center justify-center rounded-full bg-white/95 text-green-600 shadow-md ring-1 ring-black/5 transition hover:bg-green-50"
-              >
-                {whatsapp ? <MessageCircle className="size-4" /> : <Phone className="size-4" />}
-              </a>
             )}
           </div>
           <div className="min-w-0 flex-1">

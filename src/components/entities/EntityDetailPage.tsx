@@ -445,29 +445,16 @@ export function EntityDetailPageComponent({ type, title }: { type: EntityType; t
         <div className="h-28 w-full bg-gradient-to-l from-primary to-primary-dark sm:h-36" />
         <div className="px-5 pb-5 pt-0 sm:px-8">
           <div className="-mt-14 flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div className="flex items-end gap-3">
-              <div
-                className={cn(
-                  'flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-surface bg-primary-light text-primary-dark shadow-lg sm:size-32',
-                  imgError || !image ? 'relative' : '',
-                )}
-              >
-                {image && !imgError ? (
-                  <img src={image} alt={name} onError={() => setImgError(true)} className="h-full w-full object-cover" />
-                ) : (
-                  <EntityIcon type={type} className="size-12" />
-                )}
-              </div>
-              {type === 'doctor' && (whatsapp || phone) && (
-                <a
-                  href={whatsapp ? waLink(whatsapp, `مرحباً، أود الاستفسار من ${name}`) : `tel:${phone}`}
-                  target={whatsapp ? '_blank' : undefined}
-                  rel="noopener noreferrer"
-                  title="تواصل مع الطبيب"
-                  className="flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-green-600 shadow-sm transition hover:border-green-500 hover:bg-green-50"
-                >
-                  {whatsapp ? <MessageCircle className="size-5" /> : <Phone className="size-5" />}
-                </a>
+            <div
+              className={cn(
+                'flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-surface bg-primary-light text-primary-dark shadow-lg sm:size-32',
+                imgError || !image ? 'relative' : '',
+              )}
+            >
+              {image && !imgError ? (
+                <img src={image} alt={name} onError={() => setImgError(true)} className="h-full w-full object-cover" />
+              ) : (
+                <EntityIcon type={type} className="size-12" />
               )}
             </div>
 
