@@ -1,22 +1,20 @@
 // الحجز الفوري: المواطن يحجز وقتاً متاحاً فيصبح موعداً مؤكداً في نظام العيادة فوراً
 // حجز نشط واحد لكل مواطن (يشمل ما سجّله الطبيب من العيادة) + تحقق مزدوج من التوفر ثم إنشاء ذري بمؤشر الفريدة
+// مشروع المنصة: الأطباء والطلبات وجدول الربط — مشروع العيادة: المواعيد والأوقات المحجوزة فعلياً
 import { SUPABASE_URL, SUPABASE_ANON, json } from './_push.js'
+import { platformRpc, clinicRpc } from './_rpc.js'
 import { fetchActiveBooking } from './_one-booking.js'
-
-const BRIDGE_SECRET = 'brg_a8f4e2c1d6b93k75m0p2q8r4t6v1x3z5'
-const DASH_CONFIRM = 'https://dalil-altaybeh.vercel.app/api/bridge-clinic-booking'
-const DASH_TAKEN = 'https://dalil-altaybeh.vercel.app/api/bridge-taken-slots'
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
 function extractTime(text) {
-  const m = (text || '').match(/(\d{1,2}:\d{2})/)
+  const m = String(text ?? '').match(/(\d{1,2}:\d{2})/)
   return m ? m[1] : null
 }
 
 function padTime(t) {
-  const [h, m] = t.split(':')
-  return `${h.padStart(2, '0')}:${m}`
+  const [h, m] = String(t ?? '').split(':')
+  return `${String(h ?? '').padStart(2, '0')}:${m ?? ''}`
 }
 
 export default async (req, res) => {
@@ -29,7 +27,7 @@ export default async (req, res) => {
     return json(res, 400, { error: 'invalid date/time format' })
   }
 
-  // 1) بيانات الطبيب + الربط
+  // 1) بيانات الطبيب + الربط (مشروع المنصة)
   const dRes = await fetch(`${SUPABASE_URL}/rest/v1/doctors?select=id,name&id=eq.${doctor_id}&limit=1`, {
     headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` },
   }).catch(() => null)
@@ -42,7 +40,7 @@ export default async (req, res) => {
     { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } },
   ).catch(() => null)
   const mapRows = mMap ? await mMap.json().catch(() => []) : []
-  const clinicId = Array.isArray(mapRows) && mapRows[0]?.clinic_id
+  const clinicId = Array.isArray(mapRows) ? mapRows[0]?.clinic_id : null
 
   // 2) حجز نشط واحد فقط لكل مواطن — يشمل ما سجّله الطبيب مباشرة من العيادة
   const active = await fetchActiveBooking(phone)
@@ -50,22 +48,17 @@ export default async (req, res) => {
     return json(res, 409, { error: 'has_booking', message: active.message, booking: active.booking })
   }
 
-  // 3) تحقق التوفر: طلبات معلقة + مواعيد العيادة
+  // 3) تحقق التوفر: طلبات معلقة على المنصة + مواعيد العيادة
   const taken = new Set()
-  try {
-    const p = await fetch(`${SUPABASE_URL}/rest/v1/rpc/taken_pending_times`, {
-      method: 'POST',
-      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ p_secret: BRIDGE_SECRET, p_doctor_id: doctor_id, p_date: date }),
-    })
-    for (const t of (await p.json()) || []) if (t) taken.add(padTime(extractTime(t) || t))
-  } catch { /* الاستقبال حاجز أخير */ }
+  const pend = await platformRpc('taken_pending_times', { p_doctor_id: doctor_id, p_date: date })
+  for (const t of (Array.isArray(pend.data) ? pend.data : [])) {
+    if (t) taken.add(padTime(extractTime(t) || t))
+  }
   if (clinicId) {
-    try {
-      const c = await fetch(`${DASH_TAKEN}?secret=${BRIDGE_SECRET}&clinic_id=${clinicId}&date=${date}`)
-      const cd = await c.json()
-      for (const t of (Array.isArray(cd?.times) ? cd.times : [])) taken.add(t)
-    } catch { /* كالسابق */ }
+    const clinic = await clinicRpc('bridge_taken_times', { p_clinic_id: clinicId, p_date: date })
+    for (const t of (Array.isArray(clinic.data) ? clinic.data : [])) {
+      if (t) taken.add(padTime(extractTime(t) || t))
+    }
   }
   if (taken.has(padTime(time))) {
     return json(res, 409, { error: 'taken', message: 'عذراً، هذا الوقت حُجز للتو — اختر وقتاً آخر' })
@@ -75,21 +68,17 @@ export default async (req, res) => {
   const dateLabel = dObj.toLocaleDateString('ar', { weekday: 'long', day: 'numeric', month: 'long' })
   const timeWithDate = `${time} — ${dObj.toLocaleDateString('ar', { day: 'numeric', month: 'long' })}`
 
-  // 4) سجل الحجز في المنصة أولاً (معرف الربط بين النظامين) — عبر RPC آمن
-  let requestId = null
-  try {
-    const rec = await fetch(`${SUPABASE_URL}/rest/v1/rpc/book_record`, {
-      method: 'POST',
-      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        p_doctor_id: doctor_id, p_doctor_name: doctor.name, p_patient_name: name, p_patient_phone: phone,
-        p_preferred_day: DAY_KEYS[dObj.getDay()], p_preferred_time: timeWithDate,
-        p_requested_date: date, p_note: note || null,
-      }),
-    })
-    const rid = await rec.json()
-    requestId = typeof rid === 'string' ? rid : null
-  } catch { /* يُعاد المحاولة أدناه عند الحاجة */ }
+  // 4) تسجيل الحجز في المنصة أولاً (معرف الربط بين النظامين) — عبر RPC آمن
+  const rec = await platformRpc('book_record', {
+    p_doctor_id: doctor_id, p_doctor_name: doctor.name, p_patient_name: name, p_patient_phone: phone,
+    p_preferred_day: DAY_KEYS[dObj.getDay()], p_preferred_time: timeWithDate,
+    p_requested_date: date, p_note: note || null,
+  })
+  const requestId = typeof rec.data === 'string' ? rec.data : null
+  if (!requestId) {
+    // لا نُبلّغ المواطن بالنجاح دون سجل فعلي — يُعاد المحاولة
+    return json(res, 502, { error: 'record_failed', message: 'تعذّر تسجيل طلب الحجز — حاول مجدداً' })
+  }
 
   // 5) طبيب غير مربوط (احتياط): يبقى طلب مراجعة على المنصة
   if (!clinicId) {
@@ -100,34 +89,32 @@ export default async (req, res) => {
   }
 
   // 6) الحجز الفوري في نظام العيادة (إنشاء ذري بمؤشر الفريدة)
-  const cRes = await fetch(DASH_CONFIRM, {
-    method: 'POST',
-    headers: { 'x-bridge-secret': BRIDGE_SECRET, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      doctor_id,
-      doctor_name: doctor.name,
-      patient_name: name,
-      patient_phone: phone,
-      requested_date: date,
-      time,
-      note: note || null,
-      preferred_day: DAY_KEYS[dObj.getDay()],
-    }),
+  const conf = await clinicRpc('bridge_confirm_appointment', {
+    p_platform_ref: requestId, p_clinic_id: clinicId, p_doctor_name: doctor.name,
+    p_patient_name: name, p_patient_phone: phone,
+    p_requested_date: date, p_time: time, p_note: note || null,
   })
-  const cData = await cRes.json().catch(() => ({}))
-  if (!cRes.ok || cData.error) {
+  const confErr = conf?.data?.error || null
+  if (confErr === 'taken') {
     // تعارض الوقت: حذف سجل المنصة الاحتياطي ثم إبلاغ المواطن
-    if (requestId) {
-      await fetch(`${SUPABASE_URL}/rest/v1/rpc/book_record_delete`, {
-        method: 'POST',
-        headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p_secret: BRIDGE_SECRET, p_id: requestId }),
-      }).catch(() => {})
+    await platformRpc('book_record_delete', { p_id: requestId })
+    return json(res, 409, { error: 'taken', message: 'عذراً، هذا الوقت حُجز للتو — اختر وقتاً آخر' })
+  }
+  if (!conf?.ok || confErr || conf?.data?.ok !== true) {
+    // تعذّر الحجز في العيادة — يبقى الطلب مسجّلاً على المنصة ليؤكده الطبيب
+    const detail = String(conf?.data?.message || conf?.data?.details || '')
+    if (detail.includes('ONE_PER_DAY')) {
+      await platformRpc('book_record_delete', { p_id: requestId })
+      return json(res, 409, {
+        error: 'has_booking',
+        message: 'لديك موعد مسجّل في هذه العيادة في نفس اليوم — لا يمكن حجز موعد آخر.',
+        booking: { doctor: doctor.name, date, time },
+      })
     }
-    if (cData.error === 'taken') {
-      return json(res, 409, { error: 'taken', message: 'عذراً، هذا الوقت حُجز للتو — اختر وقتاً آخر' })
-    }
-    return json(res, 502, { ok: false, error: cData.error || 'clinic booking failed' })
+    return json(res, 200, {
+      ok: true, mode: 'request', request_id: requestId, clinic_pending: true,
+      doctor_name: doctor.name, date, time, date_label: dateLabel,
+    })
   }
 
   return json(res, 200, {

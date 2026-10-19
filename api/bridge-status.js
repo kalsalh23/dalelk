@@ -1,6 +1,7 @@
 // جسر عودة حالة الموعد: يستقبل قبول/رفض/إلغاء من نظام إدارة العيادة
 // ويحدّث طلب المنصة ويُبلّغ المريض بإشعار الدفع برسالة مناسبة لحالته
 import { SUPABASE_URL, SUPABASE_ANON, sendToSubscription, json } from './_push.js'
+import { clinicRpc } from './_rpc.js'
 
 const BRIDGE_SECRET = 'brg_a8f4e2c1d6b93k75m0p2q8r4t6v1x3z5'
 
@@ -21,6 +22,9 @@ export default async (req, res) => {
   const result = await r.json()
   if (!r.ok || result.error) return json(res, 400, { ok: false, error: result.error || 'update failed' })
   if (result.ignored) return json(res, 200, { ok: true, ignored: status })
+
+  // 1.1) مزامنة الحالة داخل نظام العيادة أيضاً (حتى تصل الحالة نفسها إلى استقصاء الواجهة)
+  await clinicRpc('bridge_set_request_status', { p_platform_ref: platform_ref, p_status: status })
 
   // 2) إشعار المريض — الرسالة بحسب الحالة السابقة والجديدة
   const subRes = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?appointment_id=eq.${platform_ref}&select=endpoint,p256dh,auth`, {

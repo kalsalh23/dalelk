@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MapPin, Phone, Star, ArrowLeft } from 'lucide-react'
+import { MapPin, Phone, Star, ArrowLeft, MessageCircle } from 'lucide-react'
+import { FacebookIcon, InstagramIcon } from '@/components/ui/BrandIcons'
 import { Card } from '@/components/ui/Card'
 import { VerifiedBadge } from '@/components/ui/Badge'
 import { getPublicUrl } from '@/lib/supabase'
-import { mapsLink } from '@/lib/utils'
+import { mapsLink, waLink } from '@/lib/utils'
 import { MAP_COLORS, ENTITY_LABELS } from '@/constants'
 import type { EntityType } from '@/types'
 import { EntityIcon } from '@/components/ui/EntityIcon'
@@ -39,6 +40,9 @@ export function EntityCard({ type, item, index = 0, highlight }: EntityCardProps
   const address = (item.address as string) ?? null
   const phone = (item.phone as string) ?? null
   const rating = item.rating ? Number(item.rating) : null
+  const whatsapp = (item.whatsapp as string) ?? null
+  const facebook = (item.facebook as string) ?? null
+  const instagram = (item.instagram as string) ?? null
 
   const link = `${ENTITY_ROUTES[type]}/${slug || id}`
   const color = MAP_COLORS[type]
@@ -80,6 +84,46 @@ export function EntityCard({ type, item, index = 0, highlight }: EntityCardProps
               <p className="truncate text-lg font-bold text-ink transition-colors group-hover:text-primary">
                 {name}
               </p>
+              {type === 'doctor' && (whatsapp || facebook || instagram) && (
+                <div className="flex items-center gap-1">
+                  {whatsapp && (
+                    <a
+                      href={waLink(whatsapp, `مرحباً، أود الاستفسار من ${name}`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex size-6 items-center justify-center rounded-full bg-green-50 text-green-600 transition hover:bg-green-100 sm:size-7"
+                      title="واتساب"
+                    >
+                      <MessageCircle className="size-3.5 sm:size-4" />
+                    </a>
+                  )}
+                  {facebook && (
+                    <a
+                      href={String(facebook)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex size-6 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition hover:bg-blue-100 sm:size-7"
+                      title="فيسبوك"
+                    >
+                      <FacebookIcon className="size-3.5 sm:size-4" />
+                    </a>
+                  )}
+                  {instagram && (
+                    <a
+                      href={String(instagram)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex size-6 items-center justify-center rounded-full bg-pink-50 text-pink-600 transition hover:bg-pink-100 sm:size-7"
+                      title="إنستغرام"
+                    >
+                      <InstagramIcon className="size-3.5 sm:size-4" />
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
             <p className="mt-0.5 flex items-center gap-1.5 text-sm font-medium text-muted">
               <span className="inline-block size-2 rounded-full" style={{ backgroundColor: color }} />

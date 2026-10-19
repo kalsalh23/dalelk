@@ -1,5 +1,8 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
+// مهم: VITE_SUPABASE_URL يجب أن يشير إلى مشروع المنصة نفسه الذي يستخدمه الخادم
+// (nwgtpljltnangevhdsdz) — وهو المشروع الذي توجد فيه بيانات الأطباء وطلبات المواعيد.
+// مشروع العيادة (lucnobmmrqujhgbhmciz) يُستدعى من الخادم فقط عبر /api/*
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 

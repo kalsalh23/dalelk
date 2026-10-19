@@ -3,9 +3,18 @@ import { createClient } from '@supabase/supabase-js'
 
 const NOTIFY_SECRET = process.env.NOTIFY_SECRET
 
+// مشروع المنصة (الدليل): الأطباء والكيانات والطلبات وجدول ربط الأطباء بالعيادات
+// وهو نفس المشروع الذي تقرأ منه الواجهة — لا يجوز فصلهما وإلا اختفى الطبيب عند الحجز
+const PLATFORM_URL = process.env.PLATFORM_SUPABASE_URL || 'https://nwgtpljltnangevhdsdz.supabase.co'
+const PLATFORM_ANON = process.env.PLATFORM_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53Z3RwbGpsdG5hbmdldmhkc2R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NzMxOTYsImV4cCI6MjEwMjA0OTE5Nn0.BzFe8UYvw0gjwb7RcRbTFDgLa_5AMVn5b_ug-YJvWmo'
+
+// مشروع نظام إدارة العيادة: العيادات والمرضى والمواعيد والأوقات المحجوزة فعلياً
+const CLINIC_URL = process.env.CLINIC_SUPABASE_URL || 'https://lucnobmmrqujhgbhmciz.supabase.co'
+const CLINIC_ANON = process.env.CLINIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y25vYm1tcnF1amhnYmhtY2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NzE3ODYsImV4cCI6MjEwNjQ0Nzc4Nn0.frRWMUU5BpN3CdLa_dqFopHJgv4QG3pfp2Tu1VtIF_Y'
+
 // عميل خدمة لتنظيف الاشتراكات الميتة (يتجاوز RLS عبر service_role عندما يكون متاحاً)
-const SUPABASE_URL = 'https://lucnobmmrqujhgbhmciz.supabase.co'
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y25vYm1tcnF1amhnYmhtY2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NzE3ODYsImV4cCI6MjEwNjQ0Nzc4Nn0.frRWMUU5BpN3CdLa_dqFopHJgv4QG3pfp2Tu1VtIF_Y'
+const SUPABASE_URL = PLATFORM_URL
+const SUPABASE_ANON = PLATFORM_ANON
 const CRON_SECRET = 'c50196c783f0cdf26fdfc592590bfbe3'
 
 function configured() {
@@ -76,4 +85,4 @@ function json(res, code, body) {
   res.end(JSON.stringify(body))
 }
 
-export { configured, missingEnv, checkSecret, sendToSubscription, sendToAll, purgeDead, json, SUPABASE_URL, SUPABASE_ANON, CRON_SECRET }
+export { configured, missingEnv, checkSecret, sendToSubscription, sendToAll, purgeDead, json, SUPABASE_URL, SUPABASE_ANON, CLINIC_URL, CLINIC_ANON, CRON_SECRET }
